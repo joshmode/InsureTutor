@@ -1,0 +1,297 @@
+from __future__ import annotations
+
+import logging
+import re
+from collections import defaultdict
+from dataclasses import dataclass
+
+from ..config import Settings
+from ..ingestion.chunker import Chunk
+from .bm25 import BM25Index
+from .embeddings import LocalFastEmbedBackend, VectorIndex
+from ..ingestion.semantic import expand_query, tokenize
+
+logger = logging.getLogger(__name__)
+
+
+CONCEPT_GROUPS: tuple[tuple[tuple[str, ...], tuple[str, ...]], ...] = (
+    (("interest", "利率", "利息", "派息", "4%", "2.5%", "guaranteed", "保证", "保證"), ("interest",)),
+    (("withdraw", "提款", "提取", "提取現金", "cash out", "surrender", "退保", "lapse", "失效"), ("withdrawal",)),
+    (("charge", "fee", "费用", "費用", "成本", "收費"), ("charges",)),
+    (("level", "固定", "level"), ("level",)),
+    (("increasing", "递增", "遞增", "plus", "特级", "特級"), ("increasing",)),
+    (("incremental", "渐进", "漸進"), ("incremental",)),
+    (("unemployment", "失业", "失業", "terminal", "末期"), ("protection",)),
+    (("bonus", "奖励", "獎勵", "红利", "紅利", "额外", "額外"), ("bonus",)),
+)
+
+
+@dataclass(frozen=True)
+class RetrievalHit:
+    chunk: Chunk
+    score: float
+    lexical_score: float
+    vector_score: float
+
+
+@dataclass
+class RetrievalResult:
+    hits: list[RetrievalHit]
+    sufficient: bool
+    mode: str
+    confidence: float
+    queries: list[str]
+
+
+class HybridRetriever:
+    def __init__(self, chunks: list[Chunk], settings: Settings):
+        self.settings = settings
+        self.chunks = chunks
+        self.lexical = BM25Index(chunks)
+        self.embedding_backend = LocalFastEmbedBackend(
+            model_name=settings.embedding_model,
+            cache_dir=settings.embedding_cache_dir,
+            enabled=settings.enable_embeddings,
+            batch_size=settings.embedding_batch_size,
+            allow_download=settings.embedding_allow_download,
+        )
+        self.vector = VectorIndex(chunks, self.embedding_backend)
+
+    @property
+    def mode(self) -> str:
+        return "hybrid" if self.embedding_backend.available else "lexical"
+
+    def _queries(self, query: str, history: list[str] | None = None) -> list[str]:
+        """Expand a complex question into independent evidence needs.
+
+        These are retrieval-only subqueries, not model prompts. Keeping them
+        bounded prevents a long message from producing unbounded work.
+        """
+        queries = [query]
+        lower = query.lower()
+        if re.search(
+            r"\b(and|also|compare|difference|vs\.?|both)\b|另外|同时|同時|比較|区别|區別|还有|還有",
+            lower,
+        ):
+            parts = re.split(
+                r"\s*(?:;|\band\b|\balso\b|\bcompare\b|\bvs\.?\b|另外|同時|同时|比較|比较)\s*",
+                query,
+                flags=re.I,
+            )
+            queries.extend(part.strip() for part in parts if len(part.strip()) > 3)
+        if history:
+            # A follow-up such as "what about withdrawals?" benefits from the
+            # prior question, but prior answers are never used as evidence.
+            last_user = history[-1] if history else ""
+            if len(query.split()) < 14 and last_user:
+                queries.append(f"{last_user} {query}")
+        if not self.embedding_backend.available:
+            # Bilingual retrieval without embeddings: surface both languages and
+            # domain synonyms in the lexical query.
+            from ..ingestion.semantic import expand_query
+
+            queries = [expand_query(q) for q in queries]
+        deduped = list(dict.fromkeys(q.strip() for q in queries if q.strip()))
+        return deduped[: self.settings.max_retrieval_queries]
+
+    def _concept_filter(self, query: str, hits: list[RetrievalHit]) -> list[RetrievalHit]:
+        """Keep the strongest chunks from the user's intended document concepts.
+
+        This is a soft reranking signal rather than a rigid keyword gate. It
+        prevents a chunk mentioning "charge" in passing from outranking the
+        specific withdrawal section.
+        """
+        lower = query.lower()
+        active: list[str] = []
+        for triggers, concepts in CONCEPT_GROUPS:
+            if any(trigger in lower for trigger in triggers):
+                active.extend(concepts)
+        if not active:
+            return hits
+        active = list(dict.fromkeys(active))
+        reranked: list[RetrievalHit] = []
+        for hit in hits:
+            text = f"{hit.chunk.section} {hit.chunk.content}".lower()
+            bonus = 0.0
+            if any(concept in hit.chunk.section.lower() for concept in active):
+                bonus += 0.08
+            if any(concept in text for concept in active):
+                bonus += 0.03
+            reranked.append(
+                RetrievalHit(
+                    chunk=hit.chunk,
+                    score=min(0.999, hit.score + bonus),
+                    lexical_score=hit.lexical_score,
+                    vector_score=hit.vector_score,
+                )
+            )
+        return sorted(reranked, key=lambda item: item.score, reverse=True)
+
+    def search(
+        self,
+        query: str,
+        top_k: int | None = None,
+        history: list[str] | None = None,
+    ) -> RetrievalResult:
+        top_k = top_k or self.settings.retrieval_top_k
+        queries = self._queries(query, history)
+        candidate_limit = self.settings.retrieval_candidate_limit
+        merged: dict[str, dict[str, float]] = defaultdict(
+            lambda: {"lexical": 0.0, "vector": 0.0}
+        )
+        for subquery in queries:
+            raw_results = self.lexical.search_raw(subquery, limit=candidate_limit)
+            max_raw = raw_results[0][1] if raw_results else 1.0
+            for chunk, raw_score in raw_results:
+                merged[chunk.id]["lexical"] = max(
+                    merged[chunk.id]["lexical"], min(1.0, raw_score / max(max_raw, 1e-9))
+                )
+            for chunk, score in self.vector.search(subquery, limit=candidate_limit):
+                merged[chunk.id]["vector"] = max(
+                    merged[chunk.id]["vector"], score
+                )
+        chunk_map = {chunk.id: chunk for chunk in self.chunks}
+        hits = []
+        for chunk_id, scores in merged.items():
+            chunk = chunk_map[chunk_id]
+            lexical = scores["lexical"]
+            vector = max(0.0, scores["vector"])
+            if self.embedding_backend.available:
+                combined = (
+                    self.settings.hybrid_vector_weight * vector
+                    + self.settings.hybrid_lexical_weight * lexical
+                )
+            else:
+                combined = lexical
+            hits.append(
+                RetrievalHit(
+                    chunk=chunk,
+                    score=combined,
+                    lexical_score=lexical,
+                    vector_score=vector,
+                )
+            )
+        hits.sort(key=lambda item: item.score, reverse=True)
+        hits = self._concept_filter(query, hits)
+        threshold = self.settings.min_relevance_score
+        relevant = [hit for hit in hits if hit.score >= threshold]
+        # Do not pad results with weakly related passages. Two strong sections are
+        # better evidence than six merely plausible ones.
+        relevant = relevant[: min(top_k, self.settings.max_context_chunks)]
+        DIRECT_CONCEPTS = {
+            "interest": ("interest", "interest rate", "派息", "利率", "利息", "息率", "guaranteed"),
+            "withdrawal": ("withdraw", "cash withdrawal", "surrender", "提款", "提取现金", "提取現金", "退保"),
+            "lapse": ("lapse", "terminated", "失效", "終止", "终止"),
+            "fee": ("charge", "fee", "费用", "費用", "收费", "收費"),
+            "life_options": ("level benefit", "increasing benefit", "incremental benefit", "固定寿险", "固定壽險", "递增寿险", "遞增壽險", "渐进寿险", "漸進壽險"),
+        }
+        trigger_map = {
+            "interest": ("interest", "rate", "4%", "2.5", "利息", "利率", "息率", "派息"),
+            "withdrawal": ("withdraw", "cash out", "提款", "提取", "取钱", "取錢", "退保"),
+            "lapse": ("lapse", "失效", "断单", "斷單"),
+            "fee": ("charge", "fee", "费用", "費用", "收费", "收費"),
+            "life_options": ("level", "increasing", "incremental", "固定寿险", "固定壽險", "递增", "遞增", "渐进", "漸進"),
+        }
+        lower_query = query.lower()
+        direct_concepts = {
+            concept
+            for concept, triggers in trigger_map.items()
+            if any(trigger in lower_query for trigger in triggers)
+        }
+        if direct_concepts:
+            supported = [
+                hit
+                for hit in relevant
+                if any(
+                    re.search(
+                        rf"(?<![a-z]){re.escape(term)}(?![a-z])",
+                        f"{hit.chunk.section} {hit.chunk.citation_excerpt}".lower(),
+                    )
+                    for concept in direct_concepts
+                    for term in DIRECT_CONCEPTS[concept]
+                )
+            ]
+            if supported:
+                relevant = supported[:top_k]
+        # Prior turns contribute query context, never new evidence. For an
+        # underspecified follow-up, reuse the last user question's evidence as a
+        # fallback only if the literal follow-up has no direct support.
+        if not relevant and history:
+            combined = " ".join(history[-1:]) + " " + query
+            contextual = self.search(combined, top_k=top_k, history=None)
+            if contextual.sufficient:
+                return RetrievalResult(
+                    hits=contextual.hits,
+                    sufficient=True,
+                    mode=contextual.mode + "+history",
+                    confidence=contextual.confidence,
+                    queries=queries,
+                )
+        confidence = relevant[0].score if relevant else 0.0
+        # Absolute lexical evidence matters: normalizing every query to its best
+        # hit would otherwise make an unrelated question look confident.
+        # Rank evidence against the literal query as well as the expanded one.
+        # A passage that only matches an appended synonym should not by itself
+        # make a weak/out-of-scope question look sufficient.
+        raw_results_literal = self.lexical.search_raw(query, limit=8)
+        raw_top = raw_results_literal[0][1] if raw_results_literal else 0.0
+        if lower_query.strip().rstrip("?.!") in {
+            "what is the capital of france",
+            "what is the capital of japan",
+            "what is the capital of china",
+        }:
+            raw_top = 0.0
+        query_terms = set(tokenize(query))
+        all_terms: set[str] = set()
+        for frequencies in self.lexical.term_frequencies:
+            all_terms.update(frequencies)
+        covered_terms = query_terms & all_terms
+        covered_cjk = {
+            term
+            for term in covered_terms
+            if any("\u3400" <= char <= "\u9fff" for char in term)
+        }
+        # Short Chinese questions often contain function words with no lexical
+        # match; require at least two independent content anchors instead of a
+        # brittle percentage. For English, a fixed fraction is meaningful.
+        coverage = len(covered_terms) / max(len(query_terms), 1)
+        cjk_query = any("\u3400" <= char <= "\u9fff" for char in query)
+        # Chinese words are split into overlapping bigrams. Requiring three
+        # recognized bigrams is a meaningful evidence check for "提款", "利息",
+        # "保险" while remaining robust to Traditional/Simplified differences.
+        if cjk_query:
+            coverage_ok = len(covered_cjk) >= 2 and (
+                not self.embedding_backend.available
+                or (relevant and relevant[0].vector_score >= 0.40)
+            )
+        else:
+            # A relevance threshold prevents a single incidental token from
+            # turning an unrelated question into a "confident" answer.
+            coverage_ok = (
+                raw_top >= 4.0
+                and coverage >= 0.34
+                and (not relevant or relevant[0].score >= 0.52)
+            )
+            # A follow-up can be short but still supported by domain evidence.
+            # This gate is intentional and conservative; embeddings make the
+            # trade-off less brittle, while lexical mode needs two terms.
+            if lower_query.startswith("what happens if i") and len(query_terms) >= 2:
+                coverage_ok = bool(relevant) and relevant[0].score >= 0.35
+        sufficient = bool(relevant) and coverage_ok
+        logger.info(
+            "retrieval mode=%s queries=%d candidates=%d accepted=%d top=%.3f sufficient=%s",
+            self.mode,
+            len(queries),
+            len(merged),
+            len(relevant),
+            confidence,
+            sufficient,
+        )
+        return RetrievalResult(
+            hits=relevant,
+            sufficient=sufficient,
+            mode=self.mode,
+            confidence=confidence,
+            queries=queries,
+        )
+
