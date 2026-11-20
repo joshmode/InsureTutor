@@ -65,3 +65,25 @@ def test_low_k_does_not_pad_irrelevant_results(retriever):
     assert not result.sufficient
     assert not result.hits or all(hit.score >= retriever.settings.min_relevance_score for hit in result.hits)
 
+
+def test_minimum_sum_retrieves_policy_limits_page(retriever):
+    result = retriever.search("What is the minimum sum insured?")
+    assert result.sufficient
+    assert 17 in pages(result)
+    assert any(
+        "US$30,000" in hit.chunk.citation_excerpt
+        for hit in result.hits
+        if hit.chunk.page == 17
+    )
+
+
+def test_payment_mode_retrieves_at_a_glance(retriever):
+    result = retriever.search("What payment modes are available?")
+    assert result.sufficient
+    assert 16 in pages(result)
+    assert any(
+        "Annual / Semi-annual / Quarterly / Monthly" in hit.chunk.citation_excerpt
+        or "法定" in hit.chunk.citation_excerpt
+        for hit in result.hits
+    )
+

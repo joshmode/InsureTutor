@@ -100,3 +100,20 @@ def test_mixed_language_question_retrieves_interest_evidence(retriever):
     assert result.sufficient
     assert any(hit.chunk.page in {8, 13, 16} for hit in result.hits)
 
+
+def test_claim_determination_question_is_not_treated_as_policy_fact(retriever):
+    app = make_orchestrator(
+        retriever,
+        "Yes. The insurer is guaranteed to pay your car-accident claim. [S1]",
+    )
+    response = asyncio.run(
+        app.answer(
+            ChatRequest(
+                message="Will the insurer definitely pay if I die in a car accident?",
+                language="en",
+            )
+        )
+    )
+    assert response.kind == "insufficient"
+    assert "guaranteed to pay" not in response.message.lower()
+

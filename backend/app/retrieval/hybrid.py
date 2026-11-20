@@ -9,7 +9,7 @@ from ..config import Settings
 from ..ingestion.chunker import Chunk
 from .bm25 import BM25Index
 from .embeddings import LocalFastEmbedBackend, VectorIndex
-from ..ingestion.semantic import expand_query, tokenize
+from ..ingestion.semantic import expand_query, phrase_tokens, tokenize
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +24,131 @@ CONCEPT_GROUPS: tuple[tuple[tuple[str, ...], tuple[str, ...]], ...] = (
     (("unemployment", "失业", "失業", "terminal", "末期"), ("protection",)),
     (("bonus", "奖励", "獎勵", "红利", "紅利", "额外", "額外"), ("bonus",)),
 )
+
+DIRECT_CONCEPTS = {
+    "interest": (
+        "base crediting interest",
+        "retrospective additional interest",
+        "guaranteed interest",
+        "interest rate",
+        "interest",
+        "派息",
+        "利率",
+        "利息",
+        "息率",
+    ),
+    "withdrawal": (
+        "cash withdrawal",
+        "periodic withdrawal",
+        "withdrawal charge",
+        "withdraw",
+        "surrender",
+        "提款",
+        "提取现金",
+        "提取現金",
+        "退保",
+    ),
+    "lapse": ("lapse", "terminated", "失效", "終止", "终止"),
+    "fee": ("charge", "fee", "费用", "費用", "收费", "收費"),
+    "life_options": (
+        "level benefit",
+        "increasing benefit",
+        "incremental benefit",
+        "固定寿险",
+        "固定壽險",
+        "递增寿险",
+        "遞增壽險",
+        "渐进寿险",
+        "漸進壽險",
+    ),
+    "exclusion": ("key exclusions", "exclusions", "不保事项", "不保事項", "exclusion"),
+    "fees": (
+        "premium expense charge",
+        "cost of insurance",
+        "administrative charge",
+        "surrender charge",
+        "withdrawal charge",
+    ),
+    "admin_fee": ("administrative charge", "一般行政费用", "一般行政費用"),
+    "term": (
+        "premium payment term",
+        "benefit term",
+        "缴付保费年期",
+        "繳付保費年期",
+        "保障年期",
+        "issue age",
+        "投保年龄",
+        "投保年齡",
+    ),
+    "minimum": (
+        "minimum sum insured",
+        "最低保障额",
+        "最低保障額",
+        "minimum sum",
+        "minimum coverage",
+    ),
+    "payment_mode": ("payment mode", "payment modes", "缴费方式", "繳費方式"),
+    "currency": ("policy currency", "currencies", "currency", "貨幣", "货币"),
+    "plan_type": ("plan type", "保單類別", "保单类别"),
+    "coverage": (
+        "increase coverage",
+        "basic sum insured",
+        "增加投保额",
+        "增加投保額",
+        "保障额",
+        "保障額",
+    ),
+    "savings": (
+        "universal life",
+        "non-linked",
+        "savings",
+        "account value",
+        "万用寿险",
+        "萬用壽險",
+        "非投资相连",
+        "非投資相連",
+        "账户价值",
+        "賬戶價值",
+    ),
+}
+
+TRIGGERS: dict[str, tuple[str, ...]] = {
+    "interest": ("interest", "rate", "4%", "2.5", "利息", "利率", "息率", "派息"),
+    "withdrawal": ("withdraw", "cash out", "提款", "提取", "取钱", "取錢", "退保"),
+    "lapse": ("lapse", "失效", "断单", "斷單"),
+    "fee": ("charge", "fee", "费用", "費用", "收费", "收費"),
+    "life_options": (
+        "level",
+        "increasing",
+        "incremental",
+        "固定寿险",
+        "固定壽險",
+        "递增",
+        "遞增",
+        "渐进",
+        "漸進",
+    ),
+    "exclusion": ("exclusion", "excluded", "不保", "除外"),
+    "fees": ("fees", "charges", "costs", "费用", "費用", "收费", "收費"),
+    "admin_fee": ("administrative", "admin fee", "行政费用", "行政費用"),
+    "term": ("policy term", "benefit term", "premium payment term", "年期", "保障期"),
+    "minimum": ("minimum sum", "minimum coverage", "最低保障"),
+    "payment_mode": ("payment mode", "payment modes", "缴费方式", "繳費方式", "繳費方式"),
+    "currency": ("currency", "currencies", "货币", "貨幣"),
+    "plan_type": ("plan type", "保单类别", "保單類別"),
+    "coverage": ("increase coverage", "increase my cover", "加保", "增加保障", "提高保障"),
+    "savings": (
+        "savings",
+        "investment",
+        "universal life",
+        "储蓄",
+        "儲蓄",
+        "投资",
+        "投資",
+        "万用寿险",
+        "萬用壽險",
+    ),
+}
 
 
 @dataclass(frozen=True)
@@ -178,38 +303,10 @@ class HybridRetriever:
         # Do not pad results with weakly related passages. Two strong sections are
         # better evidence than six merely plausible ones.
         relevant = relevant[: min(top_k, self.settings.max_context_chunks)]
-        DIRECT_CONCEPTS = {
-            "interest": ("interest", "interest rate", "派息", "利率", "利息", "息率", "guaranteed"),
-            "withdrawal": ("withdraw", "cash withdrawal", "surrender", "提款", "提取现金", "提取現金", "退保"),
-            "lapse": ("lapse", "terminated", "失效", "終止", "终止"),
-            "fee": ("charge", "fee", "费用", "費用", "收费", "收費"),
-            "life_options": ("level benefit", "increasing benefit", "incremental benefit", "固定寿险", "固定壽險", "递增寿险", "遞增壽險", "渐进寿险", "漸進壽險"),
-            "exclusion": ("key exclusions", "exclusions", "不保事项", "不保事項", "exclusion"),
-            "fees": ("premium expense charge", "cost of insurance", "administrative charge", "surrender charge", "withdrawal charge"),
-            "admin_fee": ("administrative charge", "一般行政费用", "一般行政費用"),
-            "term": ("premium payment term", "benefit term", "缴付保费年期", "繳付保費年期", "保障年期", "issue age", "投保年龄", "投保年齡"),
-            "coverage": ("increase coverage", "basic sum insured", "增加投保额", "增加投保額", "保障额", "保障額"),
-            "savings": ("universal life", "non-linked", "savings", "account value", "万用寿险", "萬用壽險", "非投资相连", "非投資相連", "账户价值", "賬戶價值"),
-            "minimum": ("minimum sum insured", "最低保障额", "最低保障額", "minimum sum", "minimum coverage"),
-        }
-        trigger_map = {
-            "interest": ("interest", "rate", "4%", "2.5", "利息", "利率", "息率", "派息"),
-            "withdrawal": ("withdraw", "cash out", "提款", "提取", "取钱", "取錢", "退保"),
-            "lapse": ("lapse", "失效", "断单", "斷單"),
-            "fee": ("charge", "fee", "费用", "費用", "收费", "收費"),
-            "life_options": ("level", "increasing", "incremental", "固定寿险", "固定壽險", "递增", "遞增", "渐进", "漸進"),
-            "exclusion": ("exclusion", "excluded", "不保", "除外"),
-            "fees": ("fees", "charges", "costs", "费用", "費用", "收费", "收費"),
-            "admin_fee": ("administrative", "admin fee", "行政费用", "行政費用"),
-            "term": ("policy term", "benefit term", "premium payment term", "年期", "保障期"),
-            "minimum": ("minimum sum", "minimum coverage", "最低保障"),
-            "coverage": ("increase coverage", "increase my cover", "加保", "增加保障", "提高保障"),
-            "savings": ("savings", "investment", "universal life", "储蓄", "儲蓄", "投资", "投資", "万用寿险", "萬用壽險"),
-        }
         lower_query = query.lower()
         direct_concepts = {
             concept
-            for concept, triggers in trigger_map.items()
+            for concept, triggers in TRIGGERS.items()
             if any(trigger in lower_query for trigger in triggers)
         }
         if direct_concepts:
@@ -262,6 +359,34 @@ class HybridRetriever:
                 ]
                 if minimum_hits:
                     supported = minimum_hits
+            if "payment_mode" in direct_concepts:
+                payment_hits = [
+                    hit
+                    for hit in relevant
+                    if re.search(r"payment mode|缴费方式|繳費方式", hit.chunk.section, re.I)
+                ]
+                if payment_hits:
+                    supported = payment_hits
+            if "currency" in direct_concepts:
+                currency_hits = [
+                    hit
+                    for hit in relevant
+                    if re.search(
+                        r"currency|貨幣|货币|policy issued in hong kong",
+                        f"{hit.chunk.section} {hit.chunk.citation_excerpt}",
+                        re.I,
+                    )
+                ]
+                if currency_hits:
+                    supported = currency_hits
+            if "plan_type" in direct_concepts:
+                plan_hits = [
+                    hit
+                    for hit in relevant
+                    if re.search(r"plan type|保單類別|保单类别", hit.chunk.section, re.I)
+                ]
+                if plan_hits:
+                    supported = plan_hits
             if "term" in direct_concepts:
                 term_hits = [
                     hit
@@ -310,6 +435,20 @@ class HybridRetriever:
         # make a weak/out-of-scope question look sufficient.
         raw_results_literal = self.lexical.search_raw(query, limit=8)
         raw_top = raw_results_literal[0][1] if raw_results_literal else 0.0
+        literal_terms = [
+            phrase.strip()
+            for phrase in phrase_tokens(query)
+            if len(phrase.strip()) >= 2
+        ]
+        literal_set = set(literal_terms)
+        literal_covered: set[str] = set()
+        for hit in relevant:
+            haystack = (
+                f"{hit.chunk.section} {hit.chunk.citation_excerpt}"
+            ).lower()
+            for phrase in literal_set:
+                if phrase in haystack:
+                    literal_covered.add(phrase)
         if lower_query.strip().rstrip("?.!") in {
             "what is the capital of france",
             "what is the capital of japan",
@@ -336,7 +475,10 @@ class HybridRetriever:
         # recognized bigrams is a meaningful evidence check for "提款", "利息",
         # "保险" while remaining robust to Traditional/Simplified differences.
         if cjk_query and not mixed_query:
-            coverage_ok = len(covered_cjk) >= 2 and (
+            coverage_ok = (
+                len(covered_cjk) >= 2
+                or len(literal_covered) >= 2
+            ) and (
                 not self.embedding_backend.available
                 or (relevant and relevant[0].vector_score >= 0.40)
             )

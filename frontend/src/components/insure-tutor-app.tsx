@@ -36,6 +36,7 @@ export function InsureTutorApp() {
   const [error, setError] = useState(false);
   const [lastQuestion, setLastQuestion] = useState("");
   const [activeCitation, setActiveCitation] = useState<number | null>(null);
+  const [activeCitationMessage, setActiveCitationMessage] = useState<string | null>(null);
   const [sourceOpen, setSourceOpen] = useState(false);
   const [mobileSources, setMobileSources] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
@@ -66,6 +67,13 @@ export function InsureTutorApp() {
     .reverse()
     .find((message): message is AssistantMessage => message.role === "assistant");
   const currentCitations = activeAssistant?.citations ?? [];
+  const selectedAssistant = messages.find(
+    (message): message is AssistantMessage =>
+      message.role === "assistant" && message.id === activeCitationMessage,
+  );
+  const selectedCitations = selectedAssistant?.citations ?? currentCitations;
+  const sourceCitations =
+    activeCitationMessage !== null ? selectedCitations : currentCitations;
   const started = hasStarted || messages.length > 0;
 
   function historyForRequest(): ChatTurn[] {
@@ -90,6 +98,7 @@ export function InsureTutorApp() {
       setHasStarted(true);
       setLastQuestion(question);
       setActiveCitation(null);
+      setActiveCitationMessage(null);
       setMessages((current) => [
         ...current,
         { id: uid("u"), role: "user", content: question },
@@ -128,13 +137,14 @@ export function InsureTutorApp() {
           throw new Error(detail || `Request failed (${response.status})`);
         }
         const result = (await response.json()) as ChatResponse;
+        const assistantId = uid("a");
         setMessages((current) => {
           const next = [...current];
           const pendingIndex = next.findIndex(
             (message) => message.role === "assistant" && "pending" in message && message.pending,
           );
           const assistant: AssistantMessage = {
-            id: uid("a"),
+            id: assistantId,
             role: "assistant",
             content: result.message,
             citations: result.citations,
@@ -149,6 +159,7 @@ export function InsureTutorApp() {
         });
         if (result.citations.length > 0) {
           setActiveCitation(1);
+          setActiveCitationMessage(assistantId);
         }
       } catch (err) {
         if ((err as Error).name === "AbortError") {
@@ -173,8 +184,9 @@ export function InsureTutorApp() {
     [draft, language, loading, messages],
   );
 
-  function handleCitation(index: number) {
+  function handleCitation(index: number, messageId: string) {
     setActiveCitation(index);
+    setActiveCitationMessage(messageId);
     if (window.innerWidth < 1024) setMobileSources(true);
     else setSourceOpen(true);
     window.setTimeout(() => {
@@ -248,8 +260,10 @@ export function InsureTutorApp() {
                       message={message}
                       language={language}
                       activeCitation={activeCitation}
-                      onCitationClick={handleCitation}
-                      onRetry={() => sendMessage(lastQuestion)}
+                      onCitationClick={(index) => handleCitation(index, message.id)}
+                      onRetry={() =>
+                        sendMessage(message.content || lastQuestion)
+                      }
                     />
                   ),
                 )}
@@ -290,7 +304,7 @@ export function InsureTutorApp() {
           <div className="hidden lg:block">
             <SourcePanel
               language={language}
-              citations={currentCitations}
+              citations={sourceCitations}
               activeCitation={activeCitation}
               onSelectCitation={(index) => setActiveCitation(index)}
               open
@@ -318,11 +332,11 @@ export function InsureTutorApp() {
                 </p>
               </div>
               <p className="text-[12px] font-semibold leading-[1.55]">
-                {currentCitations.length
-                  ? `${currentCitations.length} ${copy.citations}`
+                {sourceCitations.length
+                  ? `${sourceCitations.length} ${copy.citations}`
                   : copy.structuredNotice}
               </p>
-              {currentCitations.length > 0 && (
+              {sourceCitations.length > 0 && (
                 <button
                   type="button"
                   onClick={() => setSourceOpen(true)}
@@ -339,9 +353,9 @@ export function InsureTutorApp() {
 
       <SourcePanel
         language={language}
-        citations={currentCitations}
+        citations={sourceCitations}
         activeCitation={activeCitation}
-        onSelectCitation={handleCitation}
+        onSelectCitation={(index) => setActiveCitation(index)}
         open={mobileSources}
         onClose={() => setMobileSources(false)}
         mobile

@@ -57,8 +57,16 @@ CONCEPTS: dict[str, tuple[str, ...]] = {
         "賬戶價值 現金價值 保費 費用 利息 身故保障",
     ),
     "eligibility": (
-        "issue age benefit term premium payment term currency",
+        "issue age benefit term premium payment term currency currencies",
         "投保年齡 保障年期 繳付保費年期 貨幣",
+    ),
+    "currency": (
+        "policy currency currencies Hong Kong US$ HK$ Macau MOP",
+        "保單貨幣 货币 港元 美元 澳門元",
+    ),
+    "payment": (
+        "payment mode annual semi-annual quarterly monthly",
+        "繳費方式 每年 每半年 每季 每月",
     ),
 }
 
@@ -74,7 +82,19 @@ TRIGGERS: dict[str, tuple[str, ...]] = {
     "protection": ("unemployment", "terminal", "supplementary", "waiver", "失业", "失業", "末期", "附加", "豁免"),
     "risk": ("risk", "exclusion", "lapse", "inflation", "credit", "风险", "風險", "不保", "通胀", "通脹"),
     "account": ("account value", "cash value", "账户", "賬戶", "现金价值", "現金價值"),
-    "eligibility": ("age", "eligible", "eligibility", "term", "currency", "年龄", "年齡", "年期", "货币", "貨幣"),
+    "eligibility": (
+        "age",
+        "eligible",
+        "eligibility",
+        "term",
+        "currency",
+        "policy issued",
+        "年龄",
+        "年齡",
+        "年期",
+        "货币",
+        "貨幣",
+    ),
 }
 
 STOP_WORDS = {
@@ -132,6 +152,10 @@ STOP_CJK = {"的", "了", "是", "我", "你", "吗", "呢", "吧", "請", "请"
 def expand_query(text: str, all_concepts: bool = False) -> str:
     lower = text.lower()
     additions: list[str] = []
+    if any(trigger in lower for trigger in ("currenc", "货币", "貨幣")):
+        additions.extend(CONCEPTS["currency"])
+    if any(trigger in lower for trigger in ("payment mode", "缴费方式", "繳費方式")):
+        additions.extend(CONCEPTS["payment"])
     for concept, triggers in TRIGGERS.items():
         if all_concepts or any(trigger in lower for trigger in triggers):
             additions.extend(CONCEPTS[concept])
@@ -194,6 +218,23 @@ def tokenize(text: str) -> list[str]:
             if bigram not in STOP_CJK:
                 tokens.append(bigram)
     return tokens
+
+
+def phrase_tokens(text: str) -> list[str]:
+    """Return normalized words/phrases for literal evidence coverage checks."""
+    normalized = normalize_term(text)
+    words = [
+        _stem(word)
+        for word in re.findall(r"[a-z0-9]+(?:[.%][a-z0-9]+)*", normalized)
+        if word not in STOP_WORDS and len(word) >= 2
+    ]
+    phrases: list[str] = []
+    for run in re.findall(r"[\u3400-\u9fff]{2,}", normalized):
+        phrases.append(run)
+        # Words are normally two to four characters; character bigrams provide
+        # a fallback for short term variants such as 简体/繁體.
+        phrases.extend(run[i : i + 2] for i in range(len(run) - 1))
+    return words + phrases
 
 
 def normalize_term(text: str) -> str:

@@ -52,3 +52,14 @@ def test_unsupported_dollar_claim_is_rejected(retriever):
     reason = validate_answer_claims("You will receive $123,456. [1]", result.hits)
     assert reason and reason.startswith("unsupported_numeric_claim")
 
+
+def test_citation_markers_in_markdown_are_mapped(retriever):
+    result = retriever.search("Is the 4% interest rate guaranteed?")
+    validated = validate_and_map_citations(
+        "- The 4.0% rate is an assumed rate. [S1]\n- The guarantee has conditions. [S2]",
+        result.hits,
+    )
+    assert len(validated.citations) == 2
+    assert validated.text.count("[1]") == 1
+    assert validated.text.count("[2]") == 1
+

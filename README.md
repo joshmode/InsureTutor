@@ -42,7 +42,7 @@ docker compose up --build
 
 Open **http://localhost:8000**.
 
-The brochure is ingested at startup. The resulting 45 page-aware chunks are
+The brochure is ingested at startup. The resulting 49 page-aware chunks are
 persisted in the `insuretutor_data` Docker volume, so rebuilding the model index
 does not require a database service.
 
@@ -155,7 +155,7 @@ The implementation is structure-aware:
 6. Prepend a small retrieval header with section, document and page. The
    citation excerpt omits that header and remains source text.
 
-The result is 45 chunks for the 20-page brochure. Chunks are generally 0.7–1.5
+The result is 49 chunks for the 20-page brochure. Chunks are generally 0.7–1.5
 KB; the largest is bounded to avoid a single passage becoming an entire evidence
 set. This preserves tables and headings without producing page-sized chunks.
 
@@ -200,7 +200,7 @@ A fixed number of results is not evidence. The retriever:
   options, term, minimum coverage);
 - treats complex questions by retrieving evidence for multiple aspects.
 
-`MIN_RELEVANCE_SCORE`, `MIN_SUPPORT_SCORE`, `RETRIEVAL_TOP_K` and the hybrid
+`MIN_RELEVANCE_SCORE`, `RETRIEVAL_TOP_K` and the hybrid
 weights are environment-configurable. The defaults are intentionally
 conservative for a small, authoritative document.
 
@@ -314,7 +314,7 @@ All runtime knobs are environment-driven; see [`.env.example`](.env.example).
 | `EMBEDDING_ALLOW_DOWNLOAD` | Permit first-run model download |
 | `HYBRID_VECTOR_WEIGHT` / `HYBRID_LEXICAL_WEIGHT` | Hybrid score weights |
 | `RETRIEVAL_TOP_K` | Maximum accepted evidence chunks |
-| `MIN_RELEVANCE_SCORE` / `MIN_SUPPORT_SCORE` | Confidence gates |
+| `MIN_RELEVANCE_SCORE` | Confidence gate |
 | `MAX_HISTORY_TURNS` | Bounded conversation context |
 | `MAX_MESSAGE_CHARS` | Input validation |
 
@@ -350,7 +350,7 @@ uv pip install -r backend/requirements-dev.txt
 pytest -q
 ```
 
-The checked-in suite currently passes **49 tests**. It covers:
+The checked-in suite currently passes **61 tests**. It covers:
 
 - deterministic page-aware ingestion and table metadata;
 - interest, withdrawal, comparison, Chinese and unrelated retrieval;
@@ -360,6 +360,8 @@ The checked-in suite currently passes **49 tests**. It covers:
 - provider-failure fallback, constrained citation retry and no-model-call paths;
 - red-team injection variants, false-guarantee repair, optional-benefit claims
   and mixed-language retrieval;
+- form-label/value reconstruction for the minimum sum insured, currency and
+  payment-mode passages;
 - health, frontend serving, empty-message validation and missing-secret checks.
 
 ### Frontend
@@ -488,7 +490,7 @@ FLEXI-ULife Prime Saver brochure using its actual pages and terms.
   requires adding their filenames to `DOCUMENTS`; the chunker is generic enough
   for other PDFs but will need heading tuning for significantly different
   layouts.
-- Retrieval is designed for this 45-chunk corpus. It uses an in-memory dot-product
+- Retrieval is designed for this 49-chunk corpus. It uses an in-memory dot-product
   vector index, which is fast and simple here but not a large-scale vector store.
 - The local embedding model must be cached for hybrid mode; otherwise lexical
   retrieval is used. Lexical fallback can mismatch synonyms that are not in the

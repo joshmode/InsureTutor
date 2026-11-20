@@ -45,12 +45,26 @@ UNRELATED_PATTERNS = (
 )
 
 ADVICE_PATTERNS = (
-    r"\bshould i (?:buy|purchase|invest|surrender|cancel|keep|stop paying|switch)\b",
+    r"\bshould i (?:buy|purchase|invest|surrender|cancel|keep|stop paying|switch|put)\b",
     r"\bis (?:it|this) (?:a )?good (?:idea|investment|policy)\b",
+    r"\bis (?:it|this) (?:sensible|wise|prudent|worthwhile) (?:for me )?to (?:buy|purchase|invest|surrender|cancel)\b",
+    r"\b(?:is|would)\s+(?:this|it)\s+(?:be\s+)?(?:a\s+)?good\s+(?:fit|choice)\b",
+    r"\bwould (?:buying|this plan|this policy).{0,25}(?:be a good idea|be good|suit|fit)\b",
+    r"\b(?:is|would).{0,35}(?:good fit|suit my needs|fit my needs)\b",
+    r"\bif i .{0,60}\bis (?:that|this) a good idea\b",
+    r"\b(?:would|will) (?:that|this) be (?:a )?good idea (?:for me|in my case)\b",
+    r"\b(?:do you|would you) recommend\b",
+    r"\bwhat (?:do you|would you) recommend\b",
+    r"\bwould (?:buying|this plan|this policy).{0,20}(?:suit|fit) (?:me|my needs)\b",
+    r"\bis it wise to (?:buy|purchase|invest|surrender|cancel)\b",
     r"\bwhich (?:policy|plan|option) should i (?:buy|choose|get)\b",
     r"\bwhat should i do\b",
-    r"我(?:應該|应该|要不要|是否應該|是否应该).{0,12}(?:買|买|投資|投资|退保|取消|繼續|继续|供款)",
+    r"我(?:應該|应该|要不要|是否應該|是否应该).{0,20}(?:買|买|投資|投资|退保|取消|繼續|继续|供款|提款|提取)",
     r"(?:這|这)(?:個|个|份).{0,8}(?:好不好|值得買|值得买|適合我|适合我)",
+    r"(?:你|您)(?:建議|建议|推薦|推荐).{0,12}(?:買|买|投資|投资|退保|取消)",
+    r"(?:我|本人).{0,12}(?:適合|适合|應該買|应该买).{0,12}(?:這|这|此)",
+    r"(?:這|这|此).{0,12}(?:適合|适合|適合我|适合我).{0,12}(?:嗎|吗|\\?)",
+    r"(?:如果|假如).{0,35}(?:好不好|好嗎|好吗|值得|可以嗎|可以吗)",
 )
 
 MEDICAL_PATTERNS = (
@@ -199,6 +213,13 @@ def fixed_response(language: str, key: str) -> str:
                 "insurer's current scale of charges. Please request an official "
                 "illustration or surrender-value quote from the insurer."
             ),
+            "sensitive_redirect": (
+                "I can explain what the brochure says about protection, fees, "
+                "withdrawals and risks, but I can’t resolve a medical, tax, legal, "
+                "underwriting, claims-dispute or personal-coverage determination. "
+                "Those depend on official policy terms and your circumstances. "
+                "Please ask the insurer or a qualified professional."
+            ),
         },
         "zh-Hans": {
             "injection": (
@@ -222,6 +243,11 @@ def fixed_response(language: str, key: str) -> str:
                 "账户价值与适用退保费用的关系，但准确金额取决于保单记录、费用、已缴保费、"
                 "提款及保险公司现行收费。请向保险公司索取正式说明或退保价值报价。"
             ),
+            "sensitive_redirect": (
+                "我可以解释册子关于保障、费用、提款和风险的内容，但不能裁定医疗、税务、"
+                "法律、核保、理赔争议或个人保障需求。这些事项取决于正式保单条款及您的"
+                "实际情况，请向保险公司或合资格专业人士查询。"
+            ),
         },
         "zh-Hant": {
             "injection": (
@@ -244,6 +270,11 @@ def fixed_response(language: str, key: str) -> str:
                 "冊子沒有提供計算器，也沒有足夠個人資料來確定這個金額。冊子說明了現金價值、"
                 "賬戶價值與適用退保費用的關係，但準確金額取決於保單記錄、費用、已繳保費、"
                 "提款及保險公司現行收費。請向保險公司索取正式說明或退保價值報價。"
+            ),
+            "sensitive_redirect": (
+                "我可以解釋冊子關於保障、費用、提款和風險的內容，但不能裁定醫療、稅務、"
+                "法律、核保、理賠爭議或個人保障需求。這些事項取決於正式保單條款及您的"
+                "實際情況，請向保險公司或合資格專業人士查詢。"
             ),
         },
     }

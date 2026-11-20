@@ -18,10 +18,12 @@ class FakeLLM:
         self.responses = responses
         self.calls: list[list[dict]] = []
         self.temperatures: list[float | None] = []
+        self.seen_messages: list[list[dict]] = []
 
     async def complete(self, messages, *, temperature=None):
         self.calls.append(messages)
         self.temperatures.append(temperature)
+        self.seen_messages.append(messages)
         response = self.responses.pop(0)
         if isinstance(response, Exception):
             raise response
@@ -81,6 +83,16 @@ def test_invalid_citation_triggers_one_constrained_retry(retriever):
     )
     assert response.citations
     assert app.llm.temperatures == [None, 0.0]
+    assert any(
+        "S88" in message["content"]
+        for message in app.llm.seen_messages[1]
+        if message["role"] == "assistant"
+    )
+    assert any(
+        "rejected" in message["content"]
+        for message in app.llm.seen_messages[1]
+        if message["role"] == "user"
+    )
 
 
 def test_provider_failure_returns_source_excerpts(retriever):

@@ -41,3 +41,22 @@ def test_required_page_metadata_survives_tables():
     )
     assert any(chunk.page == 18 and "Surrender Charge" in chunk.content for chunk in chunks)
 
+
+def test_form_rows_are_attached_to_source_values():
+    chunks = chunk_document(PDF)
+    minimum = next(
+        chunk
+        for chunk in chunks
+        if chunk.page == 17 and "Minimum Sum Insured" in chunk.section
+    )
+    assert "US$30,000" in minimum.citation_excerpt
+    assert "HK$240,000" in minimum.citation_excerpt
+    payment = next(
+        chunk for chunk in chunks if chunk.section.endswith("Payment Mode")
+    )
+    assert "Annual / Semi-annual / Quarterly / Monthly Payment" in payment.citation_excerpt
+    currency = next(
+        chunk for chunk in chunks if chunk.section.endswith("Currency")
+    )
+    assert "Policy issued in Hong Kong" in currency.citation_excerpt
+

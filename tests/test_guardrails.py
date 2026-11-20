@@ -63,3 +63,19 @@ def test_legitimate_interest_question_is_not_flagged():
     decision = screen_input("Is the 4% interest rate guaranteed?")
     assert decision.intent == Intent.NORMAL
 
+
+@pytest.mark.parametrize(
+    "message",
+    [
+        "Would buying this be a good idea for me?",
+        "Is this plan a good fit for me?",
+        "Would this suit my needs?",
+        "What do you recommend?",
+        "Should I put my savings here?",
+        "這份保單適合我嗎？",
+        "If I withdraw $10,000 every year, is that a good idea?",
+    ],
+)
+def test_paraphrased_personalized_advice_is_flagged(message):
+    assert screen_input(message).intent == Intent.ADVICE
+

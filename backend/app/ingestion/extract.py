@@ -26,6 +26,7 @@ class TextLine:
 def _clean_text(text: str) -> str:
     text = text.replace("\u00ad", "").replace("\x00", "")
     text = text.replace("\ufffe", "")
+    text = text.replace("\x07", "")
     text = re.sub(r"[\u200b\u200c\u200d\u2060]", "", text)
     text = re.sub(r"[ \t]+\n", "\n", text)
     text = re.sub(r"\n{3,}", "\n\n", text)
@@ -85,6 +86,7 @@ def extract_pages(pdf_path: Path) -> tuple[dict[str, str], list[PageText]]:
             # sorting for this bilingual two-column brochure: sorted output
             # interleaves both languages and destroys table rows.
             text = "\n\n".join(blocks)
+            text = "\n\n".join(blocks)
             pages.append(
                 PageText(
                     page=index + 1,
@@ -97,4 +99,3 @@ def extract_pages(pdf_path: Path) -> tuple[dict[str, str], list[PageText]]:
         return metadata, pages
     finally:
         document.close()
-

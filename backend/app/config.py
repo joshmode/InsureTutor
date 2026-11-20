@@ -50,7 +50,6 @@ class Settings(BaseSettings):
     retrieval_top_k: int = Field(default=6, ge=2, le=12)
     retrieval_candidate_limit: int = Field(default=16, ge=4, le=50)
     min_relevance_score: float = Field(default=0.18, ge=0, le=1)
-    min_support_score: float = Field(default=0.30, ge=0, le=1)
     max_context_chunks: int = Field(default=6, ge=2, le=10)
 
     max_message_chars: int = Field(default=4000, ge=100, le=20_000)

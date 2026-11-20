@@ -101,13 +101,19 @@ def build_messages(
     ]
 
 
-def citation_repair_messages(messages: list[dict]) -> list[dict]:
+def citation_repair_messages(
+    messages: list[dict],
+    *,
+    draft: str,
+    error: str,
+) -> list[dict]:
     return [
         *messages,
+        {"role": "assistant", "content": draft},
         {
             "role": "user",
             "content": (
-                "Your previous draft omitted or used invalid evidence citations. Rewrite "
+                f"Your previous draft was rejected ({error}). Rewrite "
                 "the answer now. Every product-specific claim must end with a valid [S#] "
                 "marker from the evidence list. Do not add facts not present in the "
                 "evidence. If the evidence cannot support the answer, state that clearly."
