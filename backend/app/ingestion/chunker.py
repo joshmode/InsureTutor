@@ -47,6 +47,36 @@ FEE_HEADINGS = (
     "Cash Value Withdrawal",
 )
 
+FOCUS_HEADINGS = (
+    "Base crediting interest rate",
+    "Retrospective additional interest",
+    "Extra Bonus",
+    "Guaranteed interest",
+    "Death Benefit Options",
+    "Guaranteed Insurability Option",
+    "Unemployment Benefit",
+    "Terminal Illness Benefit",
+    "Supplementary Benefits",
+    "Plan Type",
+    "Currency",
+    "Payment Mode",
+    "Minimum Sum Insured",
+    "Maximum Sum Insured",
+    "Increase / Decrease Sum Insured",
+    "Premium Expense Charge",
+    "Cost of Insurance",
+    "Administrative Charge",
+    "Surrender Charge",
+    "Cash Value Withdrawal",
+    "Issue Age",
+    "Benefit Term",
+    "Premium Payment Term",
+    "Key Exclusions",
+    "Early Surrender",
+    "Inflation Risk",
+    "Credit Risk",
+)
+
 
 def _section_for(page_text: str, fallback: str) -> str:
     head = page_text[:2400]
@@ -177,6 +207,11 @@ def chunk_document(pdf_path: Path) -> list[Chunk]:
                 if heading.lower() in piece.lower():
                     section = f"{page_section} · {heading}"
                     break
+            if section == page_section:
+                for heading in FOCUS_HEADINGS:
+                    if heading.lower() in piece.lower():
+                        section = f"{page_section} · {heading}"
+                        break
             if re.search(r"失業保障|Unemployment", piece, re.I):
                 section = f"{page_section} · Unemployment Protection"
             if re.search(r"末期病症|Terminal Illness", piece, re.I):

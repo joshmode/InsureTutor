@@ -4,6 +4,11 @@ import logging
 
 from ..config import Settings
 from ..guardrails.offline import render_offline_answer
+from ..guardrails.concepts import (
+    concept_failure_notice,
+    is_credentials_request,
+    missing_concept_evidence,
+)
 from ..guardrails.output import (
     has_any_citation,
     validate_and_map_citations,
@@ -54,6 +59,13 @@ class ChatOrchestrator:
     async def answer(self, request: ChatRequest) -> ChatResponse:
         decision = screen_input(request.message)
         language = request.language
+        if is_credentials_request(request.message):
+            return ChatResponse(
+                message=fixed_response(language, "injection"),
+                language=language,
+                kind="blocked",
+                notices=[localised_notice(language, "educational")],
+            )
         if decision.intent == Intent.ADVICE:
             advice_retrieval = self.retriever.search(
                 "policy risks costs benefits suitability general information",
@@ -125,6 +137,18 @@ class ChatOrchestrator:
                     localised_notice(language, "brochure_only"),
                     localised_notice(language, "professional"),
                 ],
+            )
+        concept_gap = missing_concept_evidence(request.message, retrieval.hits)
+        if concept_gap:
+            logger.info("Concept evidence gap: %s", concept_gap)
+            return ChatResponse(
+                message=f"{fixed_response(language, 'insufficient')}\n\n{concept_failure_notice(language)}",
+                language=language,
+                kind="insufficient",
+                used_retrieval=True,
+                retrieval_mode=retrieval.mode,
+                confidence=retrieval.confidence,
+                notices=[localised_notice(language, "brochure_only")],
             )
 
         if not self.llm.configured:

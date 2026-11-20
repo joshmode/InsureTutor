@@ -184,6 +184,13 @@ class HybridRetriever:
             "lapse": ("lapse", "terminated", "失效", "終止", "终止"),
             "fee": ("charge", "fee", "费用", "費用", "收费", "收費"),
             "life_options": ("level benefit", "increasing benefit", "incremental benefit", "固定寿险", "固定壽險", "递增寿险", "遞增壽險", "渐进寿险", "漸進壽險"),
+            "exclusion": ("key exclusions", "exclusions", "不保事项", "不保事項", "exclusion"),
+            "fees": ("premium expense charge", "cost of insurance", "administrative charge", "surrender charge", "withdrawal charge"),
+            "admin_fee": ("administrative charge", "一般行政费用", "一般行政費用"),
+            "term": ("premium payment term", "benefit term", "缴付保费年期", "繳付保費年期", "保障年期", "issue age", "投保年龄", "投保年齡"),
+            "coverage": ("increase coverage", "basic sum insured", "增加投保额", "增加投保額", "保障额", "保障額"),
+            "savings": ("universal life", "non-linked", "savings", "account value", "万用寿险", "萬用壽險", "非投资相连", "非投資相連", "账户价值", "賬戶價值"),
+            "minimum": ("minimum sum insured", "最低保障额", "最低保障額", "minimum sum", "minimum coverage"),
         }
         trigger_map = {
             "interest": ("interest", "rate", "4%", "2.5", "利息", "利率", "息率", "派息"),
@@ -191,6 +198,13 @@ class HybridRetriever:
             "lapse": ("lapse", "失效", "断单", "斷單"),
             "fee": ("charge", "fee", "费用", "費用", "收费", "收費"),
             "life_options": ("level", "increasing", "incremental", "固定寿险", "固定壽險", "递增", "遞增", "渐进", "漸進"),
+            "exclusion": ("exclusion", "excluded", "不保", "除外"),
+            "fees": ("fees", "charges", "costs", "费用", "費用", "收费", "收費"),
+            "admin_fee": ("administrative", "admin fee", "行政费用", "行政費用"),
+            "term": ("policy term", "benefit term", "premium payment term", "年期", "保障期"),
+            "minimum": ("minimum sum", "minimum coverage", "最低保障"),
+            "coverage": ("increase coverage", "increase my cover", "加保", "增加保障", "提高保障"),
+            "savings": ("savings", "investment", "universal life", "储蓄", "儲蓄", "投资", "投資", "万用寿险", "萬用壽險"),
         }
         lower_query = query.lower()
         direct_concepts = {
@@ -211,6 +225,67 @@ class HybridRetriever:
                     for term in DIRECT_CONCEPTS[concept]
                 )
             ]
+            # If an explicit product concept has no supporting passage, do not
+            # substitute an adjacent topic just to fill the context window.
+            if not supported:
+                relevant = []
+            if "fees" in direct_concepts and "admin_fee" not in direct_concepts:
+                # General fee questions need the complete charge schedule, not
+                # four near-duplicate withdrawal passages.
+                supported = sorted(
+                    supported,
+                    key=lambda hit: (
+                        not any(
+                            term in hit.chunk.citation_excerpt.lower()
+                            for term in ("administrative charge", "premium expense", "cost of insurance")
+                        ),
+                        -hit.score,
+                    ),
+                )
+            if "admin_fee" in direct_concepts:
+                admin_hits = [
+                    hit
+                    for hit in relevant
+                    if re.search(r"administrative charge|一般行政费用|一般行政費用", hit.chunk.citation_excerpt, re.I)
+                ]
+                if admin_hits:
+                    supported = admin_hits
+            if "minimum" in direct_concepts:
+                minimum_hits = [
+                    hit
+                    for hit in relevant
+                    if re.search(
+                        r"minimum sum insured|us\$30,000|us\$25,000|us\$15,000|us\$8,000|us\$5,000",
+                        hit.chunk.citation_excerpt,
+                        re.I,
+                    )
+                ]
+                if minimum_hits:
+                    supported = minimum_hits
+            if "term" in direct_concepts:
+                term_hits = [
+                    hit
+                    for hit in relevant
+                    if re.search(
+                        r"benefit term|premium payment term|保障年期|繳付保費年期|缴付保费年期|to age 100|至100岁|至100歲",
+                        hit.chunk.citation_excerpt,
+                        re.I,
+                    )
+                ]
+                if term_hits:
+                    supported = term_hits
+            if "coverage" in direct_concepts:
+                coverage_hits = [
+                    hit
+                    for hit in relevant
+                    if re.search(
+                        r"increase coverage|adjust the original policy|increase the basic sum insured|增加.*保障額|增加.*保障额|提高.*保障",
+                        hit.chunk.citation_excerpt,
+                        re.I,
+                    )
+                ]
+                if coverage_hits:
+                    supported = coverage_hits
             if supported:
                 relevant = supported[:top_k]
         # Prior turns contribute query context, never new evidence. For an
