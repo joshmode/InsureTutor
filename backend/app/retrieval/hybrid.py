@@ -331,10 +331,11 @@ class HybridRetriever:
         # brittle percentage. For English, a fixed fraction is meaningful.
         coverage = len(covered_terms) / max(len(query_terms), 1)
         cjk_query = any("\u3400" <= char <= "\u9fff" for char in query)
+        mixed_query = cjk_query and bool(re.search(r"[A-Za-z]{3,}", query))
         # Chinese words are split into overlapping bigrams. Requiring three
         # recognized bigrams is a meaningful evidence check for "提款", "利息",
         # "保险" while remaining robust to Traditional/Simplified differences.
-        if cjk_query:
+        if cjk_query and not mixed_query:
             coverage_ok = len(covered_cjk) >= 2 and (
                 not self.embedding_backend.available
                 or (relevant and relevant[0].vector_score >= 0.40)

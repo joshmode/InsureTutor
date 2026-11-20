@@ -350,7 +350,7 @@ uv pip install -r backend/requirements-dev.txt
 pytest -q
 ```
 
-The checked-in suite currently passes **42 tests**. It covers:
+The checked-in suite currently passes **49 tests**. It covers:
 
 - deterministic page-aware ingestion and table metadata;
 - interest, withdrawal, comparison, Chinese and unrelated retrieval;
@@ -358,6 +358,8 @@ The checked-in suite currently passes **42 tests**. It covers:
 - false-guarantee, unsupported numeric and system-leak output checks;
 - injection, scope, advice, sensitive-topic, credential and calculation policies;
 - provider-failure fallback, constrained citation retry and no-model-call paths;
+- red-team injection variants, false-guarantee repair, optional-benefit claims
+  and mixed-language retrieval;
 - health, frontend serving, empty-message validation and missing-secret checks.
 
 ### Frontend

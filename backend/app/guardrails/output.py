@@ -99,6 +99,22 @@ _SYSTEM_LEAK = re.compile(
     re.IGNORECASE,
 )
 
+_SUPPLEMENTARY_ASSUMED = re.compile(
+    r"(?:critical illness|accident benefit|waiver of premium|supplementary benefits?)"
+    r".{0,70}(?:automatically (?:included|included automatically)|is included in the basic|"
+    r"are included in the basic|comes? with the basic plan)|"
+    r"(?:automatic(?:ally)?|included).{0,45}(?:critical illness|accident benefit|waiver of premium)",
+    re.IGNORECASE | re.DOTALL,
+)
+
+_SUPPLEMENTARY_EVIDENCE = re.compile(
+    r"(?:supplementary benefits?|waiver of premium|critical illness|accident benefit)"
+    r".{0,220}(?:additional premium|if any|etc\.|optional)|"
+    r"(?:additional premium|if any|optional).{0,160}"
+    r"(?:waiver of premium|critical illness|accident benefit|supplementary benefit)",
+    re.IGNORECASE | re.DOTALL,
+)
+
 
 def validate_answer_claims(answer: str, hits: list[RetrievalHit]) -> str | None:
     """Return a failure reason if generated text makes a clearly unsafe claim.
@@ -109,6 +125,20 @@ def validate_answer_claims(answer: str, hits: list[RetrievalHit]) -> str | None:
     """
     if _SYSTEM_LEAK.search(answer):
         return "system_instruction_leak"
+    supplementary_assertion = _SUPPLEMENTARY_ASSUMED.search(answer)
+    if supplementary_assertion:
+        evidence_text = " ".join(hit.chunk.citation_excerpt for hit in hits)
+        assertion = supplementary_assertion.group().lower()
+        optional_evidence = re.search(
+            r"supplementary benefits?.{0,80}additional premium|"
+            r"additional premium.{0,80}supplementary|if any|optional",
+            evidence_text,
+            re.IGNORECASE | re.DOTALL,
+        )
+        # The assertion is unsafe unless the evidence explicitly frames the
+        # benefit as supplementary/optional rather than automatically included.
+        if not optional_evidence or "automatically included" in assertion:
+            return "supplementary_benefit_assumed"
     for match in _FALSE_GUARANTEE.finditer(answer):
         window_start = max(0, match.start() - 35)
         window_end = min(len(answer), match.end() + 35)

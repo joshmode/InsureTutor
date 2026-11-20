@@ -22,11 +22,16 @@ INJECTION_PATTERNS = (
     r"make up (?:a |the )?(?:guaranteed return|policy benefit|benefit)",
     r"fabricate (?:a |the )?(?:return|benefit|policy term)",
     r"ignore (?:the )?(?:retrieved|source) (?:documents?|evidence)",
+    r"output (?:the )?(?:text|content) (?:above|before) (?:verbatim|word for word)",
+    r"(?:print|repeat|return).{0,12}(?:your )?(?:hidden|internal) (?:prompt|instructions)",
+    r"(?:ignore|disregard).{0,30}(?:context|evidence).{0,30}(?:fabricate|invent|make up)",
     r"忽略(?:所有|以上|之前|先前).{0,10}(?:指令|規則|规则)",
     r"無視(?:所有|以上|之前|先前).{0,10}(?:指令|規則|规则)",
     r"(?:顯示|显示|透露).{0,8}(?:系統|系统|開發者|开发者).{0,8}(?:提示|指令)",
     r"假裝|假装.{0,10}(?:保險經紀|保险经纪|持牌|理財顧問|理财顾问)",
     r"關閉|关闭.{0,8}(?:引用|引文|來源|来源)",
+    r"(?:輸出|输出|重複|重复).{0,15}(?:隱藏|隐藏|內部|内部|之前).{0,15}(?:提示|指令|內容|内容)",
+    r"(?:忽略|無視|无视).{0,20}(?:證據|证据|文件|資料|资料).{0,20}(?:編造|编造|虛構|虚构)",
 )
 
 UNRELATED_PATTERNS = (
