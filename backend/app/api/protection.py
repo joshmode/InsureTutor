@@ -65,6 +65,7 @@ class ProtectionMiddleware:
         self.app = app
         self.settings = settings
         self.csp = content_security_policy(static_dir)
+        self._release_tasks = set()
 
     def _authorized(self, headers):
         if not self.settings.app_access_password:
@@ -135,7 +136,7 @@ class ProtectionMiddleware:
         if scope["path"] != "/api/chat" or scope["method"] != "POST":
             return await self.app(scope, receive, secured_send)
         guard = scope["app"].state.consumption
-        lease = None
+        admission = None
         try:
             length = headers.get(b"content-length")
             if length is not None:
@@ -150,7 +151,10 @@ class ProtectionMiddleware:
             # Uses ASGI peer, never an arbitrary request's X-Forwarded-For.
             # Configure trusted proxies at the server, not in application headers.
             peer = (scope.get("client") or ("unknown",))[0]
-            lease = await run_in_threadpool(guard.admit_chat, peer)
+            # A canceled thread await does not stop SQLite from committing.
+            # Keep its result available to cleanup even if this request leaves.
+            admission = asyncio.create_task(run_in_threadpool(guard.admit_chat, peer))
+            await asyncio.shield(admission)
             body = bytearray()
             async with asyncio.timeout(self.settings.request_read_timeout_seconds):
                 while True:
@@ -164,6 +168,7 @@ class ProtectionMiddleware:
                     if not message.get("more_body", False):
                         break
             delivered = False
+            disconnected = asyncio.Event()
 
             async def replay():
                 nonlocal delivered
@@ -174,10 +179,33 @@ class ProtectionMiddleware:
                         "body": bytes(body),
                         "more_body": False,
                     }
-                return await receive()
+                await disconnected.wait()
+                return {"type": "http.disconnect"}
+
+            async def watch_disconnect():
+                while True:
+                    if (await receive())["type"] == "http.disconnect":
+                        disconnected.set()
+                        return
 
             async with asyncio.timeout(self.settings.chat_timeout_seconds):
-                await self.app(scope, replay, secured_send)
+                work = asyncio.create_task(self.app(scope, replay, secured_send))
+                disconnect = asyncio.create_task(watch_disconnect())
+                try:
+                    done, _ = await asyncio.wait(
+                        (work, disconnect), return_when=asyncio.FIRST_COMPLETED
+                    )
+                    if work in done:
+                        await work
+                    else:
+                        await disconnect
+                finally:
+                    for task in (work, disconnect):
+                        if not task.done():
+                            task.cancel()
+                    # Await cancellation so the provider closes its connection
+                    # before releasing this request's concurrency allowance.
+                    await asyncio.gather(work, disconnect, return_exceptions=True)
         except LimitExceeded as exc:
             await error(
                 429,
@@ -194,9 +222,19 @@ class ProtectionMiddleware:
             if not started:
                 await error(503, "The service is temporarily unavailable")
         finally:
-            if lease:
-                # Release even if the request task was canceled by a disconnect.
-                try:
-                    await asyncio.shield(run_in_threadpool(guard.release_chat, lease))
-                except Exception:
-                    logger.error("Could not release chat lease; it will expire")
+            if admission is not None:
+                async def release_admitted():
+                    try:
+                        lease = await admission
+                    except Exception:
+                        return  # Admission failed without creating a lease.
+                    try:
+                        await run_in_threadpool(guard.release_chat, lease)
+                    except Exception:
+                        logger.error("Could not release chat lease; it will expire")
+
+                cleanup = asyncio.create_task(release_admitted())
+                # Retain cleanup if repeated cancellation interrupts the shield.
+                self._release_tasks.add(cleanup)
+                cleanup.add_done_callback(self._release_tasks.discard)
+                await asyncio.shield(cleanup)

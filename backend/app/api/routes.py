@@ -21,6 +21,11 @@ async def health(request: Request) -> HealthResponse:
         documents=len({c.document for c in runtime.knowledge.chunks}),
         chunks=len(runtime.knowledge.chunks),
         ingest_ready=bool(runtime.knowledge.chunks),
+        request_timeout_seconds=(
+            runtime.settings.chat_timeout_seconds
+            + runtime.settings.request_read_timeout_seconds
+            + 5
+        ),
     )
 
 

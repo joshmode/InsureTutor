@@ -56,6 +56,7 @@ class HealthResponse(BaseModel):
     documents: int
     chunks: int
     ingest_ready: bool
+    request_timeout_seconds: float
 
 
 class SourceChunk(BaseModel):

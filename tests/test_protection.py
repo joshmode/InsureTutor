@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import threading
 from concurrent.futures import ThreadPoolExecutor
 from types import SimpleNamespace
 
@@ -208,6 +209,124 @@ def test_body_read_timeout_and_cancellation_release_lease(tmp_path):
 
     asyncio.run(exercise(False))
     asyncio.run(exercise(True))
+
+
+def test_cancellation_during_admission_does_not_orphan_committed_lease(
+    tmp_path, monkeypatch
+):
+    config = settings(tmp_path, chat_concurrency_limit=1)
+    guard = ConsumptionGuard(config)
+    entered, unblock = threading.Event(), threading.Event()
+    original_admit = guard.admit_chat
+
+    def delayed_admit(peer):
+        entered.set()
+        assert unblock.wait(2)
+        return original_admit(peer)
+
+    monkeypatch.setattr(guard, "admit_chat", delayed_admit)
+
+    async def exercise():
+        async def app(scope, receive, send):
+            raise AssertionError("canceled admission must not reach the app")
+
+        async def receive():
+            return {"type": "http.request", "body": b"{}"}
+
+        async def send(message):
+            raise AssertionError("canceled request must not send a response")
+
+        scope = {
+            "type": "http",
+            "method": "POST",
+            "path": "/api/chat",
+            "headers": [],
+            "app": SimpleNamespace(state=SimpleNamespace(consumption=guard)),
+        }
+        task = asyncio.create_task(
+            ProtectionMiddleware(app, config, tmp_path / "empty")(scope, receive, send)
+        )
+        try:
+            assert await asyncio.to_thread(entered.wait, 2)
+            task.cancel()
+            await asyncio.sleep(0)
+        finally:
+            unblock.set()
+        with pytest.raises(asyncio.CancelledError):
+            await task
+
+    asyncio.run(exercise())
+    monkeypatch.setattr(guard, "admit_chat", original_admit)
+    lease = guard.admit_chat("next-request")
+    guard.release_chat(lease)
+
+
+def test_disconnect_after_body_cancels_provider_and_releases_lease(tmp_path, monkeypatch):
+    config = settings(tmp_path, chat_concurrency_limit=1, llm_api_key="test-only")
+    guard = ConsumptionGuard(config)
+    original_client = httpx.AsyncClient
+
+    async def exercise():
+        began, disconnected, closed = asyncio.Event(), asyncio.Event(), asyncio.Event()
+        body_sent = False
+
+        class PendingReply(httpx.AsyncByteStream):
+            async def __aiter__(self):
+                began.set()
+                await asyncio.Event().wait()
+                yield b""
+
+            async def aclose(self):
+                closed.set()
+
+        transport = httpx.MockTransport(
+            lambda request: httpx.Response(200, stream=PendingReply())
+        )
+        monkeypatch.setattr(
+            httpx,
+            "AsyncClient",
+            lambda **kwargs: original_client(transport=transport, **kwargs),
+        )
+        provider = OpenAICompatibleClient(config, consumption=guard)
+
+        async def app(scope, receive, send):
+            assert (await receive())["body"] == b"{}"
+            await provider.complete([{"role": "user", "content": "question"}])
+
+        async def receive():
+            nonlocal body_sent
+            if not body_sent:
+                body_sent = True
+                return {"type": "http.request", "body": b"{}"}
+            await disconnected.wait()
+            return {"type": "http.disconnect"}
+
+        async def send(message):
+            raise AssertionError("disconnected request must not send a response")
+
+        scope = {
+            "type": "http",
+            "method": "POST",
+            "path": "/api/chat",
+            "headers": [],
+            "app": SimpleNamespace(state=SimpleNamespace(consumption=guard)),
+        }
+        task = asyncio.create_task(
+            ProtectionMiddleware(app, config, tmp_path / "empty")(scope, receive, send)
+        )
+        try:
+            await asyncio.wait_for(began.wait(), 1)
+            disconnected.set()
+            await asyncio.wait_for(asyncio.shield(task), 1)
+            assert closed.is_set()
+        finally:
+            if not task.done():
+                task.cancel()
+                await asyncio.gather(task, return_exceptions=True)
+
+    asyncio.run(exercise())
+    lease = guard.admit_chat("next-request")
+    guard.release_chat(lease)
 
 
 @pytest.mark.parametrize(

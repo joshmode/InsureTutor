@@ -69,11 +69,20 @@ if STATIC_DIR.exists():
 
 
 @app.get("/source-document", include_in_schema=False)
-async def source_document():
-    pdf = settings.knowledge_base_dir / settings.document_names[0]
-    if pdf.exists():
-        return FileResponse(pdf, media_type="application/pdf")
-    return {"detail": "Source document not available"}
+async def source_document(document: str | None = None):
+    names = settings.document_names
+    name = document if document is not None else (names[0] if names else "")
+    if (
+        name not in names
+        or Path(name).name != name
+        or Path(name).suffix.lower() != ".pdf"
+    ):
+        raise HTTPException(status_code=404, detail="Source document not found")
+    root = settings.knowledge_base_dir.resolve()
+    pdf = (root / name).resolve()
+    if not pdf.is_relative_to(root) or not pdf.is_file():
+        raise HTTPException(status_code=404, detail="Source document not found")
+    return FileResponse(pdf, media_type="application/pdf")
 
 
 @app.get("/{full_path:path}", include_in_schema=False)
