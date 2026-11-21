@@ -12,7 +12,7 @@ The supplied brochure is treated as **marketing/product information, not the ful
 policy contract**. If the brochure does not establish a fact, the application says
 so instead of guessing.
 
-![InsureTutor home](docs/screenshots/home.png)
+![InsureTutor home](docs/audit/after-desktop.png)
 
 ## Quick start
 
@@ -90,7 +90,7 @@ credentials are used for retrieval.
 
 | Grounded conversation | Mobile source drawer |
 | --- | --- |
-| ![Chat and citations](docs/screenshots/chat-sources.png) | ![Mobile sources](docs/screenshots/mobile-sources.png) |
+| ![Chat and citations](docs/audit/after-chat.png) | ![Mobile sources](docs/audit/after-mobile-sources.png) |
 
 ## Architecture
 
@@ -350,7 +350,7 @@ uv pip install -r backend/requirements-dev.txt
 pytest -q
 ```
 
-The checked-in suite currently passes **61 tests**. It covers:
+The checked-in suite currently passes **95 tests**. It covers:
 
 - deterministic page-aware ingestion and table metadata;
 - interest, withdrawal, comparison, Chinese and unrelated retrieval;
@@ -562,3 +562,7 @@ the purpose of this take-home assessment. Product wording remains attributable t
 the original document. The application is a demonstration and does not provide
 financial, legal, tax or insurance advice.
 
+
+## Independent audit and verification
+
+A source-based review and implemented fixes are documented in [the audit report](docs/audit/REPORT.md), including before/after UI screenshots, 95 passing backend tests, browser checks and adversarial response artifacts. Reproduce the offline probes with `python scripts/audit_rag.py`; use `--base-url` to target a running API. These checks verify guardrail decisions and citation resolution, not live-model factuality. No real provider or downloaded embedding model was evaluated in that review. The report records remaining semantic-grounding, source-conflict and public-endpoint risks.

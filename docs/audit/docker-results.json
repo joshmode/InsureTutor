@@ -1,0 +1,15 @@
+{
+  "image": "sha256:1d1b71b8876ee25c0584a59fe50272a11c35b9538105464edbb3fd4b720df798",
+  "health_after_compose_restart": {
+    "status": "ok",
+    "llm_configured": false,
+    "retrieval_mode": "lexical",
+    "documents": 1,
+    "chunks": 49,
+    "ingest_ready": true
+  },
+  "runtime_uid": "999",
+  "pdf_and_frontend_passed": true,
+  "build_trust": "session CA mounted as BuildKit secret; TLS verification preserved",
+  "compose_host_port": 8013
+}

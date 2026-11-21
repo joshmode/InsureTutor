@@ -1,0 +1,100 @@
+#0 building with "default" instance using docker driver
+
+#1 [internal] load build definition from InsureTutor.audit.Dockerfile
+#1 transferring dockerfile: 1.57kB done
+#1 DONE 0.0s
+
+#2 resolve image config for docker-image://docker.io/docker/dockerfile:1
+#2 DONE 0.8s
+
+#3 docker-image://docker.io/docker/dockerfile:1@sha256:572cebbc2b15e6f84c077742952674889cb63cd5e9b80abdffcbe587b6f19183
+#3 CACHED
+
+#4 [internal] load metadata for docker.io/library/python:3.13-slim
+#4 DONE 0.7s
+
+#5 [internal] load metadata for docker.io/library/node:22-alpine
+#5 DONE 0.7s
+
+#6 [internal] load .dockerignore
+#6 transferring context: 252B done
+#6 DONE 0.0s
+
+#7 [runtime 1/9] FROM docker.io/library/python:3.13-slim@sha256:e48f59cdba69a3cbd9ed2cf0f348d90d45a8d350d98134cf1070bc106ee9ed90
+#7 DONE 0.0s
+
+#8 [frontend-builder 1/6] FROM docker.io/library/node:22-alpine@sha256:1314fb30ec37592d5845e5a160d522c0e680972aa534549940b8d73bde88481a
+#8 DONE 0.0s
+
+#9 [internal] load build context
+#9 transferring context: 137.16kB 0.0s done
+#9 DONE 0.1s
+
+#10 [frontend-builder 2/6] WORKDIR /build/frontend
+#10 CACHED
+
+#11 [frontend-builder 3/6] COPY frontend/package.json frontend/package-lock.json ./
+#11 CACHED
+
+#12 [frontend-builder 4/6] RUN --mount=type=secret,id=proxy_ca,required=true NODE_EXTRA_CA_CERTS=/run/secrets/proxy_ca npm ci
+#12 CACHED
+
+#13 [frontend-builder 5/6] COPY frontend/ ./
+#13 DONE 9.1s
+
+#14 [frontend-builder 6/6] RUN NEXT_TELEMETRY_DISABLED=1 npm run build
+#14 6.375
+#14 6.375 > build
+#14 6.375 > next build
+#14 6.375
+#14 7.036 ▲ Next.js 16.4.6 (Turbopack)
+#14 7.119 ✓ Running next.config.ts took 81ms
+#14 7.133
+#14 7.164   Creating an optimized production build ...
+#14 16.30 ✓ Compiled successfully in 9.1s
+#14 16.32   Running TypeScript ...
+#14 23.00   Finished TypeScript in 6.7s ...
+#14 23.01   Collecting page data using 4 workers ...
+#14 23.87   Generating static pages using 4 workers (0/3) ...
+#14 24.80 ✓ Generating static pages using 4 workers (3/3) in 926ms
+#14 24.82   Finalizing page optimization ...
+#14 24.86
+#14 24.86 Route (app)
+#14 24.86 ┌ ○ /
+#14 24.86 └ ○ /_not-found
+#14 24.86
+#14 24.86
+#14 24.86 ○  (Static)  prerendered as static content
+#14 24.86
+#14 DONE 25.0s
+
+#15 [runtime 2/9] WORKDIR /app
+#15 CACHED
+
+#16 [runtime 3/9] RUN groupadd --system app && useradd --system --gid app app
+#16 CACHED
+
+#17 [runtime 4/9] COPY backend/requirements.txt /app/backend/requirements.txt
+#17 CACHED
+
+#18 [runtime 5/9] RUN --mount=type=secret,id=proxy_ca,required=true PIP_CERT=/run/secrets/proxy_ca pip install --no-cache-dir -r /app/backend/requirements.txt
+#18 CACHED
+
+#19 [runtime 6/9] COPY backend/ /app/backend/
+#19 CACHED
+
+#20 [runtime 7/9] COPY knowledge/ /app/knowledge/
+#20 CACHED
+
+#21 [runtime 8/9] COPY --from=frontend-builder /build/frontend/out /app/frontend/out
+#21 DONE 4.7s
+
+#22 [runtime 9/9] RUN chmod -R a+rX /app/backend /app/knowledge /app/frontend     && mkdir -p /app/data     && chown -R app:app /app/data
+#22 DONE 2.9s
+
+#23 exporting to image
+#23 exporting layers
+#23 exporting layers 1.0s done
+#23 writing image sha256:1d1b71b8876ee25c0584a59fe50272a11c35b9538105464edbb3fd4b720df798 done
+#23 naming to docker.io/library/insuretutor:audit done
+#23 DONE 1.0s
