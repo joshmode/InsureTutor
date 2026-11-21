@@ -34,6 +34,11 @@ The provider must implement the standard OpenAI-compatible
 `POST /chat/completions` API. **It does not need an embeddings endpoint.**
 Retrieval is local; changing the provider requires only `.env` changes.
 
+Compose also accepts exported `LLM_API_KEY`, `LLM_BASE_URL`, `LLM_MODEL` and
+`LLM_REASONING_EFFORT` values; exported values take precedence over `.env`.
+The optional reasoning setting depends on the selected model. The current
+provider was verified with `low`; leave it blank when unsupported.
+
 ### 2. Start
 
 ```bash
@@ -399,8 +404,10 @@ live model factuality still requires evaluation with the configured provider.
 The [applied-environment verification](docs/audit/CONFIG-VERIFICATION.md) records
 the latest hybrid fixes, actual pinned embedding model, all three browser
 engines and successful hosted CI. The [earlier open-item ledger](docs/audit/OPEN-ITEMS.md)
-retains the OS advisory investigation. Live provider authentication remains
-blocked; earlier audit reports and their network denials are historical.
+retains the OS advisory investigation. The [live-provider follow-up](docs/audit/LIVE-PROVIDER.md)
+verifies authenticated native/Docker generation and records the mixed quality
+results, implemented fixes and remaining false abstentions. Earlier reports and
+their network/authentication failures are historical.
 
 The chat API returns `model_generated: true` only when the returned explanation
 contains model output that passed the grounding review. Excerpts and fixed
@@ -614,4 +621,4 @@ The supplied corpus now has 52 chunks, including verbatim form values that were 
 
 For hash-locked dependency maintenance and secure corporate-CA builds, read [dependency instructions](docs/DEPENDENCIES.md). The default Compose service runs with a read-only root filesystem, a writable data volume, dropped capabilities and resource limits. Keep the volume to retain daily allowances. Optional `APP_ACCESS_USERNAME` / `APP_ACCESS_PASSWORD` protect a private demo; use HTTPS for remote access. Configure a shared upstream limiter before deploying replicas with separate volumes.
 
-The full OS scan still reports vendor-unfixed Debian advisories. The actual pinned embedding model, hybrid Docker runtime, Chromium/Firefox/WebKit and hosted CI are now verified in [the latest report](docs/audit/CONFIG-VERIFICATION.md). Live language-model generation remains blocked by provider authentication; physical-device, actual assistive-technology and production checks remain unverified.
+The full OS scan still reports vendor-unfixed Debian advisories. The pinned embedding model, hardened hybrid Docker runtime, Chromium/Firefox/WebKit and hosted CI are verified. [Actual provider generation now works](docs/audit/LIVE-PROVIDER.md): the selected `low` reasoning profile passes 10/10 strict held-out checks and 20/20 in the extended replay. The faster profile scored 18/20 and its false abstentions remain recorded. Model approval and matching citations do not certify factuality. Physical-device, actual assistive-technology and production checks remain unverified.

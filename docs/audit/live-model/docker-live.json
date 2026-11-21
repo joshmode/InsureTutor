@@ -1,0 +1,96 @@
+{
+  "health": {
+    "status": "ok",
+    "llm_configured": true,
+    "retrieval_mode": "hybrid",
+    "documents": 1,
+    "chunks": 52,
+    "ingest_ready": true,
+    "request_timeout_seconds": 195.0
+  },
+  "image": "sha256:efca628231db9c51c36ed4a976ca0d0f77eb03b91450d5a03893d4c3acb481d2",
+  "runtime_user": "app",
+  "read_only": true,
+  "cap_drop": [
+    "ALL"
+  ],
+  "security_opt": [
+    "no-new-privileges:true"
+  ],
+  "pids_limit": 128,
+  "memory_bytes": 2147483648,
+  "nano_cpus": 2000000000,
+  "code_hashes": {
+    "backend/app/config.py": "4bba997a55ed64dc67abf7840c1b26de24fc706f774ada16cd422f66373c95f4",
+    "backend/app/chat/llm.py": "3e10cb744ccbcec3a89189a4e9fa6910111037a77e9f00f84f50588879438f59",
+    "backend/app/chat/language.py": "aecdc751cb55f3e0cc5bca09534b032ed31c12128bff998a2990809f4fc94910",
+    "backend/app/chat/orchestrator.py": "de71a344720dde823589e7149d321b75651e80fd298c569f199b88c57c144ce9",
+    "backend/app/chat/prompts.py": "8aec85192b64d5213f314553cfdfb7ecffb7d9971bac7171bb27082c910abc11",
+    "backend/app/guardrails/grounding.py": "9429405a1b21b56567320d0184fd050131be8f358e768e8aaa960acd7fd87938",
+    "backend/app/guardrails/output.py": "539ee950927d81058085c68a76e83906c88c92b849a6faa023f9c12e88ded583",
+    "knowledge/FLEXI-ULife Prime Saver.pdf": "2043de40845267fdb1f657280438f3ded04edda6692791960415116a5668a475"
+  },
+  "current_backend_matches_image": true,
+  "chinese_dictionary_works_under_read_only_nonroot_runtime": true,
+  "output_token_cap": 3000,
+  "reasoning_effort": "low",
+  "platform_ca_mounted_read_only": true,
+  "tls_verification_enabled": true,
+  "cases": [
+    {
+      "question": "What is the benefit term?",
+      "http_status": 200,
+      "elapsed_seconds": 20.49,
+      "response": {
+        "message": "The benefit term of FLEXI-ULife Prime Saver runs to age 100 of the Insured [1][2].",
+        "citations": [
+          {
+            "id": "flexi-ulife-prime-saver-p18-1bf3d54b667b3407",
+            "document": "FLEXI-ULife Prime Saver.pdf",
+            "page": 18,
+            "section": "Basic Information · Benefit Term",
+            "excerpt": "保障年期\nBenefit Term\n\n至100歲\n\nTo Age 100",
+            "score": 0.6816
+          },
+          {
+            "id": "flexi-ulife-prime-saver-p14-00ed7dd51c81e76c",
+            "document": "FLEXI-ULife Prime Saver.pdf",
+            "page": 14,
+            "section": "Key Disclosures · Benefit Term",
+            "excerpt": "• 藥癮、酗酒或因酒精或藥物中毒（除非由醫生處方）； • 任何人類免疫力缺乏症病毒及 / 或與此有關之病症， 包括愛滋病及 / 或任何由此而產生的病症；或 • 任何在十八歲前因患上或出現之先天性畸形或反常的 情況而引致的疾病或病患。\nPremium Payment Term and Benefit Term The premium payment term and the benefit term are up to age 100 of the Insured. Cash withdrawals, reducing the premium amount, or skipping premium payments (if applicable) will reduce the accumulation of the Cash Value, while the monthly charges are still deductible. Non-guaranteed charges will be reviewed at least annually and may be adjusted if necessary. You will be notified the related changes with prior written notice 1 month before effective. In determining any changes in charges, we will take reference to both past experience and expected future outlooks for factors including, but not limited to, claims, expenses, investment performance and surrenders. If the Cash Value is not sufficient to cover the monthly charges and no premiums are made before the end of the 31-day Grace Period from such premium due date, the Policy will lapse with zero value.",
+            "score": 0.4778
+          }
+        ],
+        "language": "en",
+        "kind": "answer",
+        "used_retrieval": true,
+        "model_generated": true,
+        "retrieval_mode": "hybrid",
+        "confidence": 0.6815715402364732,
+        "notices": [
+          "InsureTutor is an educational assistant, not a licensed insurance adviser. It explains the supplied brochure and cannot determine whether a policy is suitable for you."
+        ]
+      }
+    },
+    {
+      "question": "Does this policy cover earthquake damage to my house?",
+      "http_status": 200,
+      "elapsed_seconds": 0.05,
+      "response": {
+        "message": "I couldn’t find enough information in the supplied brochure to answer that reliably. I don’t want to guess about a policy condition. Please check the full policy contract or contact the insurer for confirmation.",
+        "citations": [],
+        "language": "en",
+        "kind": "insufficient",
+        "used_retrieval": true,
+        "model_generated": false,
+        "retrieval_mode": "hybrid",
+        "confidence": 0.45,
+        "notices": [
+          "This answer is based on the supplied product brochure, which is not the full policy contract."
+        ]
+      }
+    }
+  ],
+  "live_generation_verified": true,
+  "unsupported_abstention_verified": true
+}

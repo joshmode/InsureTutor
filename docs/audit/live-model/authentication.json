@@ -1,0 +1,23 @@
+{
+  "environment_revision": "7",
+  "client_configured": true,
+  "scope": "One bounded real provider authentication/generation smoke; no insurance factuality claim.",
+  "status": "passed",
+  "elapsed_seconds": 10.84,
+  "nonempty_content": true,
+  "exact_ok": true,
+  "content_characters": 2,
+  "usage": {
+    "prompt_tokens": 60,
+    "total_tokens": 233,
+    "completion_tokens": 173,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "created_cache_tokens": 0,
+      "multimodal_tokens": null
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 169
+    }
+  }
+}

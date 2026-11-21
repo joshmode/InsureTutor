@@ -1,0 +1,33 @@
+{
+  "health": {
+    "status": "ok",
+    "llm_configured": false,
+    "retrieval_mode": "hybrid",
+    "documents": 1,
+    "chunks": 52,
+    "ingest_ready": true,
+    "request_timeout_seconds": 195.0
+  },
+  "image": "sha256:ebe34e9f25b3c221ecfc696be69385d52eb7a276f7d35c57f7a9ce665004e286",
+  "runtime_user": "app",
+  "read_only": true,
+  "cap_drop": [
+    "ALL"
+  ],
+  "security_opt": [
+    "no-new-privileges:true"
+  ],
+  "pids_limit": 128,
+  "memory_bytes": 2147483648,
+  "nano_cpus": 2000000000,
+  "current_backend_files_match_image": true,
+  "output_token_cap": 3000,
+  "source_hashes": {
+    "backend/app/config.py": "24d0fba429f8c43770f6304b52fe43ebf2c81bca90defc39544aa445a86544b0",
+    "backend/app/chat/llm.py": "b06792641d6930807e59a8e91484b5d13c4dc144976aef2d5751eecdc5b609d7",
+    "backend/app/chat/prompts.py": "9f017b3e4c692288cfafee9dd90619f0d1479d7002c9dff60bed6b0f9b0cead2",
+    "backend/app/guardrails/grounding.py": "0a241f20f800ad01eb9aa48e90341ddee04798e0f00237a53d3f51f7d62cd784",
+    "backend/app/guardrails/output.py": "a880db404f875b777e7de2260d6b9bff76fb9c3873935c1b2dfbecf3078712f5"
+  },
+  "language_model_calls": 0
+}

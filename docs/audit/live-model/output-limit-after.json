@@ -1,0 +1,77 @@
+{
+  "question": "Under this policy, will I pay a withdrawal charge?",
+  "calls": [
+    {
+      "system_kind": "draft_or_repair",
+      "http_status": 200,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 2831,
+        "total_tokens": 5102,
+        "completion_tokens": 2271,
+        "prompt_tokens_details": {
+          "cached_tokens": 1600,
+          "created_cache_tokens": 0,
+          "multimodal_tokens": null
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 2150
+        }
+      },
+      "content": "\n\n- Yes, a cash value withdrawal is currently subject to a withdrawal charge of US$25, HK$200, or MOP200 each time [S2].\n- The withdrawal charge is waived if you use the automatic periodic withdrawal option [S2].\n- The automatic periodic withdrawal option is available only if the policy has been in force for at least 10 years [S4].\n- A surrender charge is separate and may apply in the first 14 years on lapse, surrender, or decrease in Basic Sum Insured [S2].",
+      "content_characters": 462,
+      "elapsed_seconds": 51.54
+    },
+    {
+      "system_kind": "review",
+      "http_status": 200,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 1802,
+        "total_tokens": 2756,
+        "completion_tokens": 954,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "created_cache_tokens": 1600,
+          "multimodal_tokens": null
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 860
+        }
+      },
+      "content": "\n\n{\n  \"applicable\": true,\n  \"safe\": true,\n  \"language_correct\": true,\n  \"claims\": [\n    { \"id\": 1, \"supported\": true },\n    { \"id\": 2, \"supported\": true },\n    { \"id\": 3, \"supported\": true },\n    { \"id\": 4, \"supported\": true }\n  ]\n}",
+      "content_characters": 232,
+      "elapsed_seconds": 21.3
+    }
+  ],
+  "response": {
+    "message": "- Yes, a cash value withdrawal is currently subject to a withdrawal charge of US$25, HK$200, or MOP200 each time [1].\n- The withdrawal charge is waived if you use the automatic periodic withdrawal option [1].\n- The automatic periodic withdrawal option is available only if the policy has been in force for at least 10 years [2].\n- A surrender charge is separate and may apply in the first 14 years on lapse, surrender, or decrease in Basic Sum Insured [1].",
+    "citations": [
+      {
+        "id": "flexi-ulife-prime-saver-p18-87fc3e682f2ed2a3",
+        "document": "FLEXI-ULife Prime Saver.pdf",
+        "page": 18,
+        "section": "Policy Information · Surrender Charge",
+        "excerpt": "按基本計劃的每層保障額及退保費用率計算。適用於保單日期 / 每次增加基本保障\n額的生效日期起計首14年，於下列情況收取退保費用：\n退保費用率根據受保人的性別、投保年齡、吸煙習慣、風險級別及已生效的年期而\nDetermined based on each layer of Basic Sum Insured and the Surrender Charge Rate and applicable in the first 14 years from Policy Date / effective date of each increase in Basic Sum Insured upon:\n- Policy lapse or surrender - Decrease in Basic Sum Insured\nSurrender Charge Rate depends on gender, issue age, smoking habit, risk class of the Insured and years in effect\n提取現金價值 Cash Value Withdrawal\n次數不限，現時每次收取25美元 / 200港元 / 200澳門元提款費用10；定期提款權益\nUnlimited frequency. Currently, each cash withdrawal is subject to a withdrawal charge10 of US$25/HK$200/MOP200. Withdrawal charge is waived for automatic periodic withdrawal option\n投保年齡（以上次生日年齡計算） Issue Age (At Last Birthday)\n0 – 75歲（如選擇特級遞增壽險保障，投保年齡則為0 – 55歲）\nAge 0 - 75 (For Increasing Benefit Plus, Issue Age is 0 - 55)\n繳付保費年期 Premium Payment Term",
+        "score": 0.6844
+      },
+      {
+        "id": "flexi-ulife-prime-saver-p12-6afdf0ccf798efe2",
+        "document": "FLEXI-ULife Prime Saver.pdf",
+        "page": 12,
+        "section": "Additional Protections · Unemployment Protection",
+        "excerpt": "5. The sum of the Basic Sum Insured and 50% of Account Value will be net of 50% of all withdrawals made in the 12-month period preceding the date of the Insured's death.\n6. Automatic periodic withdrawal option is only applicable if the Policy has been in force for at least 10 years, the withdrawal charge will be waived. Current requirement on minimum monthly withdrawal amount is US$500/HK$/MOP4,000, with minimum withdrawal period of one year; and the minimum annual withdrawal amount is US$6,000/HK$48,000/ MOP48,000, with minimum withdrawal period of three years. For any change after the application has been confirmed, a nominal fee will be levied.\n7. The current charge for each withdrawal is US$25/HK$ 200/MOP200.\n8. Unemployment Protection is only applicable to the Basic Plan.",
+        "score": 0.5204
+      }
+    ],
+    "language": "en",
+    "kind": "answer",
+    "used_retrieval": true,
+    "model_generated": true,
+    "retrieval_mode": "hybrid",
+    "confidence": 0.83408946454525,
+    "notices": [
+      "InsureTutor is an educational assistant, not a licensed insurance adviser. It explains the supplied brochure and cannot determine whether a policy is suitable for you."
+    ]
+  }
+}

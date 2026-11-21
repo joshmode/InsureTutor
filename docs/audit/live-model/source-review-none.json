@@ -1,0 +1,18 @@
+{
+  "all_returned_citation_metadata_matches_source_api": true,
+  "citation_instances_checked": 27,
+  "generated_responses_included": 14,
+  "sources": "Final three HTTP datasets, live UI and live Docker cases",
+  "source_pdf_sha256": "2043de40845267fdb1f657280438f3ded04edda6692791960415116a5668a475",
+  "method": "API identity checked mechanically. Original PDF pages were read separately for the generated facts; identity matching alone is not entailment.",
+  "semantic_factuality_certified": false,
+  "failures": [],
+  "reasoning_effort": "none",
+  "artifact_paths": [
+    "final/fresh.json",
+    "final/adversarial.json",
+    "final/held-out.json",
+    "browser/results.json",
+    "docker-live-none.json"
+  ]
+}

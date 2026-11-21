@@ -1,0 +1,19 @@
+{
+  "provider_output_reservation_limit": 360000,
+  "provider_call_limit": 300,
+  "counters": [
+    {
+      "name": "provider_daily_calls",
+      "window": 20778,
+      "reserved": 135
+    },
+    {
+      "name": "provider_daily_output",
+      "window": 20778,
+      "reserved": 358200
+    }
+  ],
+  "original_database_preserved": true,
+  "production_counters_not_reset": true,
+  "final_fixture": "New isolated DATA_DIR for one complete final run; the exhausted test database was retained. This is not a shared deployment budget."
+}

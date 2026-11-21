@@ -1,0 +1,41 @@
+{
+  "passed": true,
+  "reasoning_effort": "low",
+  "scope": "Actual selected-profile API/model, Simplified Chinese and simulated mobile viewport; original source text compared exactly.",
+  "unexpected_errors": [],
+  "cases": [
+    {
+      "question": "冷静期有多长？",
+      "response": {
+        "message": "冷静期为21个日历日，起算点以较早者为准：一是保单交付之日起21个日历日内，二是向保单持有人或其代表人交付《通知书》（说明保单已可领取及冷静期届满日）后起计21个日历日内 [1][2]。\n\n在冷静期内，保单持有人可以书面方式要求取消保单，并将保单退回公司，届时可获退回已缴保费及所缴征费（适用于香港），但不包括任何利息 [1][2]。\n\n若已获赔偿或即将获得赔偿，则不获发还保费 [1][2]。",
+        "citations": [
+          {
+            "id": "flexi-ulife-prime-saver-p15-d112515f151d1df0",
+            "document": "FLEXI-ULife Prime Saver.pdf",
+            "page": 15,
+            "section": "Duty of Disclosure & Cancellation",
+            "excerpt": "提供資料責任及未符合這要求的後果 在投保時，您 / 你們必須提供一切知悉或據常理知悉的資 料，因萬通保險會按照所提供的資料評核接受投保及決 定保險條款。提供資料的責任將會在投保申請表的簽署日 期或任何補充文件的簽署日期（以較後日期為準）完成。 您 / 你們若不清楚某一事項是否重要，請將該事項填寫於 申請書內。若未符合以上要求，該保單可能因此而作廢。\n索償程序 有關索償程序，請瀏覽本公司網頁： 香港：https://www.yflife.com/tc/Hong-Kong/ Individual/Services/Claims-Corner\n澳門：https://www.yflife.com/tc/Macau/Individual/ Services/Claims-Corner\n保費徵費（只適用於香港） 保監局會透過保險公司向所有保單持有人，為其於香港 繕發之保單，於每次繳付保費時收取徵費。有關徵費之 詳情，請瀏覽保監局網站專頁www.ia.org.hk/tc/levy。\n保單冷靜期及取消保單的權利 如保單未能滿足您的要求，您可以書面方式要求取消保 單，連同保單退回本公司（香港：香港灣仔駱克道33號 萬通保險大廈27樓 / 澳門：澳門蘇亞利斯博士大馬路 320號澳門財富中心8樓A座），並確保本公司的辦事處 於交付保單的21個曆日內，或向您 / 您的代表人交付 《通知書》 （說明已經可以領取保單和冷靜期屆滿日）後 起計的21個曆日內（以較早者為準）收到書面要求。於 收妥書面要求後，保單將被取消，您將可獲退回已繳保 費金額及您所繳付的徵費（適用於香港），但不包括任何 利息。若曾獲賠償或將獲得賠償，則不獲發還保費。\n期滿及退保 如需申請退保，您只需填妥、簽署並寄回由本公司提供的 特定表格，本公司將安排退保事宜。\n於保單期滿時，本公司將致函通知您，安排保單終止事 宜。\n延遲付款期 我們保留押後支付退保價值之權利，最長不超過接獲退 保要求後六個月。",
+            "score": 0.45
+          },
+          {
+            "id": "flexi-ulife-prime-saver-p15-fcb6d9ef7b471cfe",
+            "document": "FLEXI-ULife Prime Saver.pdf",
+            "page": 15,
+            "section": "Duty of Disclosure & Cancellation",
+            "excerpt": "Cooling-off Period and Right of Cancellation If you are not satisfied with the Policy, you may return it under a signed covering letter to us (Hong Kong: 27/F, YF Life Tower, 33 Lockhart Road, Wanchai, Hong Kong / Macau: Avenida Doutor Mario Soares No. 320, Finance and IT Center of Macau, 8 Andar A, Macau) within 21 calendar days after the delivery of the Policy or delivery of the Notice (which states that the Policy is available for collection and the expiry date of the cooling-off period) to you or your representative, whichever is earlier. We will cancel the Policy upon receipt of your written request and refund all premiums and the levy you paid (applicable to Hong Kong only), without any interest. No refund can be made if a benefit payment has been made, is to be made or impending.",
+            "score": 0.2164
+          }
+        ],
+        "language": "zh-Hans",
+        "kind": "answer",
+        "used_retrieval": true,
+        "model_generated": true,
+        "retrieval_mode": "hybrid",
+        "confidence": 0.45,
+        "notices": [
+          "InsureTutor 是保险教育助手，并非持牌保险顾问。它只解释所提供的产品册子，不能判断某份保单是否适合您。"
+        ]
+      }
+    }
+  ]
+}

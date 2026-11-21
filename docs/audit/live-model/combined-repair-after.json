@@ -1,0 +1,82 @@
+[
+  {
+    "question": "Under this policy, will I pay a withdrawal charge?",
+    "language": "en",
+    "calls": [
+      {
+        "review": false,
+        "content": "Yes, you will generally pay a withdrawal charge for cash withdrawals from the policy's Cash Value.\nThe current charge for each cash withdrawal is US$25, HK$200, or MOP$200 [S2].\nThis fee applies to withdrawals made at any time to cope with emergencies [S3].\nHowever, the withdrawal charge is waived if you use the automatic periodic withdrawal option [S2].\nThis waiver applies specifically to the automatic periodic withdrawal option, which has its own eligibility requirements [S4].\nAdditionally, a separate surrender charge may apply if you surrender the policy or decrease the Basic Sum Insured within the first 14 years of each coverage layer [S2].\nThis surrender charge is distinct from the per-withdrawal fee and is calculated based on factors like age, gender, and smoking status [S2].",
+        "usage": {
+          "prompt_tokens": 2843,
+          "total_tokens": 3021,
+          "completion_tokens": 178,
+          "prompt_tokens_details": {
+            "cached_tokens": 1600,
+            "created_cache_tokens": 0,
+            "multimodal_tokens": null
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "deterministic_error": "uncited_claim"
+      },
+      {
+        "review": false,
+        "content": "Each cash withdrawal from the Cash Value is currently subject to a charge of US$25, HK$200, or MOP$200 [S2].\nThe withdrawal charge is waived for the automatic periodic withdrawal option [S2].\nA separate surrender charge applies in the first 14 years from the Policy Date or the effective date of each increase in Basic Sum Insured [S2].\nThis surrender charge is triggered by policy lapse, surrender, or a decrease in the Basic Sum Insured [S2].\nThe surrender charge rate depends on the insured's gender, issue age, smoking habit, risk class, and years in effect [S2].",
+        "usage": {
+          "prompt_tokens": 3143,
+          "total_tokens": 3283,
+          "completion_tokens": 140,
+          "prompt_tokens_details": {
+            "cached_tokens": 1600,
+            "created_cache_tokens": 0,
+            "multimodal_tokens": null
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        }
+      },
+      {
+        "review": true,
+        "content": "{\"applicable\":true,\"safe\":true,\"language_correct\":true,\"claims\":[{\"id\":1,\"supported\":true},{\"id\":2,\"supported\":true},{\"id\":3,\"supported\":true},{\"id\":4,\"supported\":true},{\"id\":5,\"supported\":true}]}",
+        "usage": {
+          "prompt_tokens": 2293,
+          "total_tokens": 2352,
+          "completion_tokens": 59,
+          "prompt_tokens_details": {
+            "cached_tokens": 0,
+            "created_cache_tokens": 1600,
+            "multimodal_tokens": null
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        }
+      }
+    ],
+    "response": {
+      "message": "Each cash withdrawal from the Cash Value is currently subject to a charge of US$25, HK$200, or MOP$200 [1].\nThe withdrawal charge is waived for the automatic periodic withdrawal option [1].\nA separate surrender charge applies in the first 14 years from the Policy Date or the effective date of each increase in Basic Sum Insured [1].\nThis surrender charge is triggered by policy lapse, surrender, or a decrease in the Basic Sum Insured [1].\nThe surrender charge rate depends on the insured's gender, issue age, smoking habit, risk class, and years in effect [1].",
+      "citations": [
+        {
+          "id": "flexi-ulife-prime-saver-p18-87fc3e682f2ed2a3",
+          "document": "FLEXI-ULife Prime Saver.pdf",
+          "page": 18,
+          "section": "Policy Information · Surrender Charge",
+          "excerpt": "按基本計劃的每層保障額及退保費用率計算。適用於保單日期 / 每次增加基本保障\n額的生效日期起計首14年，於下列情況收取退保費用：\n退保費用率根據受保人的性別、投保年齡、吸煙習慣、風險級別及已生效的年期而\nDetermined based on each layer of Basic Sum Insured and the Surrender Charge Rate and applicable in the first 14 years from Policy Date / effective date of each increase in Basic Sum Insured upon:\n- Policy lapse or surrender - Decrease in Basic Sum Insured\nSurrender Charge Rate depends on gender, issue age, smoking habit, risk class of the Insured and years in effect\n提取現金價值 Cash Value Withdrawal\n次數不限，現時每次收取25美元 / 200港元 / 200澳門元提款費用10；定期提款權益\nUnlimited frequency. Currently, each cash withdrawal is subject to a withdrawal charge10 of US$25/HK$200/MOP200. Withdrawal charge is waived for automatic periodic withdrawal option\n投保年齡（以上次生日年齡計算） Issue Age (At Last Birthday)\n0 – 75歲（如選擇特級遞增壽險保障，投保年齡則為0 – 55歲）\nAge 0 - 75 (For Increasing Benefit Plus, Issue Age is 0 - 55)\n繳付保費年期 Premium Payment Term",
+          "score": 0.6844
+        }
+      ],
+      "language": "en",
+      "kind": "answer",
+      "used_retrieval": true,
+      "model_generated": true,
+      "retrieval_mode": "hybrid",
+      "confidence": 0.83408946454525,
+      "notices": [
+        "InsureTutor is an educational assistant, not a licensed insurance adviser. It explains the supplied brochure and cannot determine whether a policy is suitable for you."
+      ]
+    }
+  }
+]

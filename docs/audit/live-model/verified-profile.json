@@ -1,0 +1,20 @@
+{
+  "environment_revision": "7",
+  "credential_destination_matches_selected_provider": true,
+  "reasoning_effort": "low",
+  "output_token_cap": 3000,
+  "provider_timeout_seconds": 60.0,
+  "chat_timeout_seconds": 180.0,
+  "provider_daily_output_reservation_limit": 360000,
+  "source_pdf_sha256": "2043de40845267fdb1f657280438f3ded04edda6692791960415116a5668a475",
+  "credential_values_and_configured_provider_identity_omitted": true,
+  "running_application_health": {
+    "status": "ok",
+    "llm_configured": true,
+    "retrieval_mode": "hybrid",
+    "documents": 1,
+    "chunks": 52,
+    "ingest_ready": true,
+    "request_timeout_seconds": 195.0
+  }
+}

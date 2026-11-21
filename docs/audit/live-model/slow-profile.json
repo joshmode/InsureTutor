@@ -1,0 +1,74 @@
+{
+  "profile": {
+    "output_token_cap": 3000,
+    "provider_timeout_seconds": 120,
+    "chat_timeout_seconds": 400,
+    "daily_output_reservation_limit": 360000,
+    "shared_usage_database_with_default_profile": true
+  },
+  "health": {
+    "status": "ok",
+    "llm_configured": true,
+    "retrieval_mode": "hybrid",
+    "documents": 1,
+    "chunks": 52,
+    "ingest_ready": true,
+    "request_timeout_seconds": 415.0
+  },
+  "complete": true,
+  "cases": [
+    {
+      "question": "我想了解索偿程序。",
+      "language": "zh-Hans",
+      "http_status": 200,
+      "elapsed_seconds": 49.06,
+      "citations_match_source_api": true,
+      "response": {
+        "message": "- 有关索偿程序，保单持有人可浏览万通保险网页的香港或澳门索偿程序页面 [1]。\n- 所供资料未列明具体索偿步骤 [1]。",
+        "citations": [
+          {
+            "id": "flexi-ulife-prime-saver-p15-d112515f151d1df0",
+            "document": "FLEXI-ULife Prime Saver.pdf",
+            "page": 15,
+            "section": "Duty of Disclosure & Cancellation",
+            "excerpt": "提供資料責任及未符合這要求的後果 在投保時，您 / 你們必須提供一切知悉或據常理知悉的資 料，因萬通保險會按照所提供的資料評核接受投保及決 定保險條款。提供資料的責任將會在投保申請表的簽署日 期或任何補充文件的簽署日期（以較後日期為準）完成。 您 / 你們若不清楚某一事項是否重要，請將該事項填寫於 申請書內。若未符合以上要求，該保單可能因此而作廢。\n索償程序 有關索償程序，請瀏覽本公司網頁： 香港：https://www.yflife.com/tc/Hong-Kong/ Individual/Services/Claims-Corner\n澳門：https://www.yflife.com/tc/Macau/Individual/ Services/Claims-Corner\n保費徵費（只適用於香港） 保監局會透過保險公司向所有保單持有人，為其於香港 繕發之保單，於每次繳付保費時收取徵費。有關徵費之 詳情，請瀏覽保監局網站專頁www.ia.org.hk/tc/levy。\n保單冷靜期及取消保單的權利 如保單未能滿足您的要求，您可以書面方式要求取消保 單，連同保單退回本公司（香港：香港灣仔駱克道33號 萬通保險大廈27樓 / 澳門：澳門蘇亞利斯博士大馬路 320號澳門財富中心8樓A座），並確保本公司的辦事處 於交付保單的21個曆日內，或向您 / 您的代表人交付 《通知書》 （說明已經可以領取保單和冷靜期屆滿日）後 起計的21個曆日內（以較早者為準）收到書面要求。於 收妥書面要求後，保單將被取消，您將可獲退回已繳保 費金額及您所繳付的徵費（適用於香港），但不包括任何 利息。若曾獲賠償或將獲得賠償，則不獲發還保費。\n期滿及退保 如需申請退保，您只需填妥、簽署並寄回由本公司提供的 特定表格，本公司將安排退保事宜。\n於保單期滿時，本公司將致函通知您，安排保單終止事 宜。\n延遲付款期 我們保留押後支付退保價值之權利，最長不超過接獲退 保要求後六個月。",
+            "score": 0.7127
+          }
+        ],
+        "language": "zh-Hans",
+        "kind": "answer",
+        "used_retrieval": true,
+        "model_generated": true,
+        "retrieval_mode": "hybrid",
+        "confidence": 0.71274324208498,
+        "notices": [
+          "InsureTutor 是保险教育助手，并非持牌保险顾问。它只解释所提供的产品册子，不能判断某份保单是否适合您。"
+        ]
+      },
+      "passed": true,
+      "semantic_factuality_verified": false
+    },
+    {
+      "question": "Under this policy, will I pay a withdrawal charge?",
+      "language": "en",
+      "http_status": 200,
+      "elapsed_seconds": 71.31,
+      "citations_match_source_api": true,
+      "response": {
+        "message": "I couldn’t find enough information in the supplied brochure to answer that reliably. I don’t want to guess about a policy condition. Please check the full policy contract or contact the insurer for confirmation.",
+        "citations": [],
+        "language": "en",
+        "kind": "insufficient",
+        "used_retrieval": true,
+        "model_generated": false,
+        "retrieval_mode": "hybrid",
+        "confidence": 0.83408946454525,
+        "notices": [
+          "This answer is based on the supplied product brochure, which is not the full policy contract."
+        ]
+      },
+      "passed": false,
+      "semantic_factuality_verified": false
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+[
+  {
+    "question": "Under this policy, will I pay a withdrawal charge?",
+    "language": "en",
+    "calls": [
+      {
+        "review": false,
+        "content": "Yes, you will generally pay a withdrawal charge for most cash withdrawals from this policy.\nCurrently, each cash withdrawal is subject to a fee of US$25, HK$200, or MOP$200 [S2].\nThis per-withdrawal fee is also confirmed in the product notes as the current charge for each withdrawal [S4].\nHowever, the withdrawal charge is waived if you use the automatic periodic withdrawal option [S2].\nThis waiver applies specifically when you exercise the automatic periodic withdrawal option, which has its own eligibility requirements [S4].\nSeparately, if you surrender the policy or decrease the Basic Sum Insured within the first 14 years, a different surrender charge applies based on factors like age and smoking status [S2].\nThis surrender charge is distinct from the per-withdrawal fee and is calculated based on the Surrender Charge Rate [S2].",
+        "usage": {
+          "prompt_tokens": 2843,
+          "total_tokens": 3032,
+          "completion_tokens": 189,
+          "prompt_tokens_details": {
+            "cached_tokens": 1600,
+            "created_cache_tokens": 0,
+            "multimodal_tokens": null
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "deterministic_error": "uncited_claim"
+      },
+      {
+        "review": false,
+        "content": "Yes, you will generally pay a withdrawal charge for most cash withdrawals from this policy.\nCurrently, each cash withdrawal is subject to a fee of US$25, HK$200, or MOP$200 [S2].\nThis per-withdrawal fee is also confirmed in the product notes as the current charge for each withdrawal [S4].\nHowever, the withdrawal charge is waived if you use the automatic periodic withdrawal option [S2].\nThis waiver applies specifically when you exercise the automatic periodic withdrawal option, which has its own eligibility requirements [S4].\nSeparately, if you surrender the policy or decrease the Basic Sum Insured within the first 14 years, a different surrender charge applies based on factors like age and smoking status [S2].\nThis surrender charge is distinct from the per-withdrawal fee and is calculated based on the Surrender Charge Rate [S2].",
+        "usage": {
+          "prompt_tokens": 3101,
+          "total_tokens": 3290,
+          "completion_tokens": 189,
+          "prompt_tokens_details": {
+            "cached_tokens": 0,
+            "created_cache_tokens": 1600,
+            "multimodal_tokens": null
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "deterministic_error": "uncited_claim"
+      }
+    ],
+    "response": {
+      "message": "I couldn’t find enough information in the supplied brochure to answer that reliably. I don’t want to guess about a policy condition. Please check the full policy contract or contact the insurer for confirmation.",
+      "citations": [],
+      "language": "en",
+      "kind": "insufficient",
+      "used_retrieval": true,
+      "model_generated": false,
+      "retrieval_mode": "hybrid",
+      "confidence": 0.83408946454525,
+      "notices": [
+        "This answer is based on the supplied product brochure, which is not the full policy contract."
+      ]
+    }
+  }
+]

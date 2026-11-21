@@ -1,0 +1,24 @@
+{
+  "scope": "Real application and configured provider; no API response fixtures.",
+  "cases": [
+    {
+      "name": "English interest-rate starter",
+      "http_status": 200,
+      "elapsed_seconds": 8.174,
+      "response": {
+        "message": "I couldn’t find enough information in the supplied brochure to answer that reliably. I don’t want to guess about a policy condition. Please check the full policy contract or contact the insurer for confirmation.",
+        "citations": [],
+        "language": "en",
+        "kind": "insufficient",
+        "used_retrieval": true,
+        "model_generated": false,
+        "retrieval_mode": "hybrid",
+        "confidence": 0.9078257894515992,
+        "notices": [
+          "This answer is based on the supplied product brochure, which is not the full policy contract."
+        ]
+      }
+    }
+  ],
+  "unexpected_errors": []
+}

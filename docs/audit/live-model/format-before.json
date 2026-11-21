@@ -1,0 +1,167 @@
+[
+  {
+    "question": "冷静期有多长？",
+    "language": "zh-Hans",
+    "calls": [
+      {
+        "review": false,
+        "content": "冷靜期為21個曆日，起算時間取「保單交付日」或「向您/您的代表人交付《通知書》（說明已可領取保單及冷靜期屆滿日）之日」兩者中較早者 [S1]。\n您必須在上述21個曆日期限內，以書面方式要求取消保單，並連同保單退回萬通保險的指定辦事處 [S1]。\n若曾獲賠償、將獲得賠償或賠償即將發生，則不會退還保費 [S1]。\n若成功取消保單，您將獲退回已繳保費金額及您所繳付的徵費（僅適用於香港），但不包括任何利息 [S1]。",
+        "usage": {
+          "prompt_tokens": 3198,
+          "total_tokens": 3357,
+          "completion_tokens": 159,
+          "prompt_tokens_details": {
+            "cached_tokens": 1600,
+            "created_cache_tokens": 0,
+            "multimodal_tokens": null
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "deterministic_error": "unsupported_quote"
+      },
+      {
+        "review": false,
+        "content": "冷靜期為21個曆日，起算時間取「保單交付日」或「向您/您的代表人交付《通知書》（說明已可領取保單及冷靜期屆滿日）之日」兩者中較早者 [S1]。\n您必須在上述21個曆日期限內，以書面方式要求取消保單，並連同保單退回萬通保險的指定辦事處 [S1]。\n若曾獲賠償、將獲得賠償或賠償即將發生，則不會退還保費 [S1]。\n若成功取消保單，您將獲退回已繳保費金額及您所繳付的徵費（僅適用於香港），但不包括任何利息 [S1]。",
+        "usage": {
+          "prompt_tokens": 3425,
+          "total_tokens": 3584,
+          "completion_tokens": 159,
+          "prompt_tokens_details": {
+            "cached_tokens": 3200,
+            "created_cache_tokens": 0,
+            "multimodal_tokens": null
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "deterministic_error": "unsupported_quote"
+      }
+    ],
+    "response": {
+      "message": "所提供的册子资料不足以让我可靠回答这个问题，我不想猜测保单条件。请查阅完整保单合约或向保险公司确认。",
+      "citations": [],
+      "language": "zh-Hans",
+      "kind": "insufficient",
+      "used_retrieval": true,
+      "model_generated": false,
+      "retrieval_mode": "hybrid",
+      "confidence": 0.45,
+      "notices": [
+        "本回答基于所提供的产品册子，而册子并非完整保单合约。"
+      ]
+    }
+  },
+  {
+    "question": "Under this policy, will I pay a withdrawal charge?",
+    "language": "en",
+    "calls": [
+      {
+        "review": false,
+        "content": "Yes, a withdrawal charge applies to each cash value withdrawal, currently set at US$25, HK$200, or MOP$200 [S2][S4].\nThis charge is waived if you use the automatic periodic withdrawal option [S2][S4].\nThe automatic periodic withdrawal option is only available if the policy has been in force for at least 10 years [S4].\nSeparate from withdrawal charges, a surrender charge may apply if you lapse or surrender the policy, or decrease the Basic Sum Insured, within the first 14 years from the Policy Date or the effective date of each increase in Basic Sum Insured [S2].\nThe specific Surrender Charge Rate depends on the insured's gender, issue age, smoking habit, risk class, and years in effect [S2].",
+        "usage": {
+          "prompt_tokens": 2831,
+          "total_tokens": 3005,
+          "completion_tokens": 174,
+          "prompt_tokens_details": {
+            "cached_tokens": 1600,
+            "created_cache_tokens": 0,
+            "multimodal_tokens": null
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "deterministic_error": "unsupported_numeric_claim"
+      },
+      {
+        "review": false,
+        "content": "A withdrawal charge is applied to each cash value withdrawal, currently set at US$25, HK$200, or MOP$200 [S2][S4].\nThe withdrawal charge is waived for the automatic periodic withdrawal option [S2][S4].\nThe automatic periodic withdrawal option is only applicable if the Policy has been in force for at least 10 years [S4].\nA separate surrender charge applies to policy lapse, surrender, or a decrease in Basic Sum Insured during the first 14 years from the Policy Date or the effective date of each increase in Basic Sum Insured [S2].\nThe Surrender Charge Rate depends on the insured's gender, issue age, smoking habit, risk class, and years in effect [S2].",
+        "usage": {
+          "prompt_tokens": 3074,
+          "total_tokens": 3237,
+          "completion_tokens": 163,
+          "prompt_tokens_details": {
+            "cached_tokens": 1600,
+            "created_cache_tokens": 0,
+            "multimodal_tokens": null
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "deterministic_error": "unsupported_numeric_claim"
+      }
+    ],
+    "response": {
+      "message": "I couldn’t find enough information in the supplied brochure to answer that reliably. I don’t want to guess about a policy condition. Please check the full policy contract or contact the insurer for confirmation.",
+      "citations": [],
+      "language": "en",
+      "kind": "insufficient",
+      "used_retrieval": true,
+      "model_generated": false,
+      "retrieval_mode": "hybrid",
+      "confidence": 0.83408946454525,
+      "notices": [
+        "This answer is based on the supplied product brochure, which is not the full policy contract."
+      ]
+    }
+  },
+  {
+    "question": "What is the special grace period for unemployment?",
+    "language": "en",
+    "calls": [
+      {
+        "review": false,
+        "content": "The special grace period for unemployment allows the Policy Owner to suspend premium payments for up to 365 days if they are made redundant during the policy's validity [S1].\nDuring this entire \"Special Grace Period,\" the policy remains fully covered by the insurance [S1].\nThis Unemployment Protection is only applicable to the Basic Plan [S4].",
+        "usage": {
+          "prompt_tokens": 3000,
+          "total_tokens": 3074,
+          "completion_tokens": 74,
+          "prompt_tokens_details": {
+            "cached_tokens": 0,
+            "created_cache_tokens": 1600,
+            "multimodal_tokens": null
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "deterministic_error": "unsupported_quote"
+      },
+      {
+        "review": false,
+        "content": "The Unemployment Protection allows the Policy Owner to suspend premium payments for 365 days if they are made redundant during the policy's validity [S1].\nDuring this \"Special Grace Period,\" the policy remains fully covered by the insurance [S1].\nThis Unemployment Protection is only applicable to the Basic Plan [S4].",
+        "usage": {
+          "prompt_tokens": 3142,
+          "total_tokens": 3211,
+          "completion_tokens": 69,
+          "prompt_tokens_details": {
+            "cached_tokens": 0,
+            "created_cache_tokens": 1600,
+            "multimodal_tokens": null
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "deterministic_error": "unsupported_quote"
+      }
+    ],
+    "response": {
+      "message": "I couldn’t find enough information in the supplied brochure to answer that reliably. I don’t want to guess about a policy condition. Please check the full policy contract or contact the insurer for confirmation.",
+      "citations": [],
+      "language": "en",
+      "kind": "insufficient",
+      "used_retrieval": true,
+      "model_generated": false,
+      "retrieval_mode": "hybrid",
+      "confidence": 0.7553665524721146,
+      "notices": [
+        "This answer is based on the supplied product brochure, which is not the full policy contract."
+      ]
+    }
+  }
+]

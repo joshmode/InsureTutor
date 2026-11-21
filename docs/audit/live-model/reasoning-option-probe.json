@@ -1,0 +1,19 @@
+{
+  "status": "passed",
+  "reasoning_effort": "none",
+  "elapsed_seconds": 0.7,
+  "exact_ok": true,
+  "usage": {
+    "prompt_tokens": 20,
+    "total_tokens": 22,
+    "completion_tokens": 2,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "created_cache_tokens": 0,
+      "multimodal_tokens": null
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

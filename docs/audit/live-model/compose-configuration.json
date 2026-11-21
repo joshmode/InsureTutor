@@ -1,0 +1,8 @@
+{
+  "host_variables_forwarded": true,
+  "dotenv_variables_forwarded": true,
+  "literal_dollar_preserved_in_running_container": true,
+  "missing_credentials_optional": true,
+  "fake_credentials_only_in_probe": true,
+  "actual_credentials_printed": false
+}

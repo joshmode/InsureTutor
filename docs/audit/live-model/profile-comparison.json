@@ -1,0 +1,41 @@
+{
+  "same_questions": true,
+  "same_model_and_provider": true,
+  "same_token_and_timeout_limits": true,
+  "same_validation_and_review_gates": true,
+  "runs_per_profile": 1,
+  "profiles": [
+    {
+      "reasoning_effort": "none",
+      "fresh_mechanical_passed": 18,
+      "fresh_total": 20,
+      "fresh_generated_answers": 4,
+      "held_out_passed": 10,
+      "held_out_total": 10,
+      "held_out_generated_answers": 5,
+      "positive_control_latency_seconds": {
+        "samples": 6,
+        "median": 5.83,
+        "maximum": 10.84
+      },
+      "semantic_accuracy_certified": false
+    },
+    {
+      "reasoning_effort": "low",
+      "fresh_mechanical_passed": 20,
+      "fresh_total": 20,
+      "fresh_generated_answers": 6,
+      "held_out_passed": 10,
+      "held_out_total": 10,
+      "held_out_generated_answers": 5,
+      "positive_control_latency_seconds": {
+        "samples": 6,
+        "median": 24.99,
+        "maximum": 36.09
+      },
+      "semantic_accuracy_certified": false
+    }
+  ],
+  "selected_reasoning_effort": "low",
+  "selection_reason": "All six original positive controls generated answers and all 14 negative controls abstained, within the existing timeouts. The fast profile had two false abstentions. These are small single-client samples, not production performance or universal quality certification."
+}

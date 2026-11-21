@@ -1,5 +1,9 @@
 # Applied-environment verification — 21 November 2026
 
+Later results: [live-provider verification](LIVE-PROVIDER.md) confirms applied
+revision 7, working native/container authentication and additional output fixes.
+The authentication blocker below records the earlier revision-4 state.
+
 This follows [the open-item ledger](OPEN-ITEMS.md), using its `bb8e927` baseline.
 The newly applied unrestricted network policy allowed the previously blocked
 embedding, cross-browser and hosted-CI checks to run. They exposed three real

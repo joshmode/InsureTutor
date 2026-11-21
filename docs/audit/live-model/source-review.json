@@ -1,0 +1,16 @@
+{
+  "reasoning_effort": "low",
+  "artifact_paths": [
+    "profile-low/fresh.json",
+    "profile-low/adversarial.json",
+    "profile-low/held-out.json",
+    "browser-low/results.json",
+    "docker-live.json"
+  ],
+  "all_returned_citation_metadata_matches_source_api": true,
+  "citation_instances_checked": 28,
+  "generated_responses_included": 15,
+  "method": "Source API identity and page bounds checked mechanically. Generated facts were separately compared to original PDF pages in this session; this is not independent human/domain certification.",
+  "semantic_factuality_certified": false,
+  "failures": []
+}
