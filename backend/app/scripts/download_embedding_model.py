@@ -30,6 +30,8 @@ def main():
     )
     os.environ.setdefault("HF_XET_CACHE", str(Path(hf_home) / "xet"))
     os.environ.setdefault("HF_HUB_DISABLE_TELEMETRY", "1")
+    import onnxruntime
+    onnxruntime.disable_telemetry_events()
     from fastembed import TextEmbedding
     from huggingface_hub import snapshot_download
 

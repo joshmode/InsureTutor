@@ -1,5 +1,21 @@
 from __future__ import annotations
 
+import pytest
+
+from backend.app.config import Settings
+from backend.app.retrieval.hybrid import HybridRetriever
+
+
+@pytest.mark.parametrize("question", ["冷靜期有多長？", "冷静期有多长？", "What is the benefit term?"])
+def test_strong_literal_source_survives_a_missing_vector_candidate(knowledge_chunks, monkeypatch, question):
+    retriever = HybridRetriever(knowledge_chunks, Settings(enable_embeddings=False, _env_file=None))
+    retriever.embedding_backend.available = True
+    monkeypatch.setattr(retriever.vector, "search", lambda query, limit: [])
+    result = retriever.search(question)
+    assert result.mode == "hybrid"
+    assert result.sufficient and result.hits
+    assert result.hits[0].lexical_score >= 0.8
+
 
 def pages(result):
     return {hit.chunk.page for hit in result.hits}

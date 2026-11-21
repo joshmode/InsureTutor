@@ -518,11 +518,18 @@ class HybridRetriever:
         ]
         literal_set = set(literal_terms)
         literal_covered: set[str] = set()
+        # Optional embeddings must not veto strong, selected literal evidence
+        # merely because that chunk was absent from the vector candidate list.
+        strong_literal_support = False
         for hit in relevant:
             haystack = (f"{hit.chunk.section} {hit.chunk.citation_excerpt}").lower()
+            covered_here = set()
             for phrase in literal_set:
                 if phrase in haystack:
                     literal_covered.add(phrase)
+                    covered_here.add(phrase)
+            if raw_top >= 4.0 and hit.lexical_score >= 0.8 and len(covered_here) >= 2:
+                strong_literal_support = True
         if lower_query.strip().rstrip("?.!") in {
             "what is the capital of france",
             "what is the capital of japan",
@@ -552,6 +559,7 @@ class HybridRetriever:
             coverage_ok = (len(covered_cjk) >= 2 or len(literal_covered) >= 2) and (
                 not self.embedding_backend.available
                 or (relevant and relevant[0].vector_score >= 0.40)
+                or strong_literal_support
             )
         else:
             # A relevance threshold prevents a single incidental token from
@@ -559,7 +567,7 @@ class HybridRetriever:
             coverage_ok = (
                 raw_top >= 4.0
                 and coverage >= 0.34
-                and (not relevant or relevant[0].score >= 0.52)
+                and (not relevant or relevant[0].score >= 0.52 or strong_literal_support)
             )
             # A follow-up can be short but still supported by domain evidence.
             # This gate is intentional and conservative; embeddings make the

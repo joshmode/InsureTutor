@@ -69,3 +69,43 @@ jobs:
             BROWSER_ENGINE="$browser_engine" AUDIT_OUTPUT_DIR="/tmp/second-pass-$browser_engine" BASE_URL=http://127.0.0.1:8014 node scripts/second-pass-ui.cjs
           done
           python scripts/load_smoke.py --base-url http://127.0.0.1:8014 --output /tmp/load.json
+      - name: Verify the real pinned hybrid model
+        env:
+          ENABLE_EMBEDDINGS: "true"
+          EMBEDDING_ENABLED: "true"
+          EMBEDDING_CACHE_DIR: /tmp/insuretutor-ci-model
+          EMBEDDING_LOCAL_MODEL_DIR: /tmp/insuretutor-ci-model/pinned
+          DATA_DIR: /tmp/insuretutor-ci-hybrid
+        shell: bash
+        run: |
+          python -m backend.app.scripts.download_embedding_model --revision faf4aa4225822f3bc6376869cb1164e8e3feedd0
+          uvicorn backend.app.main:app --host 127.0.0.1 --port 8016 --no-proxy-headers --no-access-log > /tmp/insuretutor-hybrid-ci.log 2>&1 &
+          app_pid=$!
+          trap 'kill "$app_pid"' EXIT
+          python - <<'PY'
+          import json, time, urllib.request
+          base = 'http://127.0.0.1:8016'
+          for attempt in range(120):
+              try:
+                  with urllib.request.urlopen(base + '/api/health', timeout=1) as response:
+                      health = json.load(response)
+                  assert health['retrieval_mode'] == 'hybrid', health
+                  break
+              except OSError:
+                  time.sleep(.5)
+          else:
+              raise SystemExit('Hybrid application did not become ready')
+          for question, language, source_term in [
+              ('冷靜期有多長？', 'zh-Hant', '21'),
+              ('冷静期有多长？', 'zh-Hans', '21'),
+              ('Under this policy, will I pay a withdrawal charge?', 'en', 'US$25'),
+          ]:
+              request = urllib.request.Request(base + '/api/chat', json.dumps({'message':question, 'language':language}).encode(), {'Content-Type':'application/json'})
+              with urllib.request.urlopen(request, timeout=195) as response:
+                  answer = json.load(response)
+              assert answer['kind'] == 'answer' and answer['citations'], answer
+              assert source_term in ' '.join(c['excerpt'] for c in answer['citations'])
+              assert answer['model_generated'] is False
+          PY
+          python scripts/audit_rag.py --base-url http://127.0.0.1:8016 --output /tmp/hybrid-adversarial.json
+          python scripts/evaluate_provider.py --base-url http://127.0.0.1:8016 --output /tmp/hybrid-held-out.json

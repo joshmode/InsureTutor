@@ -306,6 +306,13 @@ def test_unknown_english_modifier_is_not_excused_by_chinese_topic_matches():
     assert not literal_applicable("reinstatement 利息 費用", [hit("利息 費用")])
 
 
+def test_grammatical_preposition_does_not_require_an_unrelated_source_passage():
+    assert literal_applicable(
+        "Under this policy, will I pay a withdrawal charge?",
+        [hit("A cash withdrawal incurs a withdrawal charge of US$25.")],
+    )
+
+
 def test_subject_in_an_unrelated_exclusion_cannot_establish_a_new_fee():
     retriever = StaticRetriever([hit("Interest and withdrawal charge is US$25.")])
     retriever.chunks.append(hit("Reinstatement is mentioned in exclusions.", "other").chunk)
