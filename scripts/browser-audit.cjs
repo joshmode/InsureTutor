@@ -42,6 +42,21 @@ const answer = {
 answer.message +=
   "\n\n![tracking image](https://example.invalid/tracker.png) [Untrusted link](https://example.invalid/verify)";
 const checks = [];
+async function waitForLayout(page) {
+  await page.evaluate(() => document.fonts.ready);
+  // Viewport changes can precede viewport-unit layout in Firefox/WebKit.
+  // Require the shell and composer to fit before assertions or screenshots.
+  await page.waitForFunction(() => {
+    const shell = document.querySelector(".app-shell").getBoundingClientRect();
+    const question = document.querySelector("#question").getBoundingClientRect();
+    const dock = document.querySelector(".composer-dock").getBoundingClientRect();
+    return Math.abs(shell.height - innerHeight) <= 1 &&
+      Math.abs(shell.width - innerWidth) <= 1 &&
+      question.top >= 0 && question.bottom <= innerHeight &&
+      dock.top >= 0 && dock.bottom <= innerHeight + 1;
+  }, null, { timeout: 3000 });
+  await page.evaluate(() => new Promise(requestAnimationFrame));
+}
 (async () => {
   const browser = await browsers[engine].launch({
     ...(engine === "chromium"
@@ -79,15 +94,9 @@ const checks = [];
   await p.goto(base);
   await p.getByRole("heading", { level: 1 }).waitFor();
   await p.locator(".connection-status").waitFor();
-  await p.evaluate(() => document.fonts.ready);
   for (const width of [1440, 1024, 768, 390, 320]) {
     await p.setViewportSize({ width, height: 844 });
-    // Resize completion can precede viewport-unit layout in Firefox/WebKit.
-    // Keep the same geometry requirement and wait for it before asserting.
-    await p.waitForFunction(() => {
-      const r = document.querySelector("#question").getBoundingClientRect();
-      return r.top >= 0 && r.bottom <= innerHeight;
-    }, null, { timeout: 3000 });
+    await waitForLayout(p);
     assert(
       await p.evaluate(
         () => document.documentElement.scrollWidth <= innerWidth,
@@ -109,6 +118,7 @@ const checks = [];
     "viewport reflow 320, 390, 768, 1024, 1440; composer stays outside scroll region",
   );
   await p.setViewportSize({ width: 1440, height: 1000 });
+  await waitForLayout(p);
   await p.screenshot({ path: path.join(output, "after-desktop.png") });
   // Live request exercises actual retrieval, not a mocked success path.
   await p.getByRole("button", { name: /02 The 4% rate/ }).click();
@@ -284,6 +294,7 @@ const checks = [];
     "new conversation cancels pending request without resurrecting stale messages",
   );
   await p.setViewportSize({ width: 390, height: 844 });
+  await waitForLayout(p);
   await p.screenshot({ path: path.join(output, "after-mobile.png") });
   // Layout at 200% browser-equivalent effective width, and short keyboard-like viewport.
   for (const size of [
@@ -291,15 +302,7 @@ const checks = [];
     { width: 390, height: 420 },
   ]) {
     await p.setViewportSize(size);
-    await p.waitForFunction(
-      () => {
-        const r = document.querySelector("#question").getBoundingClientRect();
-        return r.top >= 0 && r.bottom <= innerHeight;
-      },
-      null,
-      { timeout: 3000 },
-    );
-    await p.evaluate(() => new Promise(requestAnimationFrame));
+    await waitForLayout(p);
     assert(
       await p.evaluate(
         () => document.documentElement.scrollWidth <= innerWidth,
@@ -317,6 +320,7 @@ const checks = [];
   );
   if (axePath) {
     await p.setViewportSize({ width: 1440, height: 1000 });
+    await waitForLayout(p);
     // Run trusted diagnostic code through browser automation; do not relax the page CSP.
     await p.evaluate(fs.readFileSync(axePath, "utf8"));
     let result = await p.evaluate(() =>
