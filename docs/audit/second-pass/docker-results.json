@@ -1,0 +1,41 @@
+{
+  "image": "sha256:62dc7b18f1616a2cf3695cdfdb700ab8d9dcec8bee0e705d0a7161991fe88217",
+  "user": "app",
+  "read_only": true,
+  "cap_drop": [
+    "ALL"
+  ],
+  "security_opt": [
+    "no-new-privileges:true"
+  ],
+  "memory_bytes": 2147483648,
+  "nano_cpus": 2000000000,
+  "pids_limit": 128,
+  "tmpfs": {
+    "/tmp": "rw,noexec,nosuid,size=128m,mode=1777"
+  },
+  "health_after_restart": {
+    "status": "ok",
+    "llm_configured": false,
+    "retrieval_mode": "lexical",
+    "documents": 1,
+    "chunks": 52,
+    "ingest_ready": true,
+    "request_timeout_seconds": 195.0
+  },
+  "persisted_manifest": {
+    "schema_version": 5,
+    "source_fingerprints": {
+      "FLEXI-ULife Prime Saver.pdf": "2043de40845267fdb1f657280438f3ded04edda6692791960415116a5668a475"
+    }
+  },
+  "installer_modules": "absent",
+  "checks": [
+    "HTML and security headers",
+    "default and named PDF byte fingerprints",
+    "unknown and traversal PDFs rejected",
+    "schema 5 retained over restart",
+    "three audited backend modules match host source"
+  ],
+  "external_model_used": false
+}

@@ -1,0 +1,14 @@
+{
+  "image": "sha256:62dc7b18f1616a2cf3695cdfdb700ab8d9dcec8bee0e705d0a7161991fe88217",
+  "severity_counts": {
+    "LOW": 67,
+    "HIGH": 47,
+    "MEDIUM": 109,
+    "UNKNOWN": 9
+  },
+  "unique_advisory_ids": 102,
+  "published_fixed_entries": 0,
+  "python_package_findings": 0,
+  "database": "previously fetched official Trivy database; skip-db-update; no new advisory freshness claim",
+  "status": "All remaining OS entries remain open; none suppressed or accepted."
+}

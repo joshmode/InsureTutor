@@ -1,0 +1,6 @@
+{
+  "transport": "real TCP via Uvicorn and HTTPX, loopback provider stub",
+  "client_disconnect_closes_provider_connection": true,
+  "sole_chat_lease_reusable": true,
+  "external_provider_called": false
+}

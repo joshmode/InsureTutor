@@ -348,7 +348,7 @@ uv pip install -r backend/requirements-dev.txt
 pytest -q
 ```
 
-The checked-in suite currently passes **153 tests**. It covers:
+The checked-in suite currently passes **183 tests**. It covers:
 
 - deterministic page-aware ingestion and table metadata;
 - interest, withdrawal, comparison, Chinese and unrelated retrieval;
@@ -360,7 +360,11 @@ The checked-in suite currently passes **153 tests**. It covers:
   and mixed-language retrieval;
 - form-label/value reconstruction for the minimum sum insured, currency and
   payment-mode passages;
-- health, frontend serving, empty-message validation and missing-secret checks.
+- health, frontend serving, empty-message validation and missing-secret checks;
+- cancellation during admission/provider reads, custom request deadlines and
+  selecting the correct configured PDF without escaping the knowledge directory;
+- Chinese claims/cooling-off questions, contextual source-conflict warnings,
+  maximum-sum-insured extraction and sentence-level abbreviation handling.
 
 ### Frontend
 
@@ -370,6 +374,21 @@ npm ci
 npm run typecheck
 npm run build
 ```
+
+Against the built application, run the browser regressions from the repository
+root (Playwright and axe are locked frontend development dependencies):
+
+```bash
+BASE_URL=http://127.0.0.1:8000 node scripts/browser-audit.cjs
+BASE_URL=http://127.0.0.1:8000 node scripts/second-pass-ui.cjs
+```
+
+Both scripts accept `BROWSER_ENGINE=chromium|firefox|webkit` after installing
+the corresponding Playwright browser. `CHROMIUM_PATH` selects a system Chromium.
+The [second-pass audit](docs/audit/SECOND-PASS.md) records the verified fixes,
+controlled UI fixtures and checks that remain unverified. In particular, nearby
+source excerpts do not establish that an unsupported question was answered;
+live model factuality still requires evaluation with the configured provider.
 
 Manual checklist:
 

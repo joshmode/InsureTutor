@@ -1,0 +1,100 @@
+#0 building with "default" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 3.10kB done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/python:3.13-slim@sha256:e48f59cdba69a3cbd9ed2cf0f348d90d45a8d350d98134cf1070bc106ee9ed90
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/node:22-alpine@sha256:1314fb30ec37592d5845e5a160d522c0e680972aa534549940b8d73bde88481a
+#3 DONE 0.0s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 252B done
+#4 DONE 0.0s
+
+#5 [runtime  1/11] FROM docker.io/library/python:3.13-slim@sha256:e48f59cdba69a3cbd9ed2cf0f348d90d45a8d350d98134cf1070bc106ee9ed90
+#5 DONE 0.0s
+
+#6 [frontend-builder 1/6] FROM docker.io/library/node:22-alpine@sha256:1314fb30ec37592d5845e5a160d522c0e680972aa534549940b8d73bde88481a
+#6 DONE 0.0s
+
+#7 [internal] load build context
+#7 transferring context: 15.35kB done
+#7 DONE 0.0s
+
+#8 [frontend-builder 2/6] WORKDIR /build/frontend
+#8 CACHED
+
+#9 [frontend-builder 3/6] COPY frontend/package.json frontend/package-lock.json ./
+#9 CACHED
+
+#10 [frontend-builder 4/6] RUN --mount=type=secret,id=build_ca     if [ -f /run/secrets/build_ca ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/build_ca; fi;     npm ci --strict-ssl=true
+#10 CACHED
+
+#11 [frontend-builder 5/6] COPY frontend/ ./
+#11 DONE 8.7s
+
+#12 [frontend-builder 6/6] RUN NEXT_TELEMETRY_DISABLED=1 npm run build
+#12 3.652 
+#12 3.652 > build
+#12 3.652 > next build
+#12 3.652 
+#12 4.324 ▲ Next.js 16.4.6 (Turbopack)
+#12 4.366 ✓ Running next.config.ts took 44ms
+#12 4.383 
+#12 4.416   Creating an optimized production build ...
+#12 10.22 ✓ Compiled successfully in 5.8s
+#12 10.23   Running TypeScript ...
+#12 15.59   Finished TypeScript in 5.4s ...
+#12 15.60   Collecting page data using 4 workers ...
+#12 16.32   Generating static pages using 4 workers (0/3) ...
+#12 17.00 ✓ Generating static pages using 4 workers (3/3) in 682ms
+#12 17.01   Finalizing page optimization ...
+#12 17.09 
+#12 17.09 Route (app)
+#12 17.09 ┌ ○ /
+#12 17.09 └ ○ /_not-found
+#12 17.09 
+#12 17.10 
+#12 17.10 ○  (Static)  prerendered as static content
+#12 17.10 
+#12 DONE 17.2s
+
+#13 [runtime  4/11] RUN groupadd --system app && useradd --system --gid app app
+#13 CACHED
+
+#14 [runtime  6/11] RUN --mount=type=secret,id=build_ca     if [ -f /run/secrets/build_ca ]; then export PIP_CERT=/run/secrets/build_ca; fi;     pip install --no-cache-dir --require-hashes --only-binary=:all: -r /app/backend/requirements.txt     && python -m pip uninstall --yes pip     && rm -rf /usr/local/lib/python3.13/ensurepip
+#14 CACHED
+
+#15 [runtime  8/11] COPY backend/ /app/backend/
+#15 CACHED
+
+#16 [runtime  5/11] COPY backend/requirements.txt /app/backend/requirements.txt
+#16 CACHED
+
+#17 [runtime  7/11] RUN python -c "import importlib.util; import fastapi, uvicorn, pymupdf, fastembed, numpy, sqlite3; assert importlib.util.find_spec('pip') is None; assert importlib.util.find_spec('ensurepip') is None"
+#17 CACHED
+
+#18 [runtime  2/11] WORKDIR /app
+#18 CACHED
+
+#19 [runtime  3/11] RUN --mount=type=secret,id=build_ca,mode=0444     sed -i 's|http://deb.debian.org|https://deb.debian.org|g' /etc/apt/sources.list.d/debian.sources     && if [ -f /run/secrets/build_ca ]; then set -- -o Acquire::https::CaInfo=/run/secrets/build_ca; else set --; fi     && apt-get "$@" update     && apt-get "$@" install -y --no-install-recommends zlib1g=1:1.3.dfsg+really1.3.1-1+deb13u1     && rm -rf /var/lib/apt/lists/*
+#19 CACHED
+
+#20 [runtime  9/11] COPY knowledge/ /app/knowledge/
+#20 CACHED
+
+#21 [runtime 10/11] COPY --from=frontend-builder /build/frontend/out /app/frontend/out
+#21 DONE 2.0s
+
+#22 [runtime 11/11] RUN chmod -R a+rX /app/backend /app/knowledge /app/frontend     && mkdir -p /app/data     && chown -R app:app /app/data
+#22 DONE 5.1s
+
+#23 exporting to image
+#23 exporting layers
+#23 exporting layers 0.3s done
+#23 writing image sha256:62dc7b18f1616a2cf3695cdfdb700ab8d9dcec8bee0e705d0a7161991fe88217 done
+#23 naming to docker.io/library/insuretutor:second-pass done
+#23 DONE 0.3s
