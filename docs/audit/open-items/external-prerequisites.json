@@ -1,0 +1,55 @@
+{
+  "checks": [
+    {
+      "service": "Hugging Face model metadata",
+      "url": "https://huggingface.co/api/models/sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+      "status": "blocked",
+      "error": "<urlopen error Tunnel connection failed: 403 Forbidden>"
+    },
+    {
+      "service": "Playwright official CDN",
+      "url": "https://cdn.playwright.dev",
+      "status": "blocked",
+      "error": "<urlopen error Tunnel connection failed: 403 Forbidden>"
+    },
+    {
+      "service": "GitHub API",
+      "url": "https://api.github.com/repos/joshmode/InsureTutor",
+      "status": "blocked",
+      "error": "<urlopen error Tunnel connection failed: 403 Forbidden>"
+    },
+    {
+      "service": "Default model provider",
+      "url": "https://api.openai.com/v1/models",
+      "status": "blocked",
+      "error": "<urlopen error Tunnel connection failed: 403 Forbidden>"
+    }
+  ],
+  "model_key_configured": false,
+  "network_draft": "saved; requires owner review/save/publish; not applied to runtime",
+  "prior_draft_domains": [
+    "huggingface.co",
+    "*.huggingface.co",
+    "cas-bridge.xethub.hf.co",
+    "cas-server.xethub.hf.co",
+    "cdn.playwright.dev",
+    "playwright.download.prss.microsoft.com"
+  ],
+  "runtime_change_tool_available": false,
+  "new_draft_domains": [
+    "api.github.com",
+    "api.openai.com"
+  ],
+  "saved_draft_revision": 7,
+  "runtime_policy_revision": 1,
+  "runtime_custom_domains": [],
+  "runtime_ready_secrets": [],
+  "prepared_default_provider": {
+    "base_url": "https://api.openai.com/v1",
+    "model": "gpt-4.1-mini",
+    "secret_requirement": "LLM_API_KEY",
+    "secret_source": "user_provided",
+    "secret_value_supplied": false
+  },
+  "requires_owner_review_save_publish": true
+}

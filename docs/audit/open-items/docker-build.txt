@@ -1,0 +1,106 @@
+#0 building with "default" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 3.10kB done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/node:22-alpine@sha256:1314fb30ec37592d5845e5a160d522c0e680972aa534549940b8d73bde88481a
+#2 ...
+
+#3 [internal] load metadata for docker.io/library/python:3.13-slim@sha256:e48f59cdba69a3cbd9ed2cf0f348d90d45a8d350d98134cf1070bc106ee9ed90
+#3 DONE 1.0s
+
+#2 [internal] load metadata for docker.io/library/node:22-alpine@sha256:1314fb30ec37592d5845e5a160d522c0e680972aa534549940b8d73bde88481a
+#2 DONE 1.0s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 252B done
+#4 DONE 0.0s
+
+#5 [frontend-builder 1/6] FROM docker.io/library/node:22-alpine@sha256:1314fb30ec37592d5845e5a160d522c0e680972aa534549940b8d73bde88481a
+#5 DONE 0.0s
+
+#6 [runtime  1/11] FROM docker.io/library/python:3.13-slim@sha256:e48f59cdba69a3cbd9ed2cf0f348d90d45a8d350d98134cf1070bc106ee9ed90
+#6 DONE 0.0s
+
+#7 [internal] load build context
+#7 transferring context: 151.03kB 0.0s done
+#7 DONE 0.0s
+
+#8 [frontend-builder 3/6] COPY frontend/package.json frontend/package-lock.json ./
+#8 CACHED
+
+#9 [frontend-builder 2/6] WORKDIR /build/frontend
+#9 CACHED
+
+#10 [frontend-builder 4/6] RUN --mount=type=secret,id=build_ca     if [ -f /run/secrets/build_ca ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/build_ca; fi;     npm ci --strict-ssl=true
+#10 CACHED
+
+#11 [runtime  5/11] COPY backend/requirements.txt /app/backend/requirements.txt
+#11 CACHED
+
+#12 [runtime  6/11] RUN --mount=type=secret,id=build_ca     if [ -f /run/secrets/build_ca ]; then export PIP_CERT=/run/secrets/build_ca; fi;     pip install --no-cache-dir --require-hashes --only-binary=:all: -r /app/backend/requirements.txt     && python -m pip uninstall --yes pip     && rm -rf /usr/local/lib/python3.13/ensurepip
+#12 CACHED
+
+#13 [runtime  2/11] WORKDIR /app
+#13 CACHED
+
+#14 [runtime  3/11] RUN --mount=type=secret,id=build_ca,mode=0444     sed -i 's|http://deb.debian.org|https://deb.debian.org|g' /etc/apt/sources.list.d/debian.sources     && if [ -f /run/secrets/build_ca ]; then set -- -o Acquire::https::CaInfo=/run/secrets/build_ca; else set --; fi     && apt-get "$@" update     && apt-get "$@" install -y --no-install-recommends zlib1g=1:1.3.dfsg+really1.3.1-1+deb13u1     && rm -rf /var/lib/apt/lists/*
+#14 CACHED
+
+#15 [runtime  4/11] RUN groupadd --system app && useradd --system --gid app app
+#15 CACHED
+
+#16 [runtime  7/11] RUN python -c "import importlib.util; import fastapi, uvicorn, pymupdf, fastembed, numpy, sqlite3; assert importlib.util.find_spec('pip') is None; assert importlib.util.find_spec('ensurepip') is None"
+#16 CACHED
+
+#17 [runtime  8/11] COPY backend/ /app/backend/
+#17 DONE 8.0s
+
+#18 [frontend-builder 5/6] COPY frontend/ ./
+#18 ...
+
+#19 [runtime  9/11] COPY knowledge/ /app/knowledge/
+#19 DONE 7.3s
+
+#18 [frontend-builder 5/6] COPY frontend/ ./
+#18 DONE 18.0s
+
+#20 [frontend-builder 6/6] RUN NEXT_TELEMETRY_DISABLED=1 npm run build
+#20 13.96 
+#20 13.96 > build
+#20 13.96 > next build
+#20 13.96 
+#20 14.91 ▲ Next.js 16.4.6 (Turbopack)
+#20 15.00 ✓ Running next.config.ts took 90ms
+#20 15.02 
+#20 15.05   Creating an optimized production build ...
+#20 25.62 ✓ Compiled successfully in 10.6s
+#20 25.63   Running TypeScript ...
+#20 32.65   Finished TypeScript in 7.0s ...
+#20 32.66   Collecting page data using 4 workers ...
+#20 33.86   Generating static pages using 4 workers (0/3) ...
+#20 34.83 ✓ Generating static pages using 4 workers (3/3) in 976ms
+#20 34.84   Finalizing page optimization ...
+#20 34.88 
+#20 34.88 Route (app)
+#20 34.88 ┌ ○ /
+#20 34.88 └ ○ /_not-found
+#20 34.88 
+#20 34.88 
+#20 34.88 ○  (Static)  prerendered as static content
+#20 34.88 
+#20 DONE 35.0s
+
+#21 [runtime 10/11] COPY --from=frontend-builder /build/frontend/out /app/frontend/out
+#21 DONE 4.4s
+
+#22 [runtime 11/11] RUN chmod -R a+rX /app/backend /app/knowledge /app/frontend     && mkdir -p /app/data     && chown -R app:app /app/data
+#22 DONE 5.2s
+
+#23 exporting to image
+#23 exporting layers
+#23 exporting layers 1.3s done
+#23 writing image sha256:c10ab7c52888e5eb1e4a962579bf0d2b110f781544ca24bc97187e0436b4cb80 done
+#23 naming to docker.io/library/insuretutor:open-items done
+#23 DONE 1.4s

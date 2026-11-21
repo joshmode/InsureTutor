@@ -1,0 +1,64 @@
+{
+  "candidates": [
+    {
+      "candidate": "current application",
+      "image": "sha256:c10ab7c52888e5eb1e4a962579bf0d2b110f781544ca24bc97187e0436b4cb80",
+      "repo_digests": [],
+      "os": {
+        "Family": "debian",
+        "Name": "13.7"
+      },
+      "os_package_severity_counts": {
+        "LOW": 67,
+        "HIGH": 47,
+        "MEDIUM": 109,
+        "UNKNOWN": 9
+      },
+      "published_fixed_entries": 0,
+      "adopted": true,
+      "scope": "Base-image comparison; dependencies/installers differ from final application image. No substitute application build or performance claim."
+    },
+    {
+      "candidate": "official Bookworm base",
+      "image": "sha256:c7ea9065843cd8081ac483d8ce0cd7f2dfed7dd77180c8c535cbfc9ee9a85a9c",
+      "repo_digests": [
+        "python@sha256:a5a7017efc5969e00ae2b91c8eb0631049a569652aa4ffc4501769049ae45c72"
+      ],
+      "os": {
+        "Family": "debian",
+        "Name": "12.15"
+      },
+      "os_package_severity_counts": {
+        "LOW": 94,
+        "HIGH": 43,
+        "MEDIUM": 118,
+        "UNKNOWN": 12,
+        "CRITICAL": 2
+      },
+      "published_fixed_entries": 0,
+      "adopted": false,
+      "scope": "Base-image comparison; dependencies/installers differ from final application image. No substitute application build or performance claim."
+    },
+    {
+      "candidate": "official distroless Python base",
+      "image": "sha256:a50392bd83ac3ba75efd4ec495bb9b3b39b29529b6b97560da115f8a1445297f",
+      "repo_digests": [
+        "gcr.io/distroless/python3-debian13@sha256:6c4cb3bfa4b555429dd19541796a6ba6b30c84675b460bd0bd5072f7d5bdae71"
+      ],
+      "os": {
+        "Family": "debian",
+        "Name": "13.7"
+      },
+      "os_package_severity_counts": {
+        "MEDIUM": 150,
+        "LOW": 60,
+        "UNKNOWN": 26,
+        "HIGH": 89
+      },
+      "published_fixed_entries": 0,
+      "adopted": false,
+      "scope": "Base-image comparison; dependencies/installers differ from final application image. No substitute application build or performance claim."
+    }
+  ],
+  "decision": "Keep the pinned current Debian 13 runtime: Bookworm adds CRITICAL zlib entries; distroless Python increases HIGH findings including Python SSL/HTML and Kerberos packages. No findings suppressed."
+}

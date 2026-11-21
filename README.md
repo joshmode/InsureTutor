@@ -348,7 +348,7 @@ uv pip install -r backend/requirements-dev.txt
 pytest -q
 ```
 
-The checked-in suite currently passes **183 tests**. It covers:
+The checked-in suite currently passes **223 tests**. It covers:
 
 - deterministic page-aware ingestion and table metadata;
 - interest, withdrawal, comparison, Chinese and unrelated retrieval;
@@ -364,7 +364,10 @@ The checked-in suite currently passes **183 tests**. It covers:
 - cancellation during admission/provider reads, custom request deadlines and
   selecting the correct configured PDF without escaping the knowledge directory;
 - Chinese claims/cooling-off questions, contextual source-conflict warnings,
-  maximum-sum-insured extraction and sentence-level abbreviation handling.
+  maximum-sum-insured extraction and sentence-level abbreviation handling;
+- unsupported question modifiers, explicit monetary-field attribution across
+  actual brochure citations, footnotes and supported English paraphrases;
+- evaluation deadlines and rejecting excerpt fallback during live-model checks.
 
 ### Frontend
 
@@ -389,6 +392,18 @@ The [second-pass audit](docs/audit/SECOND-PASS.md) records the verified fixes,
 controlled UI fixtures and checks that remain unverified. In particular, nearby
 source excerpts do not establish that an unsupported question was answered;
 live model factuality still requires evaluation with the configured provider.
+The [open-item ledger](docs/audit/OPEN-ITEMS.md) records the latest fixes and the
+external checks that remain blocked. Earlier audit reports are historical.
+
+The chat API returns `model_generated: true` only when the returned explanation
+contains model output that passed the grounding review. Excerpts and fixed
+responses return `false`; this flag is not a factuality guarantee. Live
+evaluation requires that flag for answers, so configured credentials and an
+excerpt fallback cannot produce a passing live-model result:
+
+```bash
+python scripts/evaluate_provider.py --base-url http://127.0.0.1:8000 --require-model
+```
 
 Manual checklist:
 

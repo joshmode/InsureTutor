@@ -1,0 +1,18 @@
+{
+  "image": "sha256:c10ab7c52888e5eb1e4a962579bf0d2b110f781544ca24bc97187e0436b4cb80",
+  "severity_counts": {
+    "LOW": 67,
+    "HIGH": 47,
+    "MEDIUM": 109,
+    "UNKNOWN": 9
+  },
+  "python_findings": 0,
+  "published_fixed_entries": 0,
+  "database_metadata": {
+    "Version": 2,
+    "NextUpdate": "2026-11-22T01:10:48.358483881Z",
+    "UpdatedAt": "2026-11-21T01:10:48.358484358Z",
+    "DownloadedAt": "2026-11-21T04:59:26.867752272Z"
+  },
+  "status": "All remaining OS entries open; none suppressed, patched or accepted."
+}
