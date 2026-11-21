@@ -44,6 +44,15 @@ def test_required_page_metadata_survives_tables():
     )
 
 
+def test_maximum_sum_insured_preserves_its_bilingual_form_value(knowledge_chunks):
+    maximum = next(
+        chunk for chunk in knowledge_chunks
+        if chunk.page == 17 and "Maximum Sum Insured" in chunk.citation_excerpt
+    )
+    assert "個別考慮" in maximum.citation_excerpt
+    assert "Individual consideration" in maximum.citation_excerpt
+
+
 def test_form_rows_are_attached_to_source_values():
     chunks = chunk_document(PDF)
     minimum = next(

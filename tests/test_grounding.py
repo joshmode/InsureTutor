@@ -86,6 +86,32 @@ def test_direct_quote_must_exist_in_its_own_source():
 
 
 @pytest.mark.parametrize(
+    "claim",
+    [
+        "YF Life Insurance International Ltd. underwrites this plan.",
+        "The assumed base rate is 4% p.a. and is not guaranteed.",
+        "The brochure gives an example, e.g. a withdrawal.",
+        "Mr. Chan illustrates the life protection options.",
+    ],
+)
+def test_common_abbreviations_do_not_create_uncited_sentence_fragments(claim):
+    claims = inspect_draft(claim + " [S1]", [hit(claim)])
+    assert [entry.text for entry in claims] == [claim]
+
+
+@pytest.mark.parametrize(
+    "draft",
+    [
+        "The underwriter is YF Life Insurance International Ltd. [S1] Your principal can never fall.",
+        "YF Life Insurance International Ltd. underwrites this plan. [S1] Your principal can never fall.",
+    ],
+)
+def test_abbreviation_handling_keeps_the_next_uncited_sentence_separate(draft):
+    with pytest.raises(GroundingError, match="uncited_claim"):
+        inspect_draft(draft, [hit("YF Life Insurance International Ltd. underwrites this plan.")])
+
+
+@pytest.mark.parametrize(
     "review",
     [
         "sure",
@@ -345,3 +371,106 @@ def test_plural_currencies_retains_hong_kong_policy_source(retriever):
         "US$" in c.excerpt and "HK$" in c.excerpt and "Hong Kong" in c.excerpt
         for c in answer.citations
     )
+
+
+@pytest.mark.parametrize("followup", ["And what about that?", "那是什麼呢？"])
+def test_followup_preserves_reviewed_source_conflict(retriever, followup):
+    from backend.app.models import ChatTurn
+
+    app = ChatOrchestrator(Settings(_env_file=None), retriever, ScriptedLLM([]))
+    app.llm.configured = False
+    answer = asyncio.run(
+        app.answer(
+            ChatRequest(
+                message=followup,
+                history=[ChatTurn(
+                    role="user",
+                    content="What is the minimum increase/decrease amount in sum insured?",
+                )],
+            )
+        )
+    )
+    assert answer.kind == "insufficient"
+    assert len(answer.citations) == 1 and answer.citations[0].page == 17
+    assert "conflicting figures" in answer.message
+    assert not app.llm.calls
+
+
+@pytest.mark.parametrize(
+    "question",
+    [
+        "Will I pay a withdrawal charge?",
+        "Which charges will I pay when I withdraw money?",
+        "Under this policy, will I pay a withdrawal charge?",
+    ],
+)
+def test_policyholder_fee_questions_retain_brochure_evidence(retriever, question):
+    app = ChatOrchestrator(Settings(_env_file=None), retriever, ScriptedLLM([]))
+    app.llm.configured = False
+    answer = asyncio.run(app.answer(ChatRequest(message=question)))
+    assert answer.kind == "answer"
+    assert any("US$25" in citation.excerpt for citation in answer.citations)
+
+
+@pytest.mark.parametrize(
+    "question",
+    [
+        "Will the insurer pay my claim?",
+        "The insurance company will pay my claim, right?",
+        "Will this policy pay if I die in an accident?",
+    ],
+)
+def test_insurer_payout_promises_remain_personal_determinations(retriever, question):
+    app = ChatOrchestrator(Settings(_env_file=None), retriever, ScriptedLLM([]))
+    answer = asyncio.run(app.answer(ChatRequest(message=question)))
+    assert answer.kind == "insufficient"
+    assert not answer.citations and not app.llm.calls
+
+
+@pytest.mark.parametrize("question", ["我想了解索償程序。", "我想了解索偿程序。"])
+def test_chinese_claims_procedure_is_brochure_education(retriever, question):
+    app = ChatOrchestrator(Settings(_env_file=None), retriever, ScriptedLLM([]))
+    app.llm.configured = False
+    answer = asyncio.run(app.answer(ChatRequest(message=question)))
+    assert answer.kind == "answer"
+    assert any(
+        citation.page == 15 and "Claims-Corner" in citation.excerpt
+        for citation in answer.citations
+    )
+
+
+@pytest.mark.parametrize("question", ["我可以索償嗎？", "我可以索偿吗？", "我是否受保？", "我一定會獲賠嗎？"])
+def test_chinese_personal_claim_determinations_remain_refused(retriever, question):
+    app = ChatOrchestrator(Settings(_env_file=None), retriever, ScriptedLLM([]))
+    answer = asyncio.run(app.answer(ChatRequest(message=question)))
+    assert answer.kind == "insufficient"
+    assert not answer.citations and not app.llm.calls
+
+
+@pytest.mark.parametrize("question", ["冷靜期有多長？", "冷静期有多长？"])
+def test_cooling_off_period_matches_both_chinese_scripts(retriever, question):
+    app = ChatOrchestrator(Settings(_env_file=None), retriever, ScriptedLLM([]))
+    app.llm.configured = False
+    answer = asyncio.run(app.answer(ChatRequest(message=question)))
+    assert answer.kind == "answer"
+    assert any(
+        citation.page == 15
+        and ("21 calendar days" in citation.excerpt or "21個曆日" in citation.excerpt)
+        for citation in answer.citations
+    )
+
+
+@pytest.mark.parametrize("question", ["What is the maximum sum insured?", "最高保障額是多少？", "最高保障额是多少？"])
+def test_maximum_sum_insured_retains_actual_source_value(retriever, question):
+    app = ChatOrchestrator(Settings(_env_file=None), retriever, ScriptedLLM([]))
+    app.llm.configured = False
+    answer = asyncio.run(app.answer(ChatRequest(message=question)))
+    assert answer.kind == "answer"
+    assert any(
+        citation.page == 17
+        and "Maximum Sum Insured" in citation.excerpt
+        and "Individual consideration" in citation.excerpt
+        and "個別考慮" in citation.excerpt
+        for citation in answer.citations
+    )
+    assert "Individual consideration" in answer.message

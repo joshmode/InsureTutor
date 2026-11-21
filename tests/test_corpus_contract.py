@@ -43,7 +43,7 @@ def test_source_bytes_change_invalidates_persisted_chunks(tmp_path):
     assert old[0].source_sha256 != new[0].source_sha256
     assert "Replacement document" in new[0].citation_excerpt
     payload = json.loads(kb.manifest_path.read_text())
-    assert payload["schema_version"] == 4
+    assert payload["schema_version"] == 5
     assert payload["source_fingerprints"]["guide.pdf"] == new[0].source_sha256
 
 
@@ -85,3 +85,14 @@ def test_unknown_document_does_not_receive_brochure_table_reconstruction(tmp_pat
     assert not any("Extra Bonus is credited" in c.citation_excerpt for c in chunks)
     assert not any("Minimum Sum Insured" in c.section for c in chunks)
     assert len(chunks) == 17
+
+
+def test_citation_document_is_the_actual_filename_not_pdf_metadata(tmp_path):
+    pdf = tmp_path / "configured-guide.pdf"
+    make_pdf(pdf, "Coverage information from the configured source document.")
+    with pymupdf.open(pdf) as document:
+        document.set_metadata({"title": "different-source.pdf"})
+        document.saveIncr()
+    chunks = chunk_document(pdf)
+    assert chunks
+    assert {chunk.document for chunk in chunks} == {pdf.name}

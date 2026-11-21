@@ -226,7 +226,6 @@ def _strip_form_labels(text: str) -> str:
     """Remove short standalone labels that become meaningless after packing."""
     lines = [line.strip() for line in text.splitlines() if line.strip()]
     ignored = {label.lower() for label, _ in AT_A_GLANCE_ROWS} | {
-        "individual consideration",
         "plan type",
         "currency",
         "payment mode",
@@ -289,8 +288,7 @@ def _form_source_chunk(
 def chunk_document(pdf_path: Path) -> list[Chunk]:
     source_sha256 = hashlib.sha256(pdf_path.read_bytes()).hexdigest()
     reviewed_brochure = source_sha256 == REVIEWED_BROCHURE_SHA256
-    metadata, pages = extract_pages(pdf_path)
-    doc_title = metadata.get("title") or pdf_path.stem
+    _, pages = extract_pages(pdf_path)
     chunks: list[Chunk] = []
     current_section = "Product Overview"
 
@@ -303,7 +301,17 @@ def chunk_document(pdf_path: Path) -> list[Chunk]:
             else f"Document page {page.page}"
         )
         current_section = page_section
-        paragraphs = _split_paragraphs(page.text)
+        source_text = page.text
+        if reviewed_brochure and page.page == 17:
+            # This form's short Chinese value would be dropped as a standalone
+            # paragraph. Keep the actual adjacent label and both source values
+            # together before filtering/packing, as with the other form rows.
+            label = "最高保障額\nMaximum Sum Insured"
+            if label in page.blocks:
+                start = page.blocks.index(label)
+                row = page.blocks[start : start + 3]
+                source_text = source_text.replace("\n\n".join(row), "\n".join(row))
+        paragraphs = _split_paragraphs(source_text)
         pieces = _merge_short_pieces(_pack(paragraphs))
         for idx, piece in enumerate(pieces):
             section = page_section
@@ -364,7 +372,7 @@ def chunk_document(pdf_path: Path) -> list[Chunk]:
             chunks.append(
                 Chunk(
                     id=f"{pdf_path.stem.lower().replace(' ', '-')}-p{page.page}-{digest}",
-                    document=doc_title if doc_title.endswith(".pdf") else pdf_path.name,
+                    document=pdf_path.name,
                     page=page.page,
                     section=section,
                     content=content,

@@ -51,6 +51,31 @@ def _number_values(text: str) -> set[Decimal]:
     }
 
 
+def _claim_units(line: str) -> list[str]:
+    # These source abbreviations contain periods within a continuing sentence.
+    # A citation or an uppercase new sentence still ends a corporate/rate
+    # abbreviation, so an uncited sentence cannot borrow the preceding marker.
+    abbreviations = re.finditer(
+        r"\b(?i:Ltd|Inc|p\.a|e\.g|i\.e)\.(?=\s+[a-z])|"
+        r"\b(?:Mr|Mrs|Ms|Dr)\.(?=\s+[A-Z][a-z])",
+        line,
+    )
+    protected = {match.end() for match in abbreviations}
+    units: list[str] = []
+    start = 0
+    for match in re.finditer(r"[.!?](?=\s|$|\[S\d+\])|[。！？]", line):
+        if match.end() in protected:
+            continue
+        end = match.end()
+        markers = re.match(r"(?:\s*\[S\d+\])*", line[end:])
+        end += markers.end()
+        units.append(line[start:end])
+        start = end
+    if line[start:].strip():
+        units.append(line[start:])
+    return units
+
+
 def inspect_draft(text: str, hits: list[RetrievalHit]) -> list[Claim]:
     if not text.strip() or len(text) > 16000:
         raise GroundingError("empty_or_oversized_draft")
@@ -66,8 +91,7 @@ def inspect_draft(text: str, hits: list[RetrievalHit]) -> list[Claim]:
         # Tables, code and links introduce ambiguous claim/evidence boundaries.
         if line.startswith(">") or re.search(r"```|\|.*\||\]\(|<[^>]+>", line):
             raise GroundingError("unsupported_answer_format")
-        units = re.findall(r".+?(?:[.!?](?=\s|$)|[。！？])(?:\s*\[S\d+\])*|.+$", line)
-        for unit in units:
+        for unit in _claim_units(line):
             unit = unit.strip()
             sources = tuple(
                 dict.fromkeys(int(n) for n in re.findall(r"\[S(\d+)\]", unit))
@@ -173,7 +197,7 @@ _QUERY_SCAFFOLD = set(
 # Linguistic scaffolding is not an insurance topic. Removing it keeps lexical
 # applicability about the subject, rather than the user's requested reading level.
 _CJK_SCAFFOLD = re.compile(
-    "請用|完全|沒買過保險|年輕人|也聽得懂的方式|解釋|這份計劃|這個保險|這個保單|如果|持續|從保單|會發生什麼|發生什麼|有什麼區別|什麼區別|有什麼|是什麼意思|什麼意思|是不是|是否|表示|又是|什麼|那個|它們|還有|請問|那麼|保單|保險|計劃|應該|請|我|的|了|嗎|呢|和|是|又|會|用|歲|人|也"
+    "請用|完全|沒買過保險|年輕人|也聽得懂的方式|解釋|這份計劃|這個保險|這個保單|如果|持續|從保單|會發生什麼|發生什麼|有什麼區別|什麼區別|有什麼|有多長|多長|多久|是什麼意思|什麼意思|是不是|是否|表示|又是|什麼|那個|它們|還有|請問|那麼|保單|保險|計劃|應該|請|我|的|了|嗎|呢|和|是|又|會|用|歲|人|也"
 )
 
 

@@ -12,7 +12,7 @@ from ..config import Settings
 from .chunker import Chunk, chunk_document
 
 logger = logging.getLogger(__name__)
-SCHEMA_VERSION = 4
+SCHEMA_VERSION = 5
 
 
 class KnowledgeBase:

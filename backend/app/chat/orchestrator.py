@@ -34,10 +34,20 @@ from .prompts import build_messages, citation_repair_messages
 logger = logging.getLogger(__name__)
 HIGH_RISK_DETERMINATION = re.compile(
     r"\b(?:definitely|will|would|guarantee|guaranteed|must|entitled)\b"
-    r".{0,45}\b(?:pay|payout|claim|cover|covered|eligible|approved|underwrit)\b|"
+    r".{0,45}\b(?:payout|claim|cover|covered|eligible|approved|underwrit)\b|"
+    # A policyholder paying a disclosed fee is different from the insurer
+    # promising to pay a claim. Require the payer for the ambiguous verb pay.
+    r"\b(?:insurer|insurance company|company|plan|policy)\s+"
+    r"(?:(?:will|would|must)\s+(?:(?:definitely|always|certainly)\s+)?|"
+    r"guarantee[sd]?\s+to\s+)pay\b|"
+    r"\b(?:will|would|must)\s+(?:(?:the|this|my)\s+)?"
+    r"(?:insurer|insurance company|company|plan|policy)\s+"
+    r"(?:(?:definitely|always|certainly)\s+)?pay\b|"
     r"\b(?:am i|are we|do i)\b.{0,30}\b(?:eligible|covered|entitled)\b|"
     r"(?:一定|保證|保证|必定).{0,25}(?:賠|赔|付|承保|合資格|合资格)|"
-    r"(?:我|本人).{0,20}(?:合資格|合资格|受保|索償|索偿)",
+    r"(?:我|本人).{0,20}(?:是否|能否|可否|可以|能|會否|会否|會不會|会不会|會|会)"
+    r".{0,8}(?:合資格|合资格|受保|索償|索偿|獲賠|获赔)|"
+    r"(?:我|本人)(?:合資格|合资格|受保)(?:嗎|吗|[?？])",
     re.IGNORECASE | re.DOTALL,
 )
 
@@ -165,7 +175,7 @@ class ChatOrchestrator:
         # The conflict belongs to reviewed source bytes, not to whichever
         # passage happened to rank first. Inspect the fingerprinted corpus.
         corpus_hits = [RetrievalHit(c, 0.0, 0.0, 0.0) for c in self.retriever.chunks]
-        conflict = source_conflict_response(request.message, language, corpus_hits)
+        conflict = source_conflict_response(contextual_question, language, corpus_hits)
         if conflict:
             conflict.retrieval_mode = retrieval.mode
             return conflict

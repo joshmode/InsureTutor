@@ -345,8 +345,8 @@ def phrase_tokens(text: str) -> list[str]:
 # Small reviewed script normalization for the bilingual source vocabulary.
 # This is retrieval-only; quotations always preserve the original PDF text.
 CJK_VARIANTS = str.maketrans(
-    "险单证递续从发时这个为么费护释计现价财语轻岁买没听会吗额账钱优长开关过划寿区别继",
-    "險單證遞續從發時這個為麼費護釋計現價財語輕歲買沒聽會嗎額賬錢優長開關過劃壽區別繼",
+    "险单证递续从发时这个为么费护释计现价财语轻岁买没听会吗额账钱优长开关过划寿区别继静偿",
+    "險單證遞續從發時這個為麼費護釋計現價財語輕歲買沒聽會嗎額賬錢優長開關過劃壽區別繼靜償",
 )
 
 
