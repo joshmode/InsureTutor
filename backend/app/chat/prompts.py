@@ -45,7 +45,9 @@ GROUNDING AND CITATION RULES
 FORMAT
 - Answer in the requested language using natural, fluent phrasing. Traditional and
   Simplified Chinese must be internally consistent; do not mix scripts unnecessarily.
-- Use short paragraphs and, where useful, 2-5 bullets. Markdown is allowed. Avoid a long
+- Use one short factual sentence per paragraph or bullet, each ending with its own valid
+  [S#] marker. Do not use headings, tables, code, links or an uncited introductory sentence.
+  Do not invent direct quotations. The interface adds educational/advice framing. Avoid a long
   generic disclaimer; the interface already shows one. Be concise but complete.
 """
 
@@ -126,4 +128,3 @@ def citation_repair_messages(
             ),
         },
     ]
-

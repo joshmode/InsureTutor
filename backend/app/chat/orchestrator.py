@@ -2,19 +2,22 @@ from __future__ import annotations
 
 import logging
 import re
+from threading import Lock
+
+from starlette.concurrency import run_in_threadpool
 
 from ..config import Settings
-from ..guardrails.concepts import (
-    concept_failure_notice,
-    is_credentials_request,
-    missing_concept_evidence,
+from ..guardrails.concepts import is_credentials_request, missing_concept_evidence
+from ..guardrails.grounding import (
+    GroundingError,
+    applicability_question,
+    inspect_draft,
+    literal_applicable,
+    review_approved,
+    review_messages,
 )
 from ..guardrails.offline import render_offline_answer
-from ..guardrails.output import (
-    has_any_citation,
-    validate_and_map_citations,
-    validate_answer_claims,
-)
+from ..guardrails.output import validate_and_map_citations
 from ..guardrails.policy import (
     Intent,
     advice_framing,
@@ -22,14 +25,13 @@ from ..guardrails.policy import (
     localised_notice,
     screen_input,
 )
-from ..guardrails.policy import LANG_NAMES
+from ..guardrails.source_conflicts import source_conflict_response
 from ..models import ChatRequest, ChatResponse
-from ..retrieval.hybrid import HybridRetriever, RetrievalResult
-from .llm import LLMError, LLMNotConfigured, OpenAICompatibleClient
+from ..retrieval.hybrid import HybridRetriever, RetrievalHit, RetrievalResult
+from .llm import LLMError, LLMInputTooLarge, LLMQuotaExceeded, OpenAICompatibleClient
 from .prompts import build_messages, citation_repair_messages
 
 logger = logging.getLogger(__name__)
-
 HIGH_RISK_DETERMINATION = re.compile(
     r"\b(?:definitely|will|would|guarantee|guaranteed|must|entitled)\b"
     r".{0,45}\b(?:pay|payout|claim|cover|covered|eligible|approved|underwrit)\b|"
@@ -38,14 +40,6 @@ HIGH_RISK_DETERMINATION = re.compile(
     r"(?:我|本人).{0,20}(?:合資格|合资格|受保|索償|索偿)",
     re.IGNORECASE | re.DOTALL,
 )
-
-
-def _attach_source_markers(text: str, hits: list) -> str:
-    """Attach only evidence that is directly relevant to a fixed response."""
-    if not hits:
-        return text
-    markers = "".join(f"[S{index}]" for index in range(1, min(2, len(hits)) + 1))
-    return f"{text} {markers}"
 
 
 class ChatOrchestrator:
@@ -58,21 +52,19 @@ class ChatOrchestrator:
         self.settings = settings
         self.retriever = retriever
         self.llm = llm
+        # ONNX failure changes backend availability; serialize that state while
+        # running all CPU work away from the async HTTP event loop.
+        self._retrieval_lock = Lock()
 
-    def _history_user_messages(self, request: ChatRequest) -> list[str]:
-        users = [
-            turn.content
-            for turn in request.history[-self.settings.max_history_turns :]
-            if turn.role == "user"
-        ]
-        return users
+    def _retrieve(self, query: str, history: list[str]) -> RetrievalResult:
+        with self._retrieval_lock:
+            return self.retriever.search(query, history=history)
 
     def _nofact(
         self,
         language: str,
         retrieval: RetrievalResult | None = None,
         extra_notice: str | None = None,
-        kind: str = "insufficient",
     ) -> ChatResponse:
         notices = [localised_notice(language, "brochure_only")]
         if extra_notice:
@@ -80,33 +72,62 @@ class ChatOrchestrator:
         return ChatResponse(
             message=fixed_response(language, "insufficient"),
             language=language,
-            kind=kind,
+            kind="insufficient",
             used_retrieval=retrieval is not None,
             retrieval_mode=retrieval.mode if retrieval else None,
             confidence=retrieval.confidence if retrieval else None,
             notices=notices,
         )
 
+    def _excerpts(
+        self,
+        request: ChatRequest,
+        retrieval: RetrievalResult,
+        sensitive_topics: tuple[str, ...],
+        *,
+        advice: bool = False,
+        provider_unavailable: bool = False,
+    ) -> ChatResponse:
+        if not literal_applicable(
+            applicability_question(
+                request.message,
+                [t.content for t in request.history if t.role == "user"],
+            ),
+            retrieval.hits,
+            advice=advice,
+        ):
+            return self._nofact(request.language, retrieval)
+        text = render_offline_answer(request.language, retrieval.hits, sensitive_topics)
+        validated = validate_and_map_citations(text, retrieval.hits)
+        framing = advice_framing(request.language) + "\n\n" if advice else ""
+        notices = [localised_notice(request.language, "educational")]
+        if advice:
+            notices.append(localised_notice(request.language, "professional"))
+        if provider_unavailable:
+            notices.append(localised_notice(request.language, "provider_unavailable"))
+        return ChatResponse(
+            message=framing + validated.text,
+            citations=validated.citations,
+            language=request.language,
+            kind="advice" if advice else "answer",
+            used_retrieval=True,
+            retrieval_mode=retrieval.mode,
+            confidence=retrieval.confidence,
+            notices=notices,
+        )
+
     async def answer(self, request: ChatRequest) -> ChatResponse:
         decision = screen_input(request.message)
         language = request.language
-
-        if is_credentials_request(request.message):
+        if is_credentials_request(request.message) or decision.intent in {
+            Intent.EMPTY,
+            Intent.INJECTION,
+        }:
             return ChatResponse(
-                message=fixed_response(language, "injection"),
-                language=language,
-                kind="blocked",
-                notices=[localised_notice(language, "educational")],
-            )
-        if decision.intent == Intent.EMPTY:
-            return ChatResponse(
-                message=fixed_response(language, "empty"),
-                language=language,
-                kind="blocked",
-            )
-        if decision.intent == Intent.INJECTION:
-            return ChatResponse(
-                message=fixed_response(language, "injection"),
+                message=fixed_response(
+                    language,
+                    "empty" if decision.intent == Intent.EMPTY else "injection",
+                ),
                 language=language,
                 kind="blocked",
                 notices=[localised_notice(language, "educational")],
@@ -118,15 +139,6 @@ class ChatOrchestrator:
                 kind="scope",
                 notices=[localised_notice(language, "educational")],
             )
-
-        history = self._history_user_messages(request)
-        retrieval_query = (
-            f"policy features benefits risks fees suitability {request.message}"
-            if decision.intent == Intent.ADVICE
-            else request.message
-        )
-        retrieval = self.retriever.search(retrieval_query, history=history)
-
         if HIGH_RISK_DETERMINATION.search(request.message):
             return ChatResponse(
                 message=fixed_response(language, "sensitive_redirect"),
@@ -137,56 +149,57 @@ class ChatOrchestrator:
                     localised_notice(language, "sensitive"),
                 ],
             )
-
+        history = [
+            turn.content
+            for turn in request.history[-self.settings.max_history_turns :]
+            if turn.role == "user"
+        ]
+        advice = decision.intent == Intent.ADVICE
+        contextual_question = applicability_question(request.message, history)
+        query = (
+            f"policy features benefits risks fees suitability {contextual_question}"
+            if advice
+            else contextual_question
+        )
+        retrieval = await run_in_threadpool(self._retrieve, query, history)
+        # The conflict belongs to reviewed source bytes, not to whichever
+        # passage happened to rank first. Inspect the fingerprinted corpus.
+        corpus_hits = [RetrievalHit(c, 0.0, 0.0, 0.0) for c in self.retriever.chunks]
+        conflict = source_conflict_response(request.message, language, corpus_hits)
+        if conflict:
+            conflict.retrieval_mode = retrieval.mode
+            return conflict
         if decision.intent == Intent.UNSUPPORTED_CALCULATION:
-            return self._vetted_calculation(language, retrieval)
-
-        if not retrieval.sufficient:
-            logger.info(
-                "Low-confidence retrieval for question (top=%.3f mode=%s)",
-                retrieval.confidence,
-                retrieval.mode,
-            )
-            return self._nofact(
-                language,
-                retrieval,
-                extra_notice=localised_notice(language, "professional"),
-            )
-
-        concept_gap = missing_concept_evidence(request.message, retrieval.hits)
-        if concept_gap:
-            logger.info("Concept evidence gap: %s", concept_gap)
-            return self._nofact(
-                language,
-                retrieval,
-                extra_notice=concept_failure_notice(language),
-            )
-
-        if decision.intent == Intent.ADVICE:
-            return await self._advice_answer(
-                request, retrieval, decision.sensitive_topics
-            )
-
-        if not self.llm.configured:
-            offline = render_offline_answer(
-                language, retrieval.hits, decision.sensitive_topics
-            )
-            validated = validate_and_map_citations(
-                offline, retrieval.hits, {h.chunk.id for h in retrieval.hits}
-            )
+            # The refusal itself makes no product-specific numerical claim;
+            # avoid inventing a citation-to-refusal relationship.
             return ChatResponse(
-                message=validated.text,
-                citations=validated.citations,
+                message=fixed_response(language, "calculation"),
                 language=language,
-                kind="answer",
+                kind="insufficient",
                 used_retrieval=True,
                 retrieval_mode=retrieval.mode,
-                confidence=retrieval.confidence,
-                notices=[
-                    localised_notice(language, "educational"),
-                ],
+                notices=[localised_notice(language, "brochure_only")],
             )
-
+        if not retrieval.sufficient or missing_concept_evidence(
+            request.message, retrieval.hits
+        ):
+            return self._nofact(language, retrieval)
+        # Distinctive unsupported question anchors must not be drowned out by
+        # generic words such as policy/cover/benefit. The semantic reviewer is
+        # an additional gate, not a substitute for basic applicability.
+        if not literal_applicable(
+            applicability_question(
+                request.message,
+                [t.content for t in request.history if t.role == "user"],
+            ),
+            retrieval.hits,
+            advice=advice,
+        ):
+            return self._nofact(language, retrieval)
+        if not self.llm.configured:
+            return self._excerpts(
+                request, retrieval, decision.sensitive_topics, advice=advice
+            )
         messages = build_messages(
             language,
             request.message,
@@ -195,182 +208,67 @@ class ChatOrchestrator:
             decision.sensitive_topics,
             max_history_turns=self.settings.max_history_turns,
         )
+        if advice:
+            messages[0]["content"] += (
+                "\nExplain only cited product trade-offs. Do not make a personal recommendation. "
+                "The application adds suitability framing and a professional referral."
+            )
+        # At most three provider calls: draft, optional deterministic repair,
+        # independent review. Never retry a reviewer or a provider/quota error.
         try:
             response = await self.llm.complete(messages)
-            validated = validate_and_map_citations(
-                response.text,
-                retrieval.hits,
-                {h.chunk.id for h in retrieval.hits},
+        except (LLMQuotaExceeded, LLMInputTooLarge):
+            raise
+        except LLMError:
+            return self._excerpts(
+                request,
+                retrieval,
+                decision.sensitive_topics,
+                advice=advice,
+                provider_unavailable=True,
             )
-            claim_issue = validate_answer_claims(validated.text, retrieval.hits)
-            if (
-                not has_any_citation(validated.text)
-                or validated.had_invalid
-                or claim_issue
-            ):
-                logger.warning(
-                    "Answer validation failed (%s); retrying with a constrained prompt",
-                    claim_issue or "citation",
-                )
+        try:
+            try:
+                claims = inspect_draft(response.text, retrieval.hits)
+            except GroundingError as exc:
                 repaired = await self.llm.complete(
                     citation_repair_messages(
-                        messages, draft=response.text, error=claim_issue or "citation"
+                        messages, draft=response.text, error=str(exc)
                     ),
                     temperature=0.0,
                 )
-                validated = validate_and_map_citations(
-                    repaired.text,
-                    retrieval.hits,
-                    {h.chunk.id for h in retrieval.hits},
-                )
-                if (
-                    not has_any_citation(validated.text)
-                    or validated.had_invalid
-                    or validate_answer_claims(validated.text, retrieval.hits)
-                ):
-                    logger.error("Citation repair failed; returning safe fallback")
-                    return self._nofact(language, retrieval)
-        except (LLMError, LLMNotConfigured) as exc:
-            logger.warning("LLM request failed: %s", exc)
-            offline = render_offline_answer(
-                language, retrieval.hits, decision.sensitive_topics
+                response = repaired
+                claims = inspect_draft(response.text, retrieval.hits)
+            review = await self.llm.complete(
+                review_messages(
+                    request.message, language, claims, retrieval.hits, history=history
+                ),
+                temperature=0.0,
             )
-            validated = validate_and_map_citations(
-                offline, retrieval.hits, {h.chunk.id for h in retrieval.hits}
-            )
-            return ChatResponse(
-                message=validated.text,
-                citations=validated.citations,
-                language=language,
-                kind="answer",
-                used_retrieval=True,
-                retrieval_mode=retrieval.mode,
-                confidence=retrieval.confidence,
-                notices=[
-                    localised_notice(language, "educational"),
-                    localised_notice(language, "provider_unavailable"),
-                ],
-            )
-        except Exception:
-            # Do not turn programming/configuration faults into fabricated model
-            # answers. Provider faults are handled above; unexpected faults are
-            # logged and surfaced as a safe insufficiency response.
-            logger.exception("Unexpected answer-generation error")
+            if not review_approved(review.text, claims):
+                logger.info("Independent grounding review did not approve the draft")
+                return self._nofact(language, retrieval)
+        except (LLMQuotaExceeded, LLMInputTooLarge):
+            raise
+        except (GroundingError, LLMError):
             return self._nofact(language, retrieval)
-
+        except Exception:
+            logger.exception("Unexpected grounding/review failure")
+            return self._nofact(language, retrieval)
+        validated = validate_and_map_citations(response.text, retrieval.hits)
         notices = [localised_notice(language, "educational")]
+        if advice:
+            notices.append(localised_notice(language, "professional"))
         if decision.sensitive_topics:
             notices.append(localised_notice(language, "sensitive"))
         return ChatResponse(
-            message=validated.text,
+            message=(advice_framing(language) + "\n\n" if advice else "")
+            + validated.text,
             citations=validated.citations,
             language=language,
-            kind="answer",
+            kind="advice" if advice else "answer",
             used_retrieval=True,
             retrieval_mode=retrieval.mode,
             confidence=retrieval.confidence,
             notices=notices,
         )
-
-    def _vetted_calculation(
-        self, language: str, retrieval: RetrievalResult
-    ) -> ChatResponse:
-        text = fixed_response(language, "calculation")
-        validated = validate_and_map_citations(
-            _attach_source_markers(text, retrieval.hits),
-            retrieval.hits,
-            {h.chunk.id for h in retrieval.hits},
-        )
-        return ChatResponse(
-            message=validated.text,
-            citations=validated.citations,
-            language=language,
-            kind="insufficient",
-            used_retrieval=True,
-            retrieval_mode=retrieval.mode,
-            confidence=retrieval.confidence,
-            notices=[localised_notice(language, "brochure_only")],
-        )
-
-    async def _advice_answer(
-        self,
-        request: ChatRequest,
-        retrieval: RetrievalResult,
-        sensitive_topics: tuple[str, ...],
-    ) -> ChatResponse:
-        framing = advice_framing(request.language)
-        if not self.llm.configured:
-            return self._offline_advice(request, retrieval, sensitive_topics, framing)
-        messages = build_messages(
-            request.language,
-            request.message,
-            retrieval.hits,
-            request.history,
-            sensitive_topics,
-            max_history_turns=self.settings.max_history_turns,
-        )
-        messages[0]["content"] += (
-            "\nThe user asked for personalized advice. Start by explaining that "
-            "suitability depends on their circumstances, then give an educational "
-            "discussion of relevant brochure features and risks. Do not answer "
-            "'yes' or 'no' to whether they should buy. End by encouraging a "
-            "licensed professional consultation. Never assert that the user "
-            "personally qualifies for a feature or will receive a particular benefit."
-        )
-        try:
-            response = await self.llm.complete(messages)
-            validated = validate_and_map_citations(
-                response.text,
-                retrieval.hits,
-                {h.chunk.id for h in retrieval.hits},
-            )
-            issue = validate_answer_claims(validated.text, retrieval.hits)
-            if (
-                not has_any_citation(validated.text)
-                or validated.had_invalid
-                or issue
-            ):
-                raise LLMError(f"Invalid advice response: {issue or 'citation'}")
-            return ChatResponse(
-                message=validated.text,
-                citations=validated.citations,
-                language=request.language,
-                kind="advice",
-                used_retrieval=True,
-                retrieval_mode=retrieval.mode,
-                confidence=retrieval.confidence,
-                notices=[
-                    localised_notice(request.language, "educational"),
-                    localised_notice(request.language, "professional"),
-                ],
-            )
-        except LLMError:
-            return self._offline_advice(request, retrieval, sensitive_topics, framing)
-
-    def _offline_advice(
-        self,
-        request: ChatRequest,
-        retrieval: RetrievalResult,
-        sensitive_topics: tuple[str, ...],
-        framing: str,
-    ) -> ChatResponse:
-        offline = render_offline_answer(
-            request.language, retrieval.hits, sensitive_topics
-        )
-        validated = validate_and_map_citations(
-            offline, retrieval.hits, {h.chunk.id for h in retrieval.hits}
-        )
-        return ChatResponse(
-            message=f"{framing}\n\n{validated.text}",
-            citations=validated.citations,
-            language=request.language,
-            kind="advice",
-            used_retrieval=True,
-            retrieval_mode=retrieval.mode,
-            confidence=retrieval.confidence,
-            notices=[
-                localised_notice(request.language, "educational"),
-                localised_notice(request.language, "professional"),
-            ],
-        )
-

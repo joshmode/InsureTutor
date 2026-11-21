@@ -71,16 +71,89 @@ CONCEPTS: dict[str, tuple[str, ...]] = {
 }
 
 TRIGGERS: dict[str, tuple[str, ...]] = {
-    "interest": ("interest", "rate", "4%", "2.5", "利息", "利率", "息率", "派息", "保证", "保證"),
-    "bonus": ("bonus", "retrospective", "extra", "奖金", "獎金", "红利", "紅利", "额外", "額外"),
-    "withdrawal": ("withdraw", "cash out", "surrender", "lapse", "提款", "提取", "退保", "断单", "斷單", "取钱", "取錢"),
+    "interest": (
+        "interest",
+        "rate",
+        "4%",
+        "2.5",
+        "利息",
+        "利率",
+        "息率",
+        "派息",
+        "保证",
+        "保證",
+    ),
+    "bonus": (
+        "bonus",
+        "retrospective",
+        "extra",
+        "奖金",
+        "獎金",
+        "红利",
+        "紅利",
+        "额外",
+        "額外",
+    ),
+    "withdrawal": (
+        "withdraw",
+        "cash out",
+        "surrender",
+        "lapse",
+        "提款",
+        "提取",
+        "退保",
+        "断单",
+        "斷單",
+        "取钱",
+        "取錢",
+    ),
     "level": ("level benefit", "fixed benefit", "固定寿险", "固定壽險", "level"),
     "increasing": ("increasing benefit", "plus", "递增", "遞增", "特级", "特級"),
     "incremental": ("incremental", "渐进", "漸進"),
-    "charges": ("charge", "fee", "cost of insurance", "费用", "費用", "收费", "收費", "成本"),
-    "flexibility": ("flexib", "skip", "suspend premium", "increase cover", "灵活", "靈活", "暂停", "暫停", "加保"),
-    "protection": ("unemployment", "terminal", "supplementary", "waiver", "失业", "失業", "末期", "附加", "豁免"),
-    "risk": ("risk", "exclusion", "lapse", "inflation", "credit", "风险", "風險", "不保", "通胀", "通脹"),
+    "charges": (
+        "charge",
+        "fee",
+        "cost of insurance",
+        "费用",
+        "費用",
+        "收费",
+        "收費",
+        "成本",
+    ),
+    "flexibility": (
+        "flexib",
+        "skip",
+        "suspend premium",
+        "increase cover",
+        "灵活",
+        "靈活",
+        "暂停",
+        "暫停",
+        "加保",
+    ),
+    "protection": (
+        "unemployment",
+        "terminal",
+        "supplementary",
+        "waiver",
+        "失业",
+        "失業",
+        "末期",
+        "附加",
+        "豁免",
+    ),
+    "risk": (
+        "risk",
+        "exclusion",
+        "lapse",
+        "inflation",
+        "credit",
+        "风险",
+        "風險",
+        "不保",
+        "通胀",
+        "通脹",
+    ),
     "account": ("account value", "cash value", "账户", "賬戶", "现金价值", "現金價值"),
     "eligibility": (
         "age",
@@ -146,7 +219,23 @@ STOP_WORDS = {
     "explain",
 }
 
-STOP_CJK = {"的", "了", "是", "我", "你", "吗", "呢", "吧", "請", "请", "這", "这", "個", "个", "嗎"}
+STOP_CJK = {
+    "的",
+    "了",
+    "是",
+    "我",
+    "你",
+    "吗",
+    "呢",
+    "吧",
+    "請",
+    "请",
+    "這",
+    "这",
+    "個",
+    "个",
+    "嗎",
+}
 
 
 def expand_query(text: str, all_concepts: bool = False) -> str:
@@ -176,6 +265,7 @@ def _stem(word: str) -> str:
         ("charges", "charge"),
         ("charged", "charge"),
         ("payments", "premium"),
+        ("modes", "mode"),
         ("premiums", "premium"),
         ("benefits", "benefit"),
         ("years", "year"),
@@ -189,6 +279,8 @@ def _stem(word: str) -> str:
     ):
         if word == suffix:
             return replacement
+    if word.endswith("ies") and len(word) > 4 and word not in {"series", "species"}:
+        return word[:-3] + "y"
     return word
 
 
@@ -211,7 +303,20 @@ def tokenize(text: str) -> list[str]:
     # Segment at punctuation/whitespace rather than taking bigrams across the
     # whole page, which otherwise creates nonsensical cross-clause tokens.
     for run in re.findall(r"[\u3400-\u9fff]{2,}", text):
-        if len(run) <= 6 or any(concept in run for concept in ("保險", "保险", "保單", "保单", "現金", "现金", "利息", "保證", "保证")):
+        if len(run) <= 6 or any(
+            concept in run
+            for concept in (
+                "保險",
+                "保险",
+                "保單",
+                "保单",
+                "現金",
+                "现金",
+                "利息",
+                "保證",
+                "保证",
+            )
+        ):
             tokens.append(run)
         for i in range(len(run) - 1):
             bigram = run[i : i + 2]
@@ -237,9 +342,16 @@ def phrase_tokens(text: str) -> list[str]:
     return words + phrases
 
 
+# Small reviewed script normalization for the bilingual source vocabulary.
+# This is retrieval-only; quotations always preserve the original PDF text.
+CJK_VARIANTS = str.maketrans(
+    "险单证递续从发时这个为么费护释计现价财语轻岁买没听会吗额账钱优长开关过划寿区别继",
+    "險單證遞續從發時這個為麼費護釋計現價財語輕歲買沒聽會嗎額賬錢優長開關過劃壽區別繼",
+)
+
+
 def normalize_term(text: str) -> str:
-    text = text.lower()
+    text = text.lower().translate(CJK_VARIANTS)
     text = text.replace("percentage", "%").replace("percent", "%")
     text = re.sub(r"(?<=\d)\s*%", "%", text)
     return text
-

@@ -15,8 +15,34 @@ logger = logging.getLogger(__name__)
 
 
 CONCEPT_GROUPS: tuple[tuple[tuple[str, ...], tuple[str, ...]], ...] = (
-    (("interest", "利率", "利息", "派息", "4%", "2.5%", "guaranteed", "保证", "保證"), ("interest",)),
-    (("withdraw", "提款", "提取", "提取現金", "cash out", "surrender", "退保", "lapse", "失效"), ("withdrawal",)),
+    (
+        (
+            "interest",
+            "利率",
+            "利息",
+            "派息",
+            "4%",
+            "2.5%",
+            "guaranteed",
+            "保证",
+            "保證",
+        ),
+        ("interest",),
+    ),
+    (
+        (
+            "withdraw",
+            "提款",
+            "提取",
+            "提取現金",
+            "cash out",
+            "surrender",
+            "退保",
+            "lapse",
+            "失效",
+        ),
+        ("withdrawal",),
+    ),
     (("charge", "fee", "费用", "費用", "成本", "收費"), ("charges",)),
     (("level", "固定", "level"), ("level",)),
     (("increasing", "递增", "遞增", "plus", "特级", "特級"), ("increasing",)),
@@ -133,10 +159,22 @@ TRIGGERS: dict[str, tuple[str, ...]] = {
     "admin_fee": ("administrative", "admin fee", "行政费用", "行政費用"),
     "term": ("policy term", "benefit term", "premium payment term", "年期", "保障期"),
     "minimum": ("minimum sum", "minimum coverage", "最低保障"),
-    "payment_mode": ("payment mode", "payment modes", "缴费方式", "繳費方式", "繳費方式"),
+    "payment_mode": (
+        "payment mode",
+        "payment modes",
+        "缴费方式",
+        "繳費方式",
+        "繳費方式",
+    ),
     "currency": ("currency", "currencies", "货币", "貨幣"),
     "plan_type": ("plan type", "保单类别", "保單類別"),
-    "coverage": ("increase coverage", "increase my cover", "加保", "增加保障", "提高保障"),
+    "coverage": (
+        "increase coverage",
+        "increase my cover",
+        "加保",
+        "增加保障",
+        "提高保障",
+    ),
     "savings": (
         "savings",
         "investment",
@@ -179,6 +217,7 @@ class HybridRetriever:
             enabled=settings.enable_embeddings and settings.embedding_enabled,
             batch_size=settings.embedding_batch_size,
             allow_download=settings.embedding_allow_download,
+            local_model_dir=settings.embedding_local_model_dir,
         )
         self.vector = VectorIndex(chunks, self.embedding_backend)
 
@@ -219,7 +258,9 @@ class HybridRetriever:
         deduped = list(dict.fromkeys(q.strip() for q in queries if q.strip()))
         return deduped[: self.settings.max_retrieval_queries]
 
-    def _concept_filter(self, query: str, hits: list[RetrievalHit]) -> list[RetrievalHit]:
+    def _concept_filter(
+        self, query: str, hits: list[RetrievalHit]
+    ) -> list[RetrievalHit]:
         """Keep the strongest chunks from the user's intended document concepts.
 
         This is a soft reranking signal rather than a rigid keyword gate. It
@@ -269,12 +310,28 @@ class HybridRetriever:
             max_raw = raw_results[0][1] if raw_results else 1.0
             for chunk, raw_score in raw_results:
                 merged[chunk.id]["lexical"] = max(
-                    merged[chunk.id]["lexical"], min(1.0, raw_score / max(max_raw, 1e-9))
+                    merged[chunk.id]["lexical"],
+                    min(1.0, raw_score / max(max_raw, 1e-9)),
                 )
             for chunk, score in self.vector.search(subquery, limit=candidate_limit):
-                merged[chunk.id]["vector"] = max(
-                    merged[chunk.id]["vector"], score
-                )
+                merged[chunk.id]["vector"] = max(merged[chunk.id]["vector"], score)
+        # A short, explicit form row is stronger evidence for its named field
+        # than an adjacent long paragraph containing its detached label.
+        # Match declared source-field labels, not a list of question templates.
+        direct_fields: set[str] = set()
+        normalized_query = " ".join(tokenize(query))
+        for chunk in self.chunks:
+            if chunk.content_type != "form":
+                continue
+            label = chunk.section.rsplit(" · ", 1)[-1]
+            labels = [label, chunk.citation_excerpt.splitlines()[0]]
+            if any(
+                " ".join(tokenize(candidate)) in normalized_query
+                for candidate in labels
+                if tokenize(candidate)
+            ):
+                direct_fields.add(chunk.id)
+                merged[chunk.id]["lexical"] = 1.0
         chunk_map = {chunk.id: chunk for chunk in self.chunks}
         hits = []
         for chunk_id, scores in merged.items():
@@ -298,6 +355,8 @@ class HybridRetriever:
             )
         hits.sort(key=lambda item: item.score, reverse=True)
         hits = self._concept_filter(query, hits)
+        if direct_fields:
+            hits.sort(key=lambda hit: (hit.chunk.id not in direct_fields, -hit.score))
         threshold = self.settings.min_relevance_score
         relevant = [hit for hit in hits if hit.score >= threshold]
         # Do not pad results with weakly related passages. Two strong sections are
@@ -334,7 +393,11 @@ class HybridRetriever:
                     key=lambda hit: (
                         not any(
                             term in hit.chunk.citation_excerpt.lower()
-                            for term in ("administrative charge", "premium expense", "cost of insurance")
+                            for term in (
+                                "administrative charge",
+                                "premium expense",
+                                "cost of insurance",
+                            )
                         ),
                         -hit.score,
                     ),
@@ -343,7 +406,11 @@ class HybridRetriever:
                 admin_hits = [
                     hit
                     for hit in relevant
-                    if re.search(r"administrative charge|一般行政费用|一般行政費用", hit.chunk.citation_excerpt, re.I)
+                    if re.search(
+                        r"administrative charge|一般行政费用|一般行政費用",
+                        hit.chunk.citation_excerpt,
+                        re.I,
+                    )
                 ]
                 if admin_hits:
                     supported = admin_hits
@@ -363,7 +430,9 @@ class HybridRetriever:
                 payment_hits = [
                     hit
                     for hit in relevant
-                    if re.search(r"payment mode|缴费方式|繳費方式", hit.chunk.section, re.I)
+                    if re.search(
+                        r"payment mode|缴费方式|繳費方式", hit.chunk.section, re.I
+                    )
                 ]
                 if payment_hits:
                     supported = payment_hits
@@ -383,7 +452,9 @@ class HybridRetriever:
                 plan_hits = [
                     hit
                     for hit in relevant
-                    if re.search(r"plan type|保單類別|保单类别", hit.chunk.section, re.I)
+                    if re.search(
+                        r"plan type|保單類別|保单类别", hit.chunk.section, re.I
+                    )
                 ]
                 if plan_hits:
                     supported = plan_hits
@@ -413,6 +484,11 @@ class HybridRetriever:
                     supported = coverage_hits
             if supported:
                 relevant = supported[:top_k]
+        if direct_fields:
+            direct = [hit for hit in hits if hit.chunk.id in direct_fields]
+            relevant = (
+                direct + [hit for hit in relevant if hit.chunk.id not in direct_fields]
+            )[:top_k]
         # Prior turns contribute query context, never new evidence. For an
         # underspecified follow-up, reuse the last user question's evidence as a
         # fallback only if the literal follow-up has no direct support.
@@ -443,9 +519,7 @@ class HybridRetriever:
         literal_set = set(literal_terms)
         literal_covered: set[str] = set()
         for hit in relevant:
-            haystack = (
-                f"{hit.chunk.section} {hit.chunk.citation_excerpt}"
-            ).lower()
+            haystack = (f"{hit.chunk.section} {hit.chunk.citation_excerpt}").lower()
             for phrase in literal_set:
                 if phrase in haystack:
                     literal_covered.add(phrase)
@@ -475,10 +549,7 @@ class HybridRetriever:
         # recognized bigrams is a meaningful evidence check for "提款", "利息",
         # "保险" while remaining robust to Traditional/Simplified differences.
         if cjk_query and not mixed_query:
-            coverage_ok = (
-                len(covered_cjk) >= 2
-                or len(literal_covered) >= 2
-            ) and (
+            coverage_ok = (len(covered_cjk) >= 2 or len(literal_covered) >= 2) and (
                 not self.embedding_backend.available
                 or (relevant and relevant[0].vector_score >= 0.40)
             )
@@ -512,4 +583,3 @@ class HybridRetriever:
             confidence=confidence,
             queries=queries,
         )
-

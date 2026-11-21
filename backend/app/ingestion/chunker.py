@@ -17,6 +17,7 @@ class Chunk:
     content: str
     content_type: str = "prose"
     excerpt: str = ""
+    source_sha256: str = ""
 
     @property
     def citation_excerpt(self) -> str:
@@ -27,14 +28,20 @@ SECTION_PATTERNS: tuple[tuple[re.Pattern[str], str], ...] = (
     (re.compile(r"Flexible Protections|靈活保障"), "Flexible Protections"),
     (re.compile(r"Life Protection Options|壽險保障選擇"), "Life Protection Options"),
     (re.compile(r"Value-creating Advantages|財富增值優勢"), "Crediting & Value"),
-    (re.compile(r"Financial Flexibilities|提存彈性"), "Withdrawals & Premium Flexibility"),
+    (
+        re.compile(r"Financial Flexibilities|提存彈性"),
+        "Withdrawals & Premium Flexibility",
+    ),
     (
         re.compile(r"Extra Protections|額外安心保障"),
         "Additional Protections",
     ),
     (re.compile(r"Important Information|重要資料"), "Important Information"),
     (re.compile(r"Key Product Disclosures|主要產品說明"), "Key Disclosures"),
-    (re.compile(r"Duty of Disclosure|提供資料責任"), "Duty of Disclosure & Cancellation"),
+    (
+        re.compile(r"Duty of Disclosure|提供資料責任"),
+        "Duty of Disclosure & Cancellation",
+    ),
     (re.compile(r"at a glance|一覽表"), "Plan at a Glance"),
     (re.compile(r"Policy Information|保單資料"), "Policy Information"),
 )
@@ -88,6 +95,10 @@ FOCUS_HEADINGS = (
 # visual reading order but the left-hand row label and right-hand value land in
 # separate blocks. Reconstruct the known form rows with the labels that are
 # printed directly beside them so a citation remains self-explanatory.
+REVIEWED_BROCHURE_SHA256 = (
+    "2043de40845267fdb1f657280438f3ded04edda6692791960415116a5668a475"
+)
+
 AT_A_GLANCE_ROWS: tuple[tuple[str, str], ...] = (
     ("Base crediting interest rate", "Base Crediting Interest"),
     ("Retrospective additional interest", "Retrospective additional interest"),
@@ -128,11 +139,7 @@ def _split_paragraphs(text: str) -> list[str]:
                 re.match(r"^(?:\d{1,2}[.)]|[-•■▪]|[A-Z][A-Za-z /-]{2,}:)", line)
                 or re.match(r"^(?:[A-Z][a-z]+ ){1,3}[A-Z][a-z]+$", line)
             )
-            if (
-                current
-                and starts_new
-                and sum(len(item) + 1 for item in current) > 180
-            ):
+            if current and starts_new and sum(len(item) + 1 for item in current) > 180:
                 paragraphs.append(" ".join(current).strip())
                 current = [line]
             else:
@@ -160,7 +167,10 @@ def _pack(paragraphs: list[str], target_chars: int = 950) -> list[str]:
             for sentence in sentences:
                 if not sentence.strip():
                     continue
-                if buffer and sum(len(x) for x in buffer) + len(sentence) > target_chars:
+                if (
+                    buffer
+                    and sum(len(x) for x in buffer) + len(sentence) > target_chars
+                ):
                     packed.append(" ".join(buffer))
                     buffer = []
                 buffer.append(sentence.strip())
@@ -215,10 +225,7 @@ def _chunk_excerpt(piece: str) -> str:
 def _strip_form_labels(text: str) -> str:
     """Remove short standalone labels that become meaningless after packing."""
     lines = [line.strip() for line in text.splitlines() if line.strip()]
-    ignored = {
-        label.lower()
-        for label, _ in AT_A_GLANCE_ROWS
-    } | {
+    ignored = {label.lower() for label, _ in AT_A_GLANCE_ROWS} | {
         "individual consideration",
         "plan type",
         "currency",
@@ -246,50 +253,12 @@ def _dedupe_lines(text: str) -> str:
     return "\n".join(kept)
 
 
-def _attach_form_value(
-    piece: str,
-    section: str,
-    page_text: str,
-) -> str:
-    """Attach a nearby value when table extraction separates labels from values."""
-    if page_text and "at a glance" in page_text[:250].lower():
-        for focus, label in AT_A_GLANCE_ROWS:
-            if focus.lower() in piece.lower():
-                section = f"Plan at a Glance · {label}"
-                break
-        # Known row values are printed elsewhere on this page. Attach the row
-        # rather than relying on the model to infer an unlabeled percentage.
-        if "extra bonus" in piece.lower() and "2.75%" not in piece:
-            # These values are visible in the same PDF table cell (page 16,
-            # Extra Bonus row), not an external calculation or inferred rate.
-            redundant = (
-                "Extra Bonus is credited at the end of the 15th policy year and "
-                "every 5 years thereafter. The current assumed Extra Bonus rates "
-                "shown in the brochure are 2.75% for policy years 15, 20 and 25, "
-                "and 5.5% for policy year 30 and every 5 years thereafter."
-            )
-            if redundant not in piece:
-                piece = f"{piece}\n\n{redundant}"
-    return piece
-
-
-def _stitch_at_a_glance(
-    pieces: list[str],
-    page_text: str,
-) -> list[str]:
-    if "at a glance" not in page_text[:350].lower():
-        return pieces
-    stitched = []
-    for piece in pieces:
-        stitched.append(_attach_form_value(piece, "Plan at a Glance", page_text))
-    return stitched
-
-
 def _form_source_chunk(
     pdf_path: Path,
     page: int,
     section: str,
     lines: list[str],
+    source_sha256: str,
 ) -> Chunk | None:
     """Create a citation chunk from actual, visually separated form cells.
 
@@ -311,12 +280,15 @@ def _form_source_chunk(
         page=page,
         section=section,
         content=f"{header}\n{excerpt}",
-        content_type="table",
+        content_type="form",
         excerpt=excerpt,
+        source_sha256=source_sha256,
     )
 
 
 def chunk_document(pdf_path: Path) -> list[Chunk]:
+    source_sha256 = hashlib.sha256(pdf_path.read_bytes()).hexdigest()
+    reviewed_brochure = source_sha256 == REVIEWED_BROCHURE_SHA256
     metadata, pages = extract_pages(pdf_path)
     doc_title = metadata.get("title") or pdf_path.stem
     chunks: list[Chunk] = []
@@ -325,25 +297,28 @@ def chunk_document(pdf_path: Path) -> list[Chunk]:
     for page in pages:
         if not page.text:
             continue
-        page_section = _section_for(page.text, current_section)
+        page_section = (
+            _section_for(page.text, current_section)
+            if reviewed_brochure
+            else f"Document page {page.page}"
+        )
         current_section = page_section
         paragraphs = _split_paragraphs(page.text)
         pieces = _merge_short_pieces(_pack(paragraphs))
-        pieces = _stitch_at_a_glance(pieces, page.text)
         for idx, piece in enumerate(pieces):
             section = page_section
             # Specific fee names are better retrieval anchors than a generic page
             # label. Keep the page section too in the text header.
-            for heading in FEE_HEADINGS:
+            for heading in FEE_HEADINGS if reviewed_brochure else ():
                 if heading.lower() in piece.lower():
                     section = f"{page_section} · {heading}"
                     break
             if section == page_section:
-                for heading in FOCUS_HEADINGS:
+                for heading in FOCUS_HEADINGS if reviewed_brochure else ():
                     if heading.lower() in piece.lower():
                         section = f"{page_section} · {heading}"
                         break
-            if page.page == 16 and "Payment Mode" in section:
+            if reviewed_brochure and page.page == 16 and "Payment Mode" in section:
                 # Preserve the Chinese payment-mode label and value from the
                 # same form row, which PyMuPDF splits into separate blocks.
                 mode_lines = [
@@ -353,15 +328,21 @@ def chunk_document(pdf_path: Path) -> list[Chunk]:
                 ]
                 if mode_lines:
                     piece = f"{piece}\n\n{chr(10).join(mode_lines)}"
-            if re.search(r"失業保障|Unemployment", piece, re.I):
+            if reviewed_brochure and re.search(r"失業保障|Unemployment", piece, re.I):
                 section = f"{page_section} · Unemployment Protection"
-            if re.search(r"末期病症|Terminal Illness", piece, re.I):
+            if reviewed_brochure and re.search(
+                r"末期病症|Terminal Illness", piece, re.I
+            ):
                 section = f"{page_section} · Terminal Illness"
             header = f"[{section} | {pdf_path.stem} | p.{page.page}]"
             # Page 17's minimum-sum-insured value grid is emitted before its
             # labels by PyMuPDF. Keep those verbatim rows attached to the
             # minimum-insurance passage instead of making an unlabeled chunk.
-            if page.page == 17 and section.endswith("Premium Expense Charge"):
+            if (
+                reviewed_brochure
+                and page.page == 17
+                and section.endswith("Premium Expense Charge")
+            ):
                 value_rows = [
                     paragraph
                     for paragraph in paragraphs
@@ -375,9 +356,7 @@ def chunk_document(pdf_path: Path) -> list[Chunk]:
                     piece = f"{piece}\n\n{chr(10).join(value_rows)}"
             content = f"{header}\n{piece}"
             body = _chunk_excerpt(
-                _dedupe_lines(
-                    _strip_form_labels(re.sub(r"^\[[^\n]*\n", "", content))
-                )
+                _dedupe_lines(_strip_form_labels(piece) if reviewed_brochure else piece)
             )
             digest = hashlib.sha1(
                 f"{pdf_path.name}:{page.page}:{idx}:{piece}".encode("utf-8")
@@ -391,10 +370,11 @@ def chunk_document(pdf_path: Path) -> list[Chunk]:
                     content=content,
                     content_type="table" if _table_like(piece) else "prose",
                     excerpt=body.strip(),
+                    source_sha256=source_sha256,
                 )
             )
     # Reconstruct two source form sections from their actual PDF labels/values.
-    for page in pages:
+    for page in pages if reviewed_brochure else ():
         if page.page == 17:
             labels = [
                 line
@@ -418,10 +398,38 @@ def chunk_document(pdf_path: Path) -> list[Chunk]:
             if values:
                 excerpt_lines = ["Minimum Sum Insured", *values]
                 form_chunk = _form_source_chunk(
-                    pdf_path, 17, "Life Protection Options · Minimum Sum Insured", excerpt_lines
+                    pdf_path,
+                    17,
+                    "Life Protection Options · Minimum Sum Insured",
+                    excerpt_lines,
+                    source_sha256,
                 )
                 if form_chunk:
                     chunks.append(form_chunk)
+        if page.page == 18:
+            # These form labels are immediately followed by their own Chinese
+            # and English values in the reviewed PDF text layer. Preserve each
+            # row separately; paragraph packing otherwise separates To Age 100
+            # from its label (or attaches the label to a surrender-charge row).
+            for label, section in (
+                (
+                    "投保年齡（以上次生日年齡計算）\nIssue Age (At Last Birthday)",
+                    "Issue Age",
+                ),
+                ("保障年期\nBenefit Term", "Benefit Term"),
+                ("繳付保費年期\nPremium Payment Term", "Premium Payment Term"),
+            ):
+                if label in page.blocks:
+                    start = page.blocks.index(label)
+                    form_chunk = _form_source_chunk(
+                        pdf_path,
+                        18,
+                        f"Basic Information · {section}",
+                        list(page.blocks[start : start + 3]),
+                        source_sha256,
+                    )
+                    if form_chunk:
+                        chunks.append(form_chunk)
         if page.page == 16:
             required = {
                 "Plan Type": ["保單類別\nPlan Type", "基本計劃"],
@@ -449,8 +457,8 @@ def chunk_document(pdf_path: Path) -> list[Chunk]:
                         16,
                         f"Plan at a Glance · {section_name}",
                         selected,
+                        source_sha256,
                     )
                     if form_chunk:
                         chunks.append(form_chunk)
     return chunks
-

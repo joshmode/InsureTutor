@@ -39,7 +39,9 @@ def test_required_page_metadata_survives_tables():
     assert any(
         chunk.page == 10 and "Cash withdrawal" in chunk.content for chunk in chunks
     )
-    assert any(chunk.page == 18 and "Surrender Charge" in chunk.content for chunk in chunks)
+    assert any(
+        chunk.page == 18 and "Surrender Charge" in chunk.content for chunk in chunks
+    )
 
 
 def test_form_rows_are_attached_to_source_values():
@@ -51,13 +53,11 @@ def test_form_rows_are_attached_to_source_values():
     )
     assert "US$30,000" in minimum.citation_excerpt
     assert "HK$240,000" in minimum.citation_excerpt
-    payment = next(
-        chunk for chunk in chunks if chunk.section.endswith("Payment Mode")
+    payment = next(chunk for chunk in chunks if chunk.section.endswith("Payment Mode"))
+    assert (
+        "Annual / Semi-annual / Quarterly / Monthly Payment" in payment.citation_excerpt
     )
-    assert "Annual / Semi-annual / Quarterly / Monthly Payment" in payment.citation_excerpt
-    currency = next(
-        chunk for chunk in chunks if chunk.section.endswith("Currency")
-    )
+    currency = next(chunk for chunk in chunks if chunk.section.endswith("Currency"))
     assert "Policy issued in Hong Kong" in currency.citation_excerpt
 
 
@@ -74,11 +74,10 @@ def test_every_citation_line_exists_on_its_claimed_pdf_page():
     _, layout_pages = extract_pages(PDF)
     layout = [normalize(page.text) for page in layout_pages]
     chunks = chunk_document(PDF)
-    assert len(chunks) == 49
+    assert len(chunks) == 52
     for chunk in chunks:
         for line in chunk.citation_excerpt.splitlines():
             assert (
                 normalize(line) in pages[chunk.page - 1]
                 or normalize(line) in layout[chunk.page - 1]
             ), (chunk.id, line)
-

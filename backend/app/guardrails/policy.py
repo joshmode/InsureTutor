@@ -129,7 +129,9 @@ def screen_input(message: str) -> GuardrailDecision:
             sensitive.append("medical")
         if _matches(TAX_LEGAL_PATTERNS, text):
             sensitive.append("tax/legal")
-        return GuardrailDecision(Intent.ADVICE, "personal_financial_advice", tuple(sensitive))
+        return GuardrailDecision(
+            Intent.ADVICE, "personal_financial_advice", tuple(sensitive)
+        )
     if _matches(UNRELATED_PATTERNS, text):
         return GuardrailDecision(Intent.UNRELATED, "out_of_scope")
     sensitive = []
@@ -214,10 +216,8 @@ def fixed_response(language: str, key: str) -> str:
             ),
             "calculation": (
                 "The brochure does not provide a calculator or enough personalized data "
-                "to determine that value. It explains how Cash Value relates to Account "
-                "Value and applicable surrender charges, but an exact figure would depend "
-                "on policy-specific records, charges, premiums, withdrawals and the "
-                "insurer's current scale of charges. Please request an official "
+                "to determine that value. An exact figure requires policy-specific "
+                "records and official terms. Please request an official "
                 "illustration or surrender-value quote from the insurer."
             ),
             "sensitive_redirect": (
@@ -246,9 +246,8 @@ def fixed_response(language: str, key: str) -> str:
             ),
             "provider_error": "教学模型暂时无法使用，因此我现在无法提供有依据的回答。请稍后重试。",
             "calculation": (
-                "册子没有提供计算器，也没有足够个人资料来确定这个金额。册子说明了现金价值、"
-                "账户价值与适用退保费用的关系，但准确金额取决于保单记录、费用、已缴保费、"
-                "提款及保险公司现行收费。请向保险公司索取正式说明或退保价值报价。"
+                "册子没有提供计算器，也没有足够个人资料来确定这个金额。准确金额需要核对"
+                "个人保单记录及正式条款。请向保险公司索取正式说明或退保价值报价。"
             ),
             "sensitive_redirect": (
                 "我可以解释册子关于保障、费用、提款和风险的内容，但不能裁定医疗、税务、"
@@ -274,9 +273,8 @@ def fixed_response(language: str, key: str) -> str:
             ),
             "provider_error": "教學模型暫時無法使用，因此我現在無法提供有依據的回答。請稍後重試。",
             "calculation": (
-                "冊子沒有提供計算器，也沒有足夠個人資料來確定這個金額。冊子說明了現金價值、"
-                "賬戶價值與適用退保費用的關係，但準確金額取決於保單記錄、費用、已繳保費、"
-                "提款及保險公司現行收費。請向保險公司索取正式說明或退保價值報價。"
+                "冊子沒有提供計算器，也沒有足夠個人資料來確定這個金額。準確金額需要核對"
+                "個人保單記錄及正式條款。請向保險公司索取正式說明或退保價值報價。"
             ),
             "sensitive_redirect": (
                 "我可以解釋冊子關於保障、費用、提款和風險的內容，但不能裁定醫療、稅務、"
@@ -308,4 +306,3 @@ def advice_framing(language: str) -> str:
         ),
     }
     return frames.get(language, frames["en"])
-

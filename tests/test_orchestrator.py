@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 from pathlib import Path
 
 import pytest
@@ -9,6 +10,16 @@ from backend.app.chat.llm import LLMError
 from backend.app.chat.orchestrator import ChatOrchestrator
 from backend.app.config import Settings
 from backend.app.models import ChatRequest
+
+
+APPROVAL = json.dumps(
+    {
+        "applicable": True,
+        "safe": True,
+        "language_correct": True,
+        "claims": [{"id": 1, "supported": True}],
+    }
+)
 
 
 class FakeLLM:
@@ -49,7 +60,10 @@ def orchestrator(retriever, responses):
 def test_grounded_answer_uses_valid_citations(retriever):
     app = orchestrator(
         retriever,
-        ["The 4.0% figure is the current assumed base crediting rate, not a guarantee. [S1]"],
+        [
+            "The 4.0% figure is the current assumed base crediting rate, not a guarantee. [S1]",
+            APPROVAL,
+        ],
     )
     response = asyncio.run(
         app.answer(
@@ -71,6 +85,7 @@ def test_invalid_citation_triggers_one_constrained_retry(retriever):
         [
             "The rate is assumed. [S88]",
             "The 4.0% rate is a current assumed rate, not guaranteed. [S1]",
+            APPROVAL,
         ],
     )
     response = asyncio.run(
@@ -82,7 +97,7 @@ def test_invalid_citation_triggers_one_constrained_retry(retriever):
         )
     )
     assert response.citations
-    assert app.llm.temperatures == [None, 0.0]
+    assert app.llm.temperatures == [None, 0.0, 0.0]
     assert any(
         "S88" in message["content"]
         for message in app.llm.seen_messages[1]
@@ -130,7 +145,7 @@ def test_unrelated_and_injection_never_call_llm(retriever):
 def test_personalized_advice_has_educational_kind(retriever):
     app = orchestrator(
         retriever,
-        ["Suitability depends on your goals and time horizon. [S1]"],
+        ["Suitability depends on your goals and time horizon. [S1]", APPROVAL],
     )
     response = asyncio.run(
         app.answer(ChatRequest(message="Should I buy this policy?", language="en"))
@@ -167,10 +182,15 @@ def test_credentials_request_is_blocked(retriever):
 
 def test_provider_prompt_uses_configured_history_bound_and_conflict_policy(retriever):
     from backend.app.models import ChatTurn
-    app = orchestrator(retriever, ["The interest rate is assumed. [S1]"])
+
+    app = orchestrator(retriever, ["The interest rate is assumed. [S1]", APPROVAL])
     app.settings.max_history_turns = 2
     history = [ChatTurn(role="user", content=f"old-question-{i}") for i in range(5)]
-    asyncio.run(app.answer(ChatRequest(message="Is the 4% interest rate guaranteed?", history=history)))
+    asyncio.run(
+        app.answer(
+            ChatRequest(message="Is the 4% interest rate guaranteed?", history=history)
+        )
+    )
     sent = app.llm.seen_messages[0]
     assert len(sent) == 4  # system, two historic messages, current evidence/question
     assert sent[1]["content"] == "old-question-3"
@@ -178,4 +198,3 @@ def test_provider_prompt_uses_configured_history_bound_and_conflict_policy(retri
     assert "Do not silently choose one" in sent[0]["content"]
     assert "0.25% retrospective additional" in sent[0]["content"]
     assert "2.75%/5.5% Extra Bonus" in sent[0]["content"]
-
