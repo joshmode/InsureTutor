@@ -1,0 +1,15 @@
+{
+  "browser_engine": "firefox",
+  "checks": [
+    "Retry preserves a different unsent draft and retains one submitted turn",
+    "Background answers preserve explicit evidence selection; generic Sources selects latest; PDF links identify the document",
+    "Stop removes the canceled turn before resubmission, without duplicate questions",
+    "Client uses the advertised server deadline instead of aborting at 150 seconds",
+    "Malformed successful responses recover as errors rather than entering render state",
+    "Clipboard denial has visible accessible feedback; citation accessible names follow both Chinese locales",
+    "Mobile welcome and New conversation start at the top of the reading region"
+  ],
+  "passed": 7,
+  "unhandled_page_errors": [],
+  "fixture_scope": "Controlled API/clipboard/deadline fixtures; last mobile chat uses real API"
+}

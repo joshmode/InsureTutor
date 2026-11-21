@@ -1,0 +1,15 @@
+{
+  "requests": 24,
+  "client_concurrency": 8,
+  "retrieval_mode": "hybrid",
+  "llm_configured": false,
+  "statuses": {
+    "200": 10,
+    "429": 14
+  },
+  "health_samples": 9,
+  "health_p95_ms": 19.52,
+  "chat_p95_ms": 184.18,
+  "passed": true,
+  "scope": "Local responsiveness under bounded hybrid chat workload; not a language-model quality or production capacity benchmark."
+}

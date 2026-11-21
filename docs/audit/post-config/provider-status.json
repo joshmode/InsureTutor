@@ -1,0 +1,28 @@
+{
+  "configuration": {
+    "spec_revision": "4",
+    "observed_spec_revision": "4",
+    "observations_current": true,
+    "network_mode": "unrestricted",
+    "network_state": "enforced",
+    "key_requirement_state": "ready",
+    "allowed_key_destinations": [
+      "api.openai.com"
+    ],
+    "runtime_url_model_states": "ready",
+    "provider_matches_allowed_key_destination": false,
+    "bound_draft_revision": 1,
+    "draft_key_destinations": [
+      "api.openai.com"
+    ]
+  },
+  "authentication_probe": {
+    "status": "blocked",
+    "provider_http_status": 401,
+    "elapsed_seconds": 2.06,
+    "scope": "One bounded real OpenAI-compatible-client smoke earlier in this verification session; not repeated after unchanged destination metadata.",
+    "live_generation_verified": false
+  },
+  "after_owner_confirmation": "Running configuration and bound draft still show the old secret destination; saved-binding metadata has not changed.",
+  "privacy": "No credential, configured provider hostname or configured model value is recorded."
+}

@@ -1,6 +1,10 @@
 # Open-item remediation — 21 November 2026
 
-Baseline: `bb1c210`. This is the current disposition of the open items from
+Later results: [applied-environment verification](CONFIG-VERIFICATION.md) closes
+the network-blocked hybrid, Firefox/WebKit, hosted-CI and public-visibility
+checks, with additional fixes. The measurements and denials below are historical.
+
+Baseline: `bb1c210`. This records the disposition of the open items from
 [the second pass](SECOND-PASS.md) and [the earlier risk ledger](RISK-CLOSURE.md).
 Those reports and their evidence remain historical. Remaining external risks
 are neither patched nor accepted merely because local checks pass.

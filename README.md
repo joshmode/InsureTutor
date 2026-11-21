@@ -348,7 +348,7 @@ uv pip install -r backend/requirements-dev.txt
 pytest -q
 ```
 
-The checked-in suite currently passes **223 tests**. It covers:
+The checked-in suite currently passes **227 tests**. It covers:
 
 - deterministic page-aware ingestion and table metadata;
 - interest, withdrawal, comparison, Chinese and unrelated retrieval;
@@ -367,7 +367,8 @@ The checked-in suite currently passes **223 tests**. It covers:
   maximum-sum-insured extraction and sentence-level abbreviation handling;
 - unsupported question modifiers, explicit monetary-field attribution across
   actual brochure citations, footnotes and supported English paraphrases;
-- evaluation deadlines and rejecting excerpt fallback during live-model checks.
+- evaluation deadlines and rejecting excerpt fallback during live-model checks;
+- strong selected source evidence when optional vector candidates are missing.
 
 ### Frontend
 
@@ -392,8 +393,11 @@ The [second-pass audit](docs/audit/SECOND-PASS.md) records the verified fixes,
 controlled UI fixtures and checks that remain unverified. In particular, nearby
 source excerpts do not establish that an unsupported question was answered;
 live model factuality still requires evaluation with the configured provider.
-The [open-item ledger](docs/audit/OPEN-ITEMS.md) records the latest fixes and the
-external checks that remain blocked. Earlier audit reports are historical.
+The [applied-environment verification](docs/audit/CONFIG-VERIFICATION.md) records
+the latest hybrid fixes, actual pinned embedding model, all three browser
+engines and successful hosted CI. The [earlier open-item ledger](docs/audit/OPEN-ITEMS.md)
+retains the OS advisory investigation. Live provider authentication remains
+blocked; earlier audit reports and their network denials are historical.
 
 The chat API returns `model_generated: true` only when the returned explanation
 contains model output that passed the grounding review. Excerpts and fixed
@@ -607,4 +611,4 @@ The supplied corpus now has 52 chunks, including verbatim form values that were 
 
 For hash-locked dependency maintenance and secure corporate-CA builds, read [dependency instructions](docs/DEPENDENCIES.md). The default Compose service runs with a read-only root filesystem, a writable data volume, dropped capabilities and resource limits. Keep the volume to retain daily allowances. Optional `APP_ACCESS_USERNAME` / `APP_ACCESS_PASSWORD` protect a private demo; use HTTPS for remote access. Configure a shared upstream limiter before deploying replicas with separate volumes.
 
-The full OS scan still reports vendor-unfixed Debian advisories, and live-model, actual hybrid and some browser/device checks remain externally blocked or unverified. [The closure report](docs/audit/RISK-CLOSURE.md) records these limits explicitly rather than declaring every risk eliminated.
+The full OS scan still reports vendor-unfixed Debian advisories. The actual pinned embedding model, hybrid Docker runtime, Chromium/Firefox/WebKit and hosted CI are now verified in [the latest report](docs/audit/CONFIG-VERIFICATION.md). Live language-model generation remains blocked by provider authentication; physical-device, actual assistive-technology and production checks remain unverified.

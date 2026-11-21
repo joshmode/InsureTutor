@@ -1,0 +1,100 @@
+{
+  "public_repository": {
+    "full_name": "joshmode/InsureTutor",
+    "private": false,
+    "visibility": "public",
+    "default_branch": "main",
+    "html_url": "https://github.com/joshmode/InsureTutor"
+  },
+  "workflow": {
+    "id": 44900825053,
+    "name": "Verify security and regression checks",
+    "head_sha": "97839f08a46fbe2f59cc103f17ecfae0ca0a2add",
+    "status": "completed",
+    "conclusion": "success",
+    "html_url": "https://github.com/joshmode/InsureTutor/actions/runs/44900825053",
+    "run_started_at": "2026-11-21T11:48:13Z",
+    "updated_at": "2026-11-21T11:52:06Z"
+  },
+  "jobs": [
+    {
+      "id": 136836146190,
+      "name": "verify",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/joshmode/InsureTutor/actions/runs/44900825053/job/136836146190",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Install hashed dependencies and verify locks",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Audit the complete Python lock without mutating the app environment",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Backend regressions",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Install and build the client",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "API, held-out and browser checks",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Verify the real pinned hybrid model",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ]
+}

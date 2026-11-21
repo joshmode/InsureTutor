@@ -1,0 +1,19 @@
+{
+  "engine": "firefox",
+  "checks": [
+    "viewport reflow 320, 390, 768, 1024, 1440; composer stays outside scroll region",
+    "real API chat, source excerpt, PDF page link, Escape and focus return",
+    "English, Simplified and Traditional language selection persists across reload",
+    "nested Markdown citations in emphasis/table; every notice visible; copy original answer",
+    "source dialog traps keyboard focus and closes with Escape",
+    "model-supplied images and external links cannot trigger external browsing requests",
+    "network error and retry keep one user turn",
+    "quota and length limits show accurate recovery instructions",
+    "stopping an answer preserves a newer draft",
+    "new conversation cancels pending request without resurrecting stale messages",
+    "720px effective viewport (1440 at 200%); short 390x420 viewport",
+    "axe WCAG A/AA home and open source dialog: zero violations",
+    "no unexpected browser JavaScript or console errors (including CSP violations)"
+  ],
+  "passed": 13
+}

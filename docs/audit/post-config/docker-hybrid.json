@@ -1,0 +1,26 @@
+{
+  "image": "sha256:c0d7d91581b6f86250f101c3dd882500e23014fb1fa2dac252286cf3a802fca5",
+  "health": {
+    "status": "ok",
+    "llm_configured": false,
+    "retrieval_mode": "hybrid",
+    "documents": 1,
+    "chunks": 52,
+    "ingest_ready": true,
+    "request_timeout_seconds": 195.0
+  },
+  "user": "app",
+  "read_only": true,
+  "cap_drop": [
+    "ALL"
+  ],
+  "security_opt": [
+    "no-new-privileges:true"
+  ],
+  "pids_limit": 128,
+  "memory_bytes": 2147483648,
+  "nano_cpus": 2000000000,
+  "three_reported_hybrid_regressions": "passed with expected source values",
+  "model_mount": "read-only verified public model; weights not embedded in image",
+  "language_model_calls": 0
+}

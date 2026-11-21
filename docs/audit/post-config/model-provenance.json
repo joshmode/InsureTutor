@@ -1,0 +1,7 @@
+{
+  "repository": "Qdrant/paraphrase-multilingual-MiniLM-L12-v2-onnx-Q",
+  "revision": "faf4aa4225822f3bc6376869cb1164e8e3feedd0",
+  "weight_sha256": "634d0f66c29dc934c8fa72b8a4fe91dd4d420a22f1d82a241058d4316e659a99",
+  "matches_published_lfs_sha256": true,
+  "dimensions": 384
+}

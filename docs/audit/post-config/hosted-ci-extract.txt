@@ -1,0 +1,17 @@
+Selected lines from GitHub Actions job 136836146190; dependency-audit scope is the Python lock, not OS packages.
+2026-11-21T11:48:46.7760389Z No known vulnerabilities found
+2026-11-21T11:49:44.7981440Z 227 passed, 1 warning in 56.91s
+2026-11-21T11:51:00.0461488Z 20 cases; 0 mechanical failures; semantic support unverified. Results: /tmp/adversarial.json
+2026-11-21T11:51:00.2798020Z {'status': 'completed', 'model_configured': False, 'retrieval_mode': 'lexical', 'mechanical_passed': 10, 'total': 10, 'model_generated_answers': 0, 'semantic_factuality_verified': False, 'interpretation': 'Acceptance checks cover source availability and abstention. Human review of every generated claim, language fluency, omissions and attribution remains required.'}
+2026-11-21T11:51:16.3570560Z viewport reflow 320, 390, 768, 1024, 1440; composer stays outside scroll region
+2026-11-21T11:51:16.3575595Z no unexpected browser JavaScript or console errors (including CSP violations)
+2026-11-21T11:51:21.7582345Z Mobile welcome and New conversation start at the top of the reading region
+2026-11-21T11:51:26.6638962Z viewport reflow 320, 390, 768, 1024, 1440; composer stays outside scroll region
+2026-11-21T11:51:26.6645001Z no unexpected browser JavaScript or console errors (including CSP violations)
+2026-11-21T11:51:34.9677396Z Mobile welcome and New conversation start at the top of the reading region
+2026-11-21T11:51:45.1958449Z viewport reflow 320, 390, 768, 1024, 1440; composer stays outside scroll region
+2026-11-21T11:51:45.1975970Z no unexpected browser JavaScript or console errors (including CSP violations)
+2026-11-21T11:51:51.6399100Z Mobile welcome and New conversation start at the top of the reading region
+2026-11-21T11:51:54.4502482Z Verified 384-dimension local model at revision faf4aa4225822f3bc6376869cb1164e8e3feedd0
+2026-11-21T11:52:03.1723175Z 20 cases; 0 mechanical failures; semantic support unverified. Results: /tmp/hybrid-adversarial.json
+2026-11-21T11:52:03.4911137Z {'status': 'completed', 'model_configured': False, 'retrieval_mode': 'hybrid', 'mechanical_passed': 10, 'total': 10, 'model_generated_answers': 0, 'semantic_factuality_verified': False, 'interpretation': 'Acceptance checks cover source availability and abstention. Human review of every generated claim, language fluency, omissions and attribution remains required.'}
