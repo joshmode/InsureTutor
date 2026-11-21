@@ -77,6 +77,7 @@ def test_grounded_answer_uses_valid_citations(retriever):
     assert response.citations
     assert "[1]" in response.message
     assert "current assumed" in response.message.lower()
+    assert response.model_generated is True
 
 
 def test_invalid_citation_triggers_one_constrained_retry(retriever):
@@ -122,6 +123,7 @@ def test_provider_failure_returns_source_excerpts(retriever):
     )
     assert response.citations
     assert "model provider was unavailable" in " ".join(response.notices).lower()
+    assert response.model_generated is False
 
 
 def test_unrelated_and_injection_never_call_llm(retriever):

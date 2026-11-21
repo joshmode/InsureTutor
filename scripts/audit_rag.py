@@ -18,6 +18,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
+from scripts.http_deadline import request_timeout
 
 # Expected outcomes assert only deterministic guardrail cases. Other responses
 # require a human/model evaluation of claim support, even if citations resolve.
@@ -83,6 +84,11 @@ async def audit(base_url: str | None):
             )
             runtime = AppRuntime(settings)
             runtime.initialize()
+        else:
+            with urllib.request.urlopen(
+                base_url.rstrip("/") + "/api/health", timeout=10
+            ) as response:
+                deadline = request_timeout(json.load(response))
         cases = []
         for language, question, expected_kind in CASES:
             request = {"message": question, "language": language}
@@ -92,7 +98,7 @@ async def audit(base_url: str | None):
                     data=json.dumps(request).encode(),
                     headers={"Content-Type": "application/json"},
                 )
-                with urllib.request.urlopen(req, timeout=180) as response:
+                with urllib.request.urlopen(req, timeout=deadline) as response:
                     answer = json.load(response)
             else:
                 answer = (

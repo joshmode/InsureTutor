@@ -178,6 +178,7 @@ const answer = (id) => ({
     { message: { bad: "fixture" } },
     { citations: [{ ...citation("bad"), page: "8" }] },
     { language: ["en"] },
+    { model_generated: "true" },
     { message: "   " },
   ]) {
     const badPage = await page();

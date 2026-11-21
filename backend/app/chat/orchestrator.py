@@ -274,6 +274,7 @@ class ChatOrchestrator:
         return ChatResponse(
             message=(advice_framing(language) + "\n\n" if advice else "")
             + validated.text,
+            model_generated=True,
             citations=validated.citations,
             language=language,
             kind="advice" if advice else "answer",

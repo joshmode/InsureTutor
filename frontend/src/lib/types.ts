@@ -27,6 +27,7 @@ export interface ChatResponse {
   language: LanguageCode;
   kind: ResponseKind;
   used_retrieval: boolean;
+  model_generated?: boolean;
   retrieval_mode?: string | null;
   confidence?: number | null;
   notices: string[];

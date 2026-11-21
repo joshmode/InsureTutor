@@ -7,9 +7,13 @@ saved for human review; a model grader cannot certify its own accuracy.
 import argparse
 import asyncio
 import json
+import sys
 from pathlib import Path
 
 import httpx
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from scripts.http_deadline import request_timeout
 
 CASES = [
     {
@@ -76,8 +80,9 @@ CASES = [
 
 
 async def evaluate(base, require_model):
-    async with httpx.AsyncClient(base_url=base, timeout=190) as client:
+    async with httpx.AsyncClient(base_url=base, timeout=10) as client:
         health = (await client.get("/api/health")).json()
+        client.timeout = httpx.Timeout(request_timeout(health), connect=10)
         if require_model and not health.get("llm_configured"):
             return {
                 "status": "blocked",
@@ -99,12 +104,18 @@ async def evaluate(base, require_model):
             source = " ".join(c["excerpt"] for c in body["citations"])
             kinds = body["kind"] in case["kinds"]
             evidence = all(term.lower() in source.lower() for term in case["evidence"])
+            model_met = (
+                not require_model
+                or body["kind"] not in {"answer", "advice"}
+                or body.get("model_generated") is True
+            )
             outcomes.append(
                 {
                     **case,
                     "actual_kind": body["kind"],
                     "source_expectations_met": evidence,
-                    "passed": kinds and evidence,
+                    "model_requirement_met": model_met,
+                    "passed": kinds and evidence and model_met,
                     "response": body,
                     "semantic_factuality_verified": False,
                 }
@@ -115,6 +126,10 @@ async def evaluate(base, require_model):
             "retrieval_mode": health["retrieval_mode"],
             "mechanical_passed": sum(c["passed"] for c in outcomes),
             "total": len(outcomes),
+            "model_generated_answers": sum(
+                item.get("response", {}).get("model_generated") is True
+                for item in outcomes
+            ),
             "semantic_factuality_verified": False,
             "cases": outcomes,
             "interpretation": "Acceptance checks cover source availability and abstention. Human review of every generated claim, language fluency, omissions and attribution remains required.",

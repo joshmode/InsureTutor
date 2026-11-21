@@ -41,6 +41,10 @@ class ChatResponse(BaseModel):
     language: Language
     kind: Literal["answer", "scope", "insufficient", "blocked", "advice"] = "answer"
     used_retrieval: bool = False
+    model_generated: bool = Field(
+        default=False,
+        description="The returned explanation contains reviewed model output; not a factuality guarantee",
+    )
     retrieval_mode: str | None = None
     confidence: float | None = Field(
         default=None,

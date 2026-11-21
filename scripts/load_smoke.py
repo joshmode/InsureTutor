@@ -7,25 +7,29 @@ Start an isolated app with documented limits and pass --base-url. Outcomes recor
 import argparse
 import asyncio
 import json
-import statistics
+import sys
 import time
 from pathlib import Path
 
 import httpx
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from scripts.http_deadline import request_timeout
 
 
 async def run(base, requests, concurrency):
     gate = asyncio.Semaphore(concurrency)
     health_times, chat_times, statuses = [], [], []
     done = asyncio.Event()
-    async with httpx.AsyncClient(base_url=base, timeout=190) as client:
+    async with httpx.AsyncClient(base_url=base, timeout=10) as client:
         initial = (await client.get("/api/health")).json()
         assert initial["status"] == "ok"
+        client.timeout = httpx.Timeout(request_timeout(initial), connect=10)
 
         async def health():
             while not done.is_set():
                 start = time.perf_counter()
-                result = await client.get("/api/health")
+                result = await client.get("/api/health", timeout=5)
                 assert result.status_code == 200 and result.json()["status"] == "ok"
                 health_times.append((time.perf_counter() - start) * 1000)
                 await asyncio.sleep(0.02)

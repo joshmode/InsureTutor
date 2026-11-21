@@ -34,6 +34,8 @@ function response(value: unknown): value is ChatResponse {
       value.kind,
     ) &&
     typeof value.used_retrieval === "boolean" &&
+    (value.model_generated === undefined ||
+      typeof value.model_generated === "boolean") &&
     Array.isArray(value.citations) &&
     value.citations.every(citation) &&
     Array.isArray(value.notices) &&
