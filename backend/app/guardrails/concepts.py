@@ -33,6 +33,10 @@ def missing_concept_evidence(message: str, hits: list[RetrievalHit]) -> str | No
     combined = " ".join(
         f"{hit.chunk.section} {hit.chunk.citation_excerpt}" for hit in hits
     ).lower()
+    # Detailed rider waiting periods cannot be inferred from a rider name.
+    if any(term in lowered for term in ("waiting period", "等候期", "等待期")):
+        if not any(term in combined for term in ("waiting period", "等候期", "等待期")):
+            return "no_waiting_period_evidence"
     if any(term in lowered for term in ("inflation-linked", "inflation linked", "抗通脹", "抗通胀")):
         if "inflation-linked" not in combined:
             return "no_inflation_linked_product_evidence"

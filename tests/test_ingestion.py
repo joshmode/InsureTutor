@@ -60,3 +60,25 @@ def test_form_rows_are_attached_to_source_values():
     )
     assert "Policy issued in Hong Kong" in currency.citation_excerpt
 
+
+def test_every_citation_line_exists_on_its_claimed_pdf_page():
+    import re
+    import pymupdf
+    from backend.app.ingestion.extract import extract_pages
+
+    normalize = lambda text: re.sub(r"[\s\x00-\x1f]+", "", text)
+    with pymupdf.open(PDF) as document:
+        pages = [normalize(page.get_text()) for page in document]
+    # Two formula diagrams have labels in separate visual cells. The extractor
+    # reconstructs their row order; retain that layout-normalized source too.
+    _, layout_pages = extract_pages(PDF)
+    layout = [normalize(page.text) for page in layout_pages]
+    chunks = chunk_document(PDF)
+    assert len(chunks) == 49
+    for chunk in chunks:
+        for line in chunk.citation_excerpt.splitlines():
+            assert (
+                normalize(line) in pages[chunk.page - 1]
+                or normalize(line) in layout[chunk.page - 1]
+            ), (chunk.id, line)
+

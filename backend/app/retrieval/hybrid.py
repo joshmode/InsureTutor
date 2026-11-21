@@ -176,7 +176,7 @@ class HybridRetriever:
         self.embedding_backend = LocalFastEmbedBackend(
             model_name=settings.embedding_model,
             cache_dir=settings.embedding_cache_dir,
-            enabled=settings.enable_embeddings,
+            enabled=settings.enable_embeddings and settings.embedding_enabled,
             batch_size=settings.embedding_batch_size,
             allow_download=settings.embedding_allow_download,
         )

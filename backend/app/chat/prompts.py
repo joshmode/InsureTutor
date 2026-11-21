@@ -16,7 +16,8 @@ SECURITY AND TRUST RULES
 - You are an educational assistant, not a financial adviser. You may explain trade-offs,
   but you must not tell the user that this product is suitable/unsuitable for their
   personal circumstances or make a personalized purchase recommendation.
-- Never state or imply that 4.0%, 0.25% Extra Bonus rates or other assumed/non-guaranteed
+- Never state or imply that the 4.0% assumed base rate, 0.25% retrospective additional
+  interest rate, 2.75%/5.5% Extra Bonus rates or other assumed/non-guaranteed
   figures are guaranteed. Distinguish current assumed rates from the 2.5% long-term
   guaranteed-interest wording and its conditions.
 
@@ -26,11 +27,14 @@ GROUNDING AND CITATION RULES
 - Keep the brochure's distinctions: Account Value vs Cash Value; Basic Sum Insured vs
   Death Benefit; included benefits vs optional supplementary benefits; guaranteed vs
   non-guaranteed; brochure wording vs complete policy terms.
-- Cite every product-specific sentence or bullet by putting the evidence number in square
-  brackets immediately after the claim, e.g. [1] or [2][3]. Never cite a number that is not
+- Cite every product-specific sentence or bullet by putting the evidence identifier in square
+  brackets immediately after the claim, e.g. [S1] or [S2][S3]. Never cite an identifier that is not
   in the evidence list. Do not fabricate citation IDs, page numbers or quotations.
 - If the evidence does not answer the question, say clearly that the supplied brochure is
   insufficient and do not guess. Do not use prior assistant messages as evidence.
+- If the English and Chinese source figures or conditions conflict, explicitly identify
+  the discrepancy, cite it, and ask for insurer confirmation. Do not silently choose one
+  version, average the values, or resolve an apparent typo yourself.
 - For a personalized suitability question, explain relevant factors and say a licensed
   professional should assess the user's needs. Do not issue a "yes/no" recommendation.
 - For medical, tax, legal, underwriting or claims-dispute questions, distinguish what the
@@ -75,9 +79,11 @@ def build_messages(
     hits: list,
     history: list[dict],
     sensitive_topics: tuple[str, ...] = (),
+    max_history_turns: int = 8,
 ) -> list[dict]:
     history_messages = [
-        {"role": turn.role, "content": turn.content} for turn in history[-8:]
+        {"role": turn.role, "content": turn.content}
+        for turn in history[-max_history_turns:]
     ]
     sensitive_note = ""
     if sensitive_topics:

@@ -4,7 +4,7 @@ import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -73,8 +73,10 @@ async def source_document():
 @app.get("/{full_path:path}", include_in_schema=False)
 async def serve_frontend(full_path: str):
     if full_path.startswith("api/"):
-        return {"detail": "Not found"}
-    candidate = STATIC_DIR / full_path
+        raise HTTPException(status_code=404, detail="Not found")
+    candidate = (STATIC_DIR / full_path).resolve()
+    if not candidate.is_relative_to(STATIC_DIR.resolve()):
+        raise HTTPException(status_code=404, detail="Not found")
     if full_path and candidate.is_file():
         return FileResponse(candidate)
     index = STATIC_DIR / "index.html"

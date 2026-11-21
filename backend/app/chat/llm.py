@@ -86,12 +86,11 @@ class OpenAICompatibleClient:
         except httpx.TimeoutException as exc:
             raise LLMError("Model provider timed out") from exc
         except httpx.HTTPError as exc:
-            raise LLMError(f"Model provider connection failed: {exc}") from exc
+            raise LLMError("Model provider connection failed") from exc
         if response.status_code >= 400:
-            detail = response.text[:500]
-            raise LLMError(
-                f"Model provider returned HTTP {response.status_code}: {detail}"
-            )
+            # Provider errors can echo credentials or submitted conversation
+            # content. Keep response bodies out of application logs.
+            raise LLMError(f"Model provider returned HTTP {response.status_code}")
         try:
             data = response.json()
             content = data["choices"][0]["message"]["content"]
@@ -124,10 +123,8 @@ class OpenAICompatibleClient:
                     json=self._payload(messages, stream=True, temperature=temperature),
                 ) as response:
                     if response.status_code >= 400:
-                        body = await response.aread()
                         raise LLMError(
-                            f"Model provider returned HTTP {response.status_code}: "
-                            f"{body[:500].decode(errors='replace')}"
+                            f"Model provider returned HTTP {response.status_code}"
                         )
                     async for line in response.aiter_lines():
                         if not line.startswith("data:"):
@@ -146,5 +143,5 @@ class OpenAICompatibleClient:
         except httpx.TimeoutException as exc:
             raise LLMError("Model provider timed out") from exc
         except httpx.HTTPError as exc:
-            raise LLMError(f"Model provider connection failed: {exc}") from exc
+            raise LLMError("Model provider connection failed") from exc
 

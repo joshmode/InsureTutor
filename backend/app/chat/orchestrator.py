@@ -184,7 +184,6 @@ class ChatOrchestrator:
                 confidence=retrieval.confidence,
                 notices=[
                     localised_notice(language, "educational"),
-                    "LLM_API_KEY is not configured; showing source excerpts only.",
                 ],
             )
 
@@ -194,6 +193,7 @@ class ChatOrchestrator:
             retrieval.hits,
             request.history,
             decision.sensitive_topics,
+            max_history_turns=self.settings.max_history_turns,
         )
         try:
             response = await self.llm.complete(messages)
@@ -248,7 +248,7 @@ class ChatOrchestrator:
                 confidence=retrieval.confidence,
                 notices=[
                     localised_notice(language, "educational"),
-                    "The model provider was unavailable; showing source excerpts only.",
+                    localised_notice(language, "provider_unavailable"),
                 ],
             )
         except Exception:
@@ -307,6 +307,7 @@ class ChatOrchestrator:
             retrieval.hits,
             request.history,
             sensitive_topics,
+            max_history_turns=self.settings.max_history_turns,
         )
         messages[0]["content"] += (
             "\nThe user asked for personalized advice. Start by explaining that "

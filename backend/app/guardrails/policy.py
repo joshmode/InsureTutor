@@ -20,6 +20,9 @@ INJECTION_PATTERNS = (
     r"pretend (?:that )?you are (?:an? )?(?:insurance agent|licensed|adviser|advisor)",
     r"disable (?:all )?citations?",
     r"make up (?:a |the )?(?:guaranteed return|policy benefit|benefit)",
+    r"(?:add|include|invent).{0,35}(?:made[- ]up|fabricated|fictional).{0,25}(?:benefit|return|guarantee|claim)",
+    r"(?:reveal|show|print).{0,25}(?:confidential|hidden|internal).{0,15}(?:instructions|prompt)",
+    r"you are now (?:an? )?(?:administrator|system|developer)",
     r"fabricate (?:a |the )?(?:return|benefit|policy term)",
     r"ignore (?:the )?(?:retrieved|source) (?:documents?|evidence)",
     r"output (?:the )?(?:text|content) (?:above|before) (?:verbatim|word for word)",
@@ -28,8 +31,8 @@ INJECTION_PATTERNS = (
     r"忽略(?:所有|以上|之前|先前).{0,10}(?:指令|規則|规则)",
     r"無視(?:所有|以上|之前|先前).{0,10}(?:指令|規則|规则)",
     r"(?:顯示|显示|透露).{0,8}(?:系統|系统|開發者|开发者).{0,8}(?:提示|指令)",
-    r"假裝|假装.{0,10}(?:保險經紀|保险经纪|持牌|理財顧問|理财顾问)",
-    r"關閉|关闭.{0,8}(?:引用|引文|來源|来源)",
+    r"(?:假裝|假装).{0,10}(?:保險經紀|保险经纪|持牌|理財顧問|理财顾问)",
+    r"(?:關閉|关闭).{0,8}(?:引用|引文|來源|来源)",
     r"(?:輸出|输出|重複|重复).{0,15}(?:隱藏|隐藏|內部|内部|之前).{0,15}(?:提示|指令|內容|内容)",
     r"(?:忽略|無視|无视).{0,20}(?:證據|证据|文件|資料|资料).{0,20}(?:編造|编造|虛構|虚构)",
 )
@@ -45,6 +48,7 @@ UNRELATED_PATTERNS = (
 )
 
 ADVICE_PATTERNS = (
+    r"\b(?:is|would).{0,25}\bsuitable for (?:me|my|us)\b",
     r"\bshould i (?:buy|purchase|invest|surrender|cancel|keep|stop paying|switch|put)\b",
     r"\bis (?:it|this) (?:a )?good (?:idea|investment|policy)\b",
     r"\bis (?:it|this) (?:sensible|wise|prudent|worthwhile) (?:for me )?to (?:buy|purchase|invest|surrender|cancel)\b",
@@ -139,6 +143,7 @@ def screen_input(message: str) -> GuardrailDecision:
 def localised_notice(language: str, key: str) -> str:
     notices = {
         "en": {
+            "provider_unavailable": "The model provider was unavailable; showing source excerpts only.",
             "educational": (
                 "InsureTutor is an educational assistant, not a licensed insurance "
                 "adviser. It explains the supplied brochure and cannot determine "
@@ -158,6 +163,7 @@ def localised_notice(language: str, key: str) -> str:
             ),
         },
         "zh-Hans": {
+            "provider_unavailable": "AI 解释暂时不可用，目前仅展示册子原文。",
             "educational": (
                 "InsureTutor 是保险教育助手，并非持牌保险顾问。它只解释所提供的产品册子，"
                 "不能判断某份保单是否适合您。"
@@ -167,6 +173,7 @@ def localised_notice(language: str, key: str) -> str:
             "sensitive": "册子未必能解决医疗、税务、法律、核保或理赔争议问题，这些事项需向有关机构确认。",
         },
         "zh-Hant": {
+            "provider_unavailable": "AI 解釋暫時無法使用，目前僅展示冊子原文。",
             "educational": (
                 "InsureTutor 是保險教育助手，並非持牌保險顧問。它只解釋所提供的產品冊子，"
                 "不能判斷某份保單是否適合您。"

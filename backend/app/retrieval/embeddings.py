@@ -90,7 +90,12 @@ class VectorIndex:
     def search(self, query: str, limit: int = 16) -> list[tuple[Chunk, float]]:
         if not self.backend.available or self.matrix is None:
             return []
-        query_vector = self.backend.embed_query(query)
+        try:
+            query_vector = self.backend.embed_query(query)
+        except Exception as exc:
+            logger.warning("Query embedding failed (%s); using lexical fallback", exc)
+            self.backend.available = False
+            return []
         scores = self.matrix @ query_vector
         order = np.argsort(scores)[::-1][:limit]
         return [(self.chunks[int(i)], float(scores[int(i)])) for i in order]

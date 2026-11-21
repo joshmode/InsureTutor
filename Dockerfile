@@ -3,7 +3,7 @@ WORKDIR /build/frontend
 COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci
 COPY frontend/ ./
-RUN npm run build
+RUN NEXT_TELEMETRY_DISABLED=1 npm run build
 
 FROM python:3.13-slim AS runtime
 
@@ -25,7 +25,11 @@ COPY backend/ /app/backend/
 COPY knowledge/ /app/knowledge/
 COPY --from=frontend-builder /build/frontend/out /app/frontend/out
 
-RUN mkdir -p /app/data && chown -R app:app /app/data /app/frontend
+# Private checkouts can have owner-only modes. COPY preserves those modes,
+# but the runtime runs as a different, unprivileged user.
+RUN chmod -R a+rX /app/backend /app/knowledge /app/frontend \
+    && mkdir -p /app/data \
+    && chown -R app:app /app/data
 
 USER app
 EXPOSE 8000

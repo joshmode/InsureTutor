@@ -164,3 +164,18 @@ def test_credentials_request_is_blocked(retriever):
     assert response.kind == "blocked"
     assert app.llm.calls == []
 
+
+def test_provider_prompt_uses_configured_history_bound_and_conflict_policy(retriever):
+    from backend.app.models import ChatTurn
+    app = orchestrator(retriever, ["The interest rate is assumed. [S1]"])
+    app.settings.max_history_turns = 2
+    history = [ChatTurn(role="user", content=f"old-question-{i}") for i in range(5)]
+    asyncio.run(app.answer(ChatRequest(message="Is the 4% interest rate guaranteed?", history=history)))
+    sent = app.llm.seen_messages[0]
+    assert len(sent) == 4  # system, two historic messages, current evidence/question
+    assert sent[1]["content"] == "old-question-3"
+    assert sent[2]["content"] == "old-question-4"
+    assert "Do not silently choose one" in sent[0]["content"]
+    assert "0.25% retrospective additional" in sent[0]["content"]
+    assert "2.75%/5.5% Extra Bonus" in sent[0]["content"]
+
