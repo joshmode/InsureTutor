@@ -76,6 +76,60 @@ def _claim_units(line: str) -> list[str]:
     return units
 
 
+_CURRENCY_AMOUNT = (
+    r"(?P<currency>US\$|HK\$|MOP\$?|USD|HKD|\$)\s*"
+    r"(?P<number>\d[\d,]*(?:\.\d+)?)"
+)
+_MONETARY_FIELD = re.compile(
+    r"\b(?P<label>(?:[a-z]+[ \t]+){1,4}(?:charges?|fees?|rates?|benefits?))"
+    r"(?:\b|(?=\d))(?:[ \t]*\d{1,2})?"
+    r"\s*(?:(?:is|are|of|at)\s+|[:=]\s*)?" + _CURRENCY_AMOUNT,
+    re.IGNORECASE,
+)
+_ALTERNATE_AMOUNT = re.compile(r"\s*[/／]\s*" + _CURRENCY_AMOUNT, re.IGNORECASE)
+
+
+def _monetary_fields(text: str):
+    # Require explicit currency, keeping PDF footnotes and bare rates out of
+    # monetary comparisons. This cannot interpret every paraphrase or table.
+    plain = text.replace("*", "").replace("_", "")
+    for match in _MONETARY_FIELD.finditer(plain):
+        label = tuple("charge" if term == "fee" else term for term in tokenize(match["label"]))
+        if len(label) < 2:
+            continue  # A generic 'charge' alone does not identify a field.
+        amount_match = match
+        while amount_match:
+            amount = Decimal(amount_match["number"].replace(",", ""))
+            currency = amount_match["currency"].upper()
+            currency = {"USD": "US$", "HKD": "HK$", "MOP": "MOP$"}.get(currency, currency)
+            yield label, (amount, currency)
+            amount_match = _ALTERNATE_AMOUNT.match(plain, amount_match.end())
+
+
+def _check_monetary_fields(content: str, source_text: str) -> None:
+    source_fields: dict[tuple[str, ...], set[tuple[Decimal, str]]] = {}
+    for label, value in _monetary_fields(source_text):
+        source_fields.setdefault(label, set()).add(value)
+    for label, value in _monetary_fields(content):
+        # Prose prefixes such as 'current' or 'subject to a' are not field names.
+        matches = [
+            (_field_match_score(label, key), values)
+            for key, values in source_fields.items()
+        ]
+        best = max((score for score, _ in matches), default=(0, 0))
+        if best[0] and not any(
+            score == best and value in values for score, values in matches
+        ):
+            raise GroundingError("unsupported_numeric_field")
+
+
+def _field_match_score(left: tuple[str, ...], right: tuple[str, ...]) -> tuple[int, int]:
+    for size in range(min(len(left), len(right)), 1, -1):
+        if left[-size:] == right[-size:]:
+            return size, -abs(len(left) - len(right))
+    return 0, 0
+
+
 def inspect_draft(text: str, hits: list[RetrievalHit]) -> list[Claim]:
     if not text.strip() or len(text) > 16000:
         raise GroundingError("empty_or_oversized_draft")
@@ -108,6 +162,7 @@ def inspect_draft(text: str, hits: list[RetrievalHit]) -> list[Claim]:
             source_text = "\n".join(hit.chunk.citation_excerpt for hit in evidence)
             if not _number_values(content) <= _number_values(source_text):
                 raise GroundingError("unsupported_claim_number")
+            _check_monetary_fields(content, source_text)
             for quoted in re.findall(
                 r'"([^"\n]+)"|“([^”]+)”|「([^」]+)」|『([^』]+)』', content
             ):
@@ -192,7 +247,7 @@ def review_approved(text: str, claims: list[Claim]) -> bool:
 # No unsupported-topic blacklist is used: missing distinctive question anchors
 # cause abstention regardless of the topic.
 _QUERY_SCAFFOLD = set(
-    "policy plan insurance product benefit cover covered coverage happens happen get keep money work works tell much more only still same any every single year time these request know need have all considered return buy buying bought suitable good idea sensible wise worth worthwhile me us fit question percent rate says brochure source document explain actually can does difference mean means never like im who really basic basics young person understand terms simple new beginner risks options".split()
+    "policy plan insurance product benefit cover covered coverage happens happen get keep money work works tell much more only still same any every single partial year time these request know need have all considered return buy buying bought suitable good idea sensible wise worth worthwhile me us fit question percent rate says brochure source document explain actually can does difference between many times often frequently back long youngest oldest immediate immediately switch make pay use mean means never like im who really basic basics young person understand terms simple new beginner risks options".split()
 )
 # Linguistic scaffolding is not an insurance topic. Removing it keeps lexical
 # applicability about the subject, rather than the user's requested reading level.
@@ -225,7 +280,10 @@ def applicability_question(question: str, history: list[str]) -> str:
 
 
 def literal_applicable(
-    question: str, hits: list[RetrievalHit], *, advice: bool = False
+    question: str,
+    hits: list[RetrievalHit],
+    *,
+    advice: bool = False,
 ) -> bool:
     terms = _subject_terms(question)
     if not terms:
@@ -247,12 +305,12 @@ def literal_applicable(
     # synonyms unrelated to the actual source passage.
     evidence_terms = _subject_terms(" ".join(h.chunk.citation_excerpt for h in hits))
     matched = terms & evidence_terms
+    # An unfamiliar modifier can change the entire subject (a new charge or
+    # benefit). Generic insurance vocabulary must not excuse even one missing
+    # English subject absent from the selected evidence, including mixed queries.
+    # A word in an unrelated exclusion cannot establish a new fee or benefit.
+    if any(re.fullmatch(r"[a-z]+", term) for term in terms - evidence_terms):
+        return False
     if any("\u3400" <= char <= "\u9fff" for char in question):
         return bool(matched) and len(matched) / len(terms) >= 0.55
-    # Two unseen substantive anchors cannot be excused by repeating the known
-    # product name. This rejects new unsupported subjects, not named topics.
-    return (
-        bool(matched)
-        and len(terms - evidence_terms) < 2
-        and len(matched) / len(terms) >= 0.6
-    )
+    return bool(matched) and terms <= evidence_terms

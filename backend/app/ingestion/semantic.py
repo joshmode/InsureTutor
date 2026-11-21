@@ -276,6 +276,10 @@ def _stem(word: str) -> str:
         ("credited", "credit"),
         ("interest", "interest"),
         ("fees", "fee"),
+        ("claims", "claim"),
+        ("miss", "skip"),
+        ("missing", "skip"),
+        ("skipping", "skip"),
     ):
         if word == suffix:
             return replacement

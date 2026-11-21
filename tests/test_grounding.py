@@ -80,6 +80,77 @@ def test_number_must_occur_in_the_claims_own_cited_source():
         inspect_draft("The withdrawal charge is US$200. [S1]", HITS)
 
 
+@pytest.mark.parametrize(
+    "draft",
+    [
+        "The withdrawal charge is US$4. [S1]",
+        "The administrative charge is US$25. [S1]",
+        "The **withdrawal charge** is US$4. [S1]",
+        "The current withdrawal charge is US$4. [S1]",
+        "The withdrawal fee is US$4. [S1]",
+    ],
+)
+def test_same_source_number_cannot_be_reassigned_to_another_explicit_field(draft):
+    with pytest.raises(GroundingError, match="unsupported_numeric_field"):
+        inspect_draft(draft, HITS)
+
+
+@pytest.mark.parametrize(
+    "draft",
+    [
+        "The withdrawal charge is US$25. [S1]",
+        "The administrative charge is US$4.00 monthly. [S1]",
+    ],
+)
+def test_correct_explicit_field_and_amount_remain_accepted(draft):
+    assert len(inspect_draft(draft, HITS)) == 1
+
+
+def test_bare_footnote_after_field_label_is_not_a_monetary_value():
+    evidence = [hit("Administrative charge 3\nUS$4 per month.")]
+    assert len(inspect_draft(DRAFT, evidence)) == 1
+
+
+def test_spaced_source_percent_is_the_same_unit_as_the_draft():
+    assert inspect_draft("Base rate is 2.5%. [S1]", [hit("Base rate is 2.5 %.")])
+
+
+@pytest.mark.parametrize("amount", ["US$25", "HK$200", "MOP200"])
+@pytest.mark.parametrize("prefix", ["", "current "])
+def test_actual_footnoted_withdrawal_charge_and_cross_source_label_swap(knowledge_chunks, amount, prefix):
+    source = next(
+        c for c in knowledge_chunks
+        if c.page == 18 and "withdrawal charge10 of US$25" in c.citation_excerpt
+    )
+    # An unrelated amount is deliberately in the same cited evidence so the
+    # ordinary number-membership check alone cannot catch a field swap.
+    evidence = [hit(source.citation_excerpt + "\nAdministrative charge is US$4 monthly.")]
+    assert inspect_draft(f"The {prefix}withdrawal charge is {amount}. [S1]", evidence)
+    with pytest.raises(GroundingError, match="unsupported_numeric_field"):
+        inspect_draft(f"The {prefix}withdrawal charge is US$4. [S1]", evidence)
+
+
+@pytest.mark.parametrize(
+    "draft",
+    [
+        "The periodic withdrawal charge is US$25. [S1]",
+        "The withdrawal charge is US$0. [S1]",
+    ],
+)
+def test_more_specific_field_cannot_borrow_an_amount_from_a_general_label(draft):
+    evidence = [hit("Withdrawal charge is US$25. Periodic withdrawal charge is US$0.")]
+    with pytest.raises(GroundingError, match="unsupported_numeric_field"):
+        inspect_draft(draft, evidence)
+
+
+def test_padded_label_cannot_swap_amounts_between_two_actual_brochure_citations(knowledge_chunks):
+    withdrawal = next(c for c in knowledge_chunks if c.page == 18 and "withdrawal charge10 of US$25" in c.citation_excerpt)
+    administrative = next(c for c in knowledge_chunks if c.page == 17 and "US$4" in c.citation_excerpt)
+    evidence = [RetrievalHit(c, 1, 1, 0) for c in (withdrawal, administrative)]
+    with pytest.raises(GroundingError, match="unsupported_numeric_field"):
+        inspect_draft("The current withdrawal charge is US$4. [S1][S2]", evidence)
+
+
 def test_direct_quote_must_exist_in_its_own_source():
     with pytest.raises(GroundingError, match="unsupported_quote"):
         inspect_draft('The brochure says "every withdrawal is free". [S1]', HITS)
@@ -215,6 +286,75 @@ def test_no_provider_also_rejects_irrelevant_excerpts():
     )
     assert answer.kind == "insufficient"
     assert not answer.citations
+
+
+@pytest.mark.parametrize(
+    "question",
+    [
+        "What is the reinstatement interest charge?",
+        "What is the maternity death benefit?",
+        "What is the ransomware withdrawal charge?",
+        "What is the veterinary monthly charge?",
+    ],
+)
+def test_unknown_subject_modifier_cannot_borrow_known_insurance_terms(question):
+    hits = [hit("Interest and monthly charges apply. Withdrawal charges and death benefits vary.")]
+    assert not literal_applicable(question, hits)
+
+
+def test_unknown_english_modifier_is_not_excused_by_chinese_topic_matches():
+    assert not literal_applicable("reinstatement 利息 費用", [hit("利息 費用")])
+
+
+def test_subject_in_an_unrelated_exclusion_cannot_establish_a_new_fee():
+    retriever = StaticRetriever([hit("Interest and withdrawal charge is US$25.")])
+    retriever.chunks.append(hit("Reinstatement is mentioned in exclusions.", "other").chunk)
+    app = ChatOrchestrator(Settings(_env_file=None), retriever, ScriptedLLM([]))
+    answer = asyncio.run(app.answer(ChatRequest(message="What is the reinstatement interest charge?")))
+    assert answer.kind == "insufficient" and not answer.citations and not app.llm.calls
+
+
+@pytest.mark.parametrize(
+    "question",
+    [
+        "What is the reinstatement interest charge?",
+        "What is the maternity death benefit?",
+        "What is the ransomware withdrawal charge?",
+    ],
+)
+def test_unsupported_modifier_abstains_before_model_or_excerpt_fallback(retriever, question):
+    app = ChatOrchestrator(Settings(_env_file=None), retriever, ScriptedLLM([]))
+    answer = asyncio.run(app.answer(ChatRequest(message=question)))
+    assert answer.kind == "insufficient"
+    assert not answer.citations and not app.llm.calls
+
+
+@pytest.mark.parametrize("question", ["How do I make a claim?", "What happens if I miss a premium payment?"])
+def test_ordinary_claim_and_missed_payment_paraphrases_retain_evidence(retriever, question):
+    app = ChatOrchestrator(Settings(_env_file=None), retriever, ScriptedLLM([]))
+    app.llm.configured = False
+    answer = asyncio.run(app.answer(ChatRequest(message=question)))
+    assert answer.kind == "answer" and answer.citations
+
+
+@pytest.mark.parametrize(
+    "question",
+    [
+        "How often may I withdraw cash?",
+        "How frequently can I withdraw cash?",
+        "Can I get my money back if I cancel during the cooling-off period?",
+        "What fees apply to a partial withdrawal?",
+        "What is the youngest issue age?",
+        "How long do surrender charges last?",
+        "Can I switch the death benefit option?",
+        "Is surrender payment immediate?",
+    ],
+)
+def test_supported_plain_english_questions_keep_their_brochure_evidence(retriever, question):
+    app = ChatOrchestrator(Settings(_env_file=None), retriever, ScriptedLLM([]))
+    app.llm.configured = False
+    answer = asyncio.run(app.answer(ChatRequest(message=question)))
+    assert answer.kind == "answer" and answer.citations
 
 
 @pytest.mark.parametrize(
