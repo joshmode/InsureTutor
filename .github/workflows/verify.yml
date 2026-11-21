@@ -66,5 +66,6 @@ jobs:
           python scripts/evaluate_provider.py --base-url http://127.0.0.1:8014 --output /tmp/held-out.json
           for browser_engine in chromium firefox webkit; do
             BROWSER_ENGINE="$browser_engine" AUDIT_OUTPUT_DIR="/tmp/browser-$browser_engine" BASE_URL=http://127.0.0.1:8014 node scripts/browser-audit.cjs
+            BROWSER_ENGINE="$browser_engine" AUDIT_OUTPUT_DIR="/tmp/second-pass-$browser_engine" BASE_URL=http://127.0.0.1:8014 node scripts/second-pass-ui.cjs
           done
           python scripts/load_smoke.py --base-url http://127.0.0.1:8014 --output /tmp/load.json

@@ -133,8 +133,18 @@ const checks = [];
   // Native selector, persisted language, all three scripts.
   for (const lang of ["zh-Hans", "zh-Hant", "en"]) {
     await p.getByRole("combobox").selectOption(lang);
+    assert.equal(
+      await p.evaluate(() => localStorage.getItem("insuretutor-language")),
+      lang,
+    );
     await p.reload();
-    assert.equal(await p.locator("html").getAttribute("lang"), lang);
+    // Static HTML starts in English; wait for the client to restore preference.
+    await p.waitForFunction(
+      (expected) =>
+        document.documentElement.lang === expected &&
+        document.querySelector("select").value === expected,
+      lang,
+    );
   }
   checks.push(
     "English, Simplified and Traditional language selection persists across reload",

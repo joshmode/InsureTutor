@@ -37,14 +37,17 @@ export function AssistantBubble({
 }) {
   const copy = COPY[language];
   const [copied, setCopied] = useState(false);
+  const [copyFailed, setCopyFailed] = useState(false);
 
   async function copyAnswer() {
+    setCopyFailed(false);
     try {
       await navigator.clipboard.writeText(message.content);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1800);
     } catch {
       setCopied(false);
+      setCopyFailed(true);
     }
   }
 
@@ -89,6 +92,7 @@ export function AssistantBubble({
         )}
         <div className="answer-body">
           <AnswerMarkdown
+            language={language}
             text={message.content}
             citations={message.citations}
             activeCitation={activeCitation}
@@ -134,13 +138,18 @@ export function AssistantBubble({
             <button
               type="button"
               onClick={copyAnswer}
-              aria-label={copy.copy}
+              aria-label={copied ? copy.copied : copy.copy}
               className="inline-flex h-7 items-center gap-1.5 rounded-full px-2 text-[12px] font-semibold text-ink-500 transition hover:bg-cream-100 hover:text-ink-900"
             >
               {copied ? <Check size={11} /> : <Copy size={11} />}
               {copied ? copy.copied : copy.copy}
             </button>
           </div>
+          {copyFailed && (
+            <p role="status" className="mt-2 text-[12px] text-ink-700">
+              {copy.copyFailed}
+            </p>
+          )}
         </div>
       </div>
     </div>

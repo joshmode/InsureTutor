@@ -1,7 +1,8 @@
 "use client";
 
 import { FileText } from "lucide-react";
-import type { Citation } from "@/lib/types";
+import type { Citation, LanguageCode } from "@/lib/types";
+import { COPY } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 export function CitationChip({
@@ -9,17 +10,23 @@ export function CitationChip({
   citation,
   active,
   onClick,
+  language,
 }: {
   index: number;
   citation: Citation;
   active: boolean;
   onClick: () => void;
+  language: LanguageCode;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      aria-label={`Citation ${index}: ${citation.document}, page ${citation.page}`}
+      aria-label={COPY[language].citationLabel(
+        index,
+        citation.document,
+        citation.page,
+      )}
       className={cn(
         "group inline-flex h-7 items-center gap-1.5 rounded-full border px-2.5 align-middle text-[11px] font-bold transition",
         active

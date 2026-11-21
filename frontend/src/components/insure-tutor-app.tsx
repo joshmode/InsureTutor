@@ -2,9 +2,9 @@
 import { useEffect, useRef, useState } from "react";
 import { BookOpen, Circle, FileText } from "lucide-react";
 import { COPY } from "@/lib/i18n";
+import { chatTimeoutMs, parseChatResponse } from "@/lib/api";
 import type {
   AssistantMessage,
-  ChatResponse,
   ChatTurn,
   LanguageCode,
   Message,
@@ -31,9 +31,10 @@ export function InsureTutorApp() {
   const [activeCitation, setActiveCitation] = useState<number | null>(null);
   const [sourceMessage, setSourceMessage] = useState<string | null>(null);
   const [sourceOpen, setSourceOpen] = useState(false);
-  const [health, setHealth] = useState<{ llm_configured: boolean } | null>(
-    null,
-  );
+  const [health, setHealth] = useState<{
+    llm_configured: boolean;
+    request_timeout_seconds?: number;
+  } | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -57,17 +58,21 @@ export function InsureTutorApp() {
     };
   }, []);
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, language);
-    } catch {}
     document.documentElement.lang = language;
   }, [language]);
+  function changeLanguage(next: LanguageCode) {
+    // Persist during the selection event: a reload can precede passive effects.
+    try {
+      localStorage.setItem(STORAGE_KEY, next);
+    } catch {}
+    setLanguage(next);
+  }
   useEffect(() => {
     // Scroll only the conversation, never the whole document or the composer.
     const region = scrollRef.current;
     if (region)
       region.scrollTo({
-        top: region.scrollHeight,
+        top: messages.length ? region.scrollHeight : 0,
         behavior: matchMedia("(prefers-reduced-motion: reduce)").matches
           ? "instant"
           : "smooth",
@@ -101,8 +106,14 @@ export function InsureTutorApp() {
     abortRef.current = controller;
     const pendingId = uid("a"),
       userId = uid("u");
+    const previous = messages.at(-1);
+    const requestUserId =
+      retry && previous?.role === "user" && previous.content === question
+        ? previous.id
+        : userId;
     const history = historyForRequest();
-    setDraft("");
+    // Retrying or selecting a prompt must not erase a different unsent draft.
+    if (override === undefined) setDraft("");
     setError(false);
     setErrorReason("network");
     setLastQuestion(question);
@@ -122,7 +133,10 @@ export function InsureTutorApp() {
         pending: true,
       },
     ]);
-    const timeout = setTimeout(() => controller.abort("timeout"), 150000);
+    const timeout = setTimeout(
+      () => controller.abort("timeout"),
+      chatTimeoutMs(health?.request_timeout_seconds),
+    );
     try {
       const response = await fetch("/api/chat", {
         method: "POST",
@@ -141,7 +155,7 @@ export function InsureTutorApp() {
         );
         throw new Error(`HTTP ${response.status}`);
       }
-      const result: ChatResponse = await response.json();
+      const result = parseChatResponse(await response.json());
       if (abortRef.current !== controller) return;
       setMessages((current) =>
         current.map((m) =>
@@ -159,11 +173,17 @@ export function InsureTutorApp() {
             : m,
         ),
       );
-      setSourceMessage(pendingId);
-      setActiveCitation(result.citations.length ? 1 : null);
+      // An answer arriving in the background must not replace evidence the
+      // user explicitly selected. Generic Sources controls select the latest.
     } catch {
       if (abortRef.current !== controller) return;
-      setMessages((current) => current.filter((m) => m.id !== pendingId));
+      const stopped =
+        controller.signal.aborted && controller.signal.reason !== "timeout";
+      setMessages((current) =>
+        current.filter(
+          (m) => m.id !== pendingId && !(stopped && m.id === requestUserId),
+        ),
+      );
       if (!controller.signal.aborted || controller.signal.reason === "timeout")
         setError(true);
       else setDraft((current) => current || question);
@@ -194,14 +214,20 @@ export function InsureTutorApp() {
     setSourceMessage(messageId);
     setSourceOpen(true);
   }
+  function showLatestSources() {
+    const latest = assistants.at(-1);
+    setSourceMessage(latest?.id ?? null);
+    setActiveCitation(latest?.citations.length ? 1 : null);
+    setSourceOpen(true);
+  }
   return (
     <div className="app-shell">
       <AppHeader
         language={language}
-        onLanguageChange={setLanguage}
+        onLanguageChange={changeLanguage}
         onNewChat={newConversation}
-        onOpenSources={() => setSourceOpen(true)}
-        conversationsStarted={messages.length > 0}
+        onOpenSources={showLatestSources}
+        conversationsStarted={messages.length > 0 || draft.length > 0}
       />
       <div className="workspace">
         <aside className="reference-rail">
@@ -214,7 +240,7 @@ export function InsureTutorApp() {
               <BookOpen size={16} />
               {copy.productName}
             </span>
-            <button className="text-button" onClick={() => setSourceOpen(true)}>
+            <button className="text-button" onClick={showLatestSources}>
               <FileText size={15} />
               {copy.mobileSources}
             </button>

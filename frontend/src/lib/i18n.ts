@@ -53,6 +53,8 @@ type Copy = {
   retry: string;
   errorTitle: string;
   errorBody: string;
+  citationLabel: (index: number, document: string, page: number) => string;
+  copyFailed: string;
   copied: string;
   copy: string;
   close: string;
@@ -76,6 +78,8 @@ type Copy = {
 };
 
 const en: Copy = {
+  citationLabel: (index, document, page) =>
+    `Citation ${index}: ${document}, page ${page}`,
   quotaError:
     "The service has reached its request allowance. Your question is still here; please try again later.",
   lengthError:
@@ -133,6 +137,8 @@ const en: Copy = {
   retry: "Try again",
   errorTitle: "The tutor couldn’t respond",
   errorBody: "Your message was not lost. Try again in a moment.",
+  copyFailed:
+    "Copy is unavailable. Select the answer text to copy it manually.",
   copied: "Copied",
   copy: "Copy answer",
   close: "Close",
@@ -165,6 +171,8 @@ const en: Copy = {
 };
 
 const zhHans: Copy = {
+  citationLabel: (index, document, page) =>
+    `引用 ${index}：${document}，第 ${page} 页`,
   quotaError: "服务已达到请求限额。您的问题仍在此处，请稍后重试。",
   lengthError: "对话过长，请开启新对话后再次提问。",
   privacyNotice:
@@ -210,6 +218,7 @@ const zhHans: Copy = {
   retry: "重试",
   errorTitle: "暂时无法回答",
   errorBody: "您的信息没有丢失。请稍后重试。",
+  copyFailed: "无法复制，请选中回答文字后手动复制。",
   copied: "已复制",
   copy: "复制回答",
   close: "关闭",
@@ -240,6 +249,8 @@ const zhHans: Copy = {
 
 const zhHant: Copy = {
   ...zhHans,
+  citationLabel: (index, document, page) =>
+    `引用 ${index}：${document}，第 ${page} 頁`,
   quotaError: "服務已達到請求限額。您的問題仍在此處，請稍後重試。",
   lengthError: "對話過長，請開啟新對話後再次提問。",
   privacyNotice:
@@ -284,6 +295,7 @@ const zhHant: Copy = {
   retry: "重試",
   errorTitle: "暫時無法回答",
   errorBody: "您的信息沒有丟失。請稍後重試。",
+  copyFailed: "無法複製，請選取回答文字後手動複製。",
   copied: "已複製",
   copy: "複製回答",
   close: "關閉",

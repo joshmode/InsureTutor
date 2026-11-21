@@ -20,6 +20,12 @@ export function SourcePanel({
 }) {
   const c = COPY[language],
     ref = useRef<HTMLDialogElement>(null);
+  const selectedDocument =
+    citations[(activeCitation ?? 1) - 1]?.document ?? citations[0]?.document;
+  const sourceHref = (document?: string) =>
+    document
+      ? `/source-document?document=${encodeURIComponent(document)}`
+      : "/source-document";
   useEffect(() => {
     const d = ref.current;
     if (!d) return;
@@ -118,7 +124,7 @@ export function SourcePanel({
                     <p className="eyebrow">{c.excerpt}</p>
                     <blockquote>{citation.excerpt}</blockquote>
                     <a
-                      href={`/source-document#page=${citation.page}`}
+                      href={`${sourceHref(citation.document)}#page=${citation.page}`}
                       target="_blank"
                       rel="noreferrer"
                     >
@@ -134,7 +140,7 @@ export function SourcePanel({
         <footer>
           <a
             className="document-link"
-            href="/source-document"
+            href={sourceHref(selectedDocument)}
             target="_blank"
             rel="noreferrer"
           >

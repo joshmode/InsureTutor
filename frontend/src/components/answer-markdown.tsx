@@ -2,7 +2,7 @@
 import ReactMarkdown, { type Components } from "react-markdown";
 import { createContext, useContext } from "react";
 import remarkGfm from "remark-gfm";
-import type { Citation } from "@/lib/types";
+import type { Citation, LanguageCode } from "@/lib/types";
 import { CitationChip } from "./citation-chip";
 
 type MarkdownNode = {
@@ -42,11 +42,13 @@ function citationLinks() {
   };
 }
 type CitationContextValue = {
+  language: LanguageCode;
   citations: Citation[];
   activeCitation: number | null;
   onCitationClick: (index: number) => void;
 };
 const CitationContext = createContext<CitationContextValue>({
+  language: "en",
   citations: [],
   activeCitation: null,
   onCitationClick: () => {},
@@ -54,7 +56,7 @@ const CitationContext = createContext<CitationContextValue>({
 // Stable component identities preserve citation focus across answer selection.
 const markdownComponents: Components = {
   a: function EvidenceLink({ href, children }) {
-    const { citations, activeCitation, onCitationClick } =
+    const { citations, activeCitation, onCitationClick, language } =
       useContext(CitationContext);
     const match = href?.match(/^#citation-(\d+)$/);
     const index = match ? Number(match[1]) : 0;
@@ -65,6 +67,7 @@ const markdownComponents: Components = {
         citation={citation}
         active={activeCitation === index}
         onClick={() => onCitationClick(index)}
+        language={language}
       />
     ) : (
       <>{children}</>
