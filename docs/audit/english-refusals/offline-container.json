@@ -1,0 +1,25 @@
+{
+  "health": {
+    "status": "ok",
+    "llm_configured": false,
+    "retrieval_mode": "hybrid",
+    "documents": 1,
+    "chunks": 52,
+    "ingest_ready": true,
+    "request_timeout_seconds": 195.0
+  },
+  "image": "sha256:886815a03d37eae3eb873cc9b4ae6dde48b0c85b161d445b7695ad8fe24fc97e",
+  "network": "none",
+  "read_only_root": true,
+  "user": "app",
+  "mounts": [
+    [
+      "volume",
+      "/app/data"
+    ]
+  ],
+  "model_directory": "/app/models/pinned",
+  "no_external_model_bind": true,
+  "backend_file_hashes_match": true,
+  "backend_python_files_checked": 36
+}

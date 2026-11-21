@@ -16,7 +16,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
     KNOWLEDGE_BASE_DIR=/app/knowledge \
     DATA_DIR=/app/data \
-    EMBEDDING_CACHE_DIR=/app/data/model-cache
+    EMBEDDING_CACHE_DIR=/app/data/model-cache \
+    EMBEDDING_LOCAL_MODEL_DIR=/app/models/pinned
 
 WORKDIR /app
 
@@ -40,16 +41,26 @@ RUN --mount=type=secret,id=build_ca \
     && rm -rf /usr/local/lib/python3.13/ensurepip
 
 # Runtime has no package installer or its vendored dependencies. Native runtime
-# imports must still work; model loading/downloading is a separate opt-in step.
+# imports must still work before preparing the pinned local model.
 RUN python -c "import importlib.util; import fastapi, uvicorn, pymupdf, fastembed, numpy, sqlite3; assert importlib.util.find_spec('pip') is None; assert importlib.util.find_spec('ensurepip') is None"
 
 COPY backend/ /app/backend/
+ARG EMBEDDING_MODEL_REVISION=faf4aa4225822f3bc6376869cb1164e8e3feedd0
+# Download once during build, reuse only a hash-verified cache, and copy the
+# model outside the data volume so a fresh volume cannot hide it at startup.
+RUN --mount=type=cache,id=insuretutor-embedding-v2-${EMBEDDING_MODEL_REVISION},target=/opt/embedding-build-cache,sharing=locked \
+    --mount=type=secret,id=build_ca \
+    if [ -f /run/secrets/build_ca ]; then export SSL_CERT_FILE=/run/secrets/build_ca REQUESTS_CA_BUNDLE=/run/secrets/build_ca; fi; \
+    EMBEDDING_CACHE_DIR=/opt/embedding-build-cache EMBEDDING_LOCAL_MODEL_DIR=/opt/embedding-build-cache/pinned \
+    python -m backend.app.scripts.download_embedding_model --revision "$EMBEDDING_MODEL_REVISION" \
+    && mkdir -p /app/models \
+    && cp -a /opt/embedding-build-cache/pinned /app/models/pinned
 COPY knowledge/ /app/knowledge/
 COPY --from=frontend-builder /build/frontend/out /app/frontend/out
 
 # Private checkouts can have owner-only modes. COPY preserves those modes,
 # but the runtime runs as a different, unprivileged user.
-RUN chmod -R a+rX /app/backend /app/knowledge /app/frontend \
+RUN chmod -R a+rX /app/backend /app/knowledge /app/frontend /app/models \
     && mkdir -p /app/data \
     && chown -R app:app /app/data
 

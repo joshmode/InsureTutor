@@ -30,6 +30,8 @@ def main():
     )
     os.environ.setdefault("HF_XET_CACHE", str(Path(hf_home) / "xet"))
     os.environ.setdefault("HF_HUB_DISABLE_TELEMETRY", "1")
+    # Standard HTTPS honors the configured CA/proxy in managed builds.
+    os.environ.setdefault("HF_HUB_DISABLE_XET", "1")
     import onnxruntime
     onnxruntime.disable_telemetry_events()
     from fastembed import TextEmbedding
@@ -60,20 +62,28 @@ def main():
             ) from exc
         if existing["revision"] != args.revision:
             raise SystemExit("Use a separate model directory for a different revision")
-    snapshot_download(
-        repo_id=repo,
-        revision=args.revision,
-        local_dir=str(target),
-        token=False,
-        allow_patterns=[
-            "*.json",
-            "*.txt",
-            "*.model",
-            description["model_file"],
-            *description.get("additional_files", []),
-        ],
-    )
-    write_manifest(target, settings.embedding_model, repo, args.revision)
+    else:
+        # An interrupted transfer can resume here without turning the model
+        # directory into an apparently complete cache.
+        staging = target.with_name(target.name + ".download")
+        snapshot_download(
+            repo_id=repo,
+            revision=args.revision,
+            local_dir=str(staging),
+            token=False,
+            allow_patterns=[
+                "*.json",
+                "*.txt",
+                "*.model",
+                description["model_file"],
+                *description.get("additional_files", []),
+            ],
+        )
+        write_manifest(staging, settings.embedding_model, repo, args.revision)
+        verify_manifest(staging, settings.embedding_model)
+        if target.exists():
+            target.rmdir()  # only an empty target reaches this branch
+        staging.rename(target)
     verify_manifest(target, settings.embedding_model)
     model = TextEmbedding(
         model_name=settings.embedding_model,

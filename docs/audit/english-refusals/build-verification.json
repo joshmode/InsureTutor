@@ -1,0 +1,13 @@
+{
+  "revision": "faf4aa4225822f3bc6376869cb1164e8e3feedd0",
+  "dimension": 384,
+  "first_build_model_step_seconds": 132.9,
+  "verified_first_download": true,
+  "second_build_model_step_seconds": 17.8,
+  "second_build_reexecuted_step": true,
+  "second_build_had_download_progress": false,
+  "native_build_with_HF_HUB_OFFLINE_1": "passed",
+  "native_typecheck_and_build": "passed",
+  "backend_tests": 285,
+  "known_warning": "Existing Starlette/httpx TestClient deprecation"
+}

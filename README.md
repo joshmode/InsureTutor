@@ -55,18 +55,29 @@ If no API key is configured, the app still runs. It shows retrieved source
 excerpts rather than fabricating an answer; this is useful for checking retrieval
 and citations without a model.
 
-### 3. Optional: cache local embeddings
+### 3. Local embeddings
 
-The app tries to load a local multilingual ONNX model from the model cache. If
-the model is not cached, it falls back immediately to BM25 and logs that decision.
-On a connected first run, cache the model once:
+The Docker build automatically prepares the pinned multilingual ONNX model.
+It reuses a hash-verified BuildKit cache when present and otherwise downloads
+the exact revision. The image includes the model outside the writable data
+volume, so a fresh volume does not hide it. Startup loads it automatically and
+computes the brochure vectors locally; no provider embeddings API is needed.
+
+For a native build after installing the Python and frontend dependencies, run:
 
 ```bash
-docker compose run --rm --entrypoint python insuretutor \
-  -m backend.app.scripts.download_embedding_model --revision FULL_UPSTREAM_COMMIT
+./scripts/build.sh
 ```
 
-Use the full 40-character commit from the official Hugging Face model repository. The setup script records artifact hashes; runtime validates those files and never downloads mutable HEAD. Missing or changed caches fall back to lexical mode. `EMBEDDING_ALLOW_DOWNLOAD` is retained as a deprecated setting and does not enable runtime downloads. No chat-provider credentials are used for retrieval.
+This prepares the same pinned model if missing, reuses a verified cache without
+contacting the model host, then builds the frontend. Set `EMBEDDING_MODEL_REVISION`
+to another reviewed 40-character upstream commit only with a separate cache.
+Corrupt or mismatched caches fail preparation rather than being silently reused.
+Runtime validates artifact hashes and never downloads mutable HEAD. Native runs
+that skip preparation can still fall back to BM25 when a model is unavailable;
+check `/api/health` for `retrieval_mode: hybrid`. `EMBEDDING_ALLOW_DOWNLOAD` is
+deprecated and does not enable runtime downloads. No chat-provider credentials
+are used for retrieval.
 
 ## What the application does
 
@@ -408,6 +419,10 @@ retains the OS advisory investigation. The [live-provider follow-up](docs/audit/
 verifies authenticated native/Docker generation and records the mixed quality
 results, implemented fixes and remaining false abstentions. Earlier reports and
 their network/authentication failures are historical.
+
+The [English-refusal follow-up](docs/audit/ENGLISH-REFUSALS.md) records fixes to
+ordinary English questions, 285 backend tests, and automatic model preparation
+verified with a fresh-volume, offline hybrid container.
 
 The chat API returns `model_generated: true` only when the returned explanation
 contains model output that passed the grounding review. Excerpts and fixed
