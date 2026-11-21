@@ -318,7 +318,7 @@ All runtime knobs are environment-driven; see [`.env.example`](.env.example).
 | `LLM_TEMPERATURE` | Generation temperature (default 0.1) |
 | `LLM_MAX_OUTPUT_TOKENS` | Per-call output cap, default 8000; reasoning tokens consume this allowance on reasoning models |
 | `LLM_REASONING_EFFORT` | Optional provider setting; blank omits the field. Supported values: `none`, `minimal`, `low`, `medium`, `high`, `xhigh`, `max`; availability depends on the selected model |
-| `LLM_TIMEOUT_SECONDS` | Provider timeout |
+| `LLM_TIMEOUT_SECONDS` | Per-call provider timeout, default 90 seconds; the overall chat deadline still applies |
 | `LLM_EXTRA_HEADERS` | Optional `key:value;key:value` headers |
 | `KNOWLEDGE_BASE_DIR` | Directory containing the source PDF |
 | `DOCUMENTS` | Comma-separated PDF filenames to index |

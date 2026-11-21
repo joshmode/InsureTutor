@@ -314,12 +314,16 @@ _CJK_SCAFFOLD = re.compile(
 def normalize_question_wording(text: str) -> str:
     # Wording of the request is not an additional product condition. Keep
     # substantive modifiers (e.g. English law or cryptocurrency) as anchors.
-    text = re.sub(r"\bin (?:simple |plain )?english\b", " ", text, flags=re.I)
+    text = re.sub(r"\bin (?:simple |plain )?(?:english|language)\b", " ", text, flags=re.I)
     return re.sub(r"\bpayment methods?\b", "payment mode", text, flags=re.I)
 
 
 def _subject_terms(text: str) -> set[str]:
     text = normalize_question_wording(normalize_term(text))
+    for source, target in {"不保事項":"exclusion", "不保事项":"exclusion", "除外責任":"exclusion",
+                           "費用":"charge", "费用":"charge", "收費":"charge", "收费":"charge",
+                           "保費":"premium", "保费":"premium"}.items():
+        text = text.replace(source, " " + target + " ")
     text = re.sub(r"\blike i[’']?m\s+\d+", "", text)
     text = _CJK_SCAFFOLD.sub(" ", text)
     terms = set(tokenize(text))
@@ -341,6 +345,22 @@ def applicability_question(question: str, history: list[str]) -> str:
     ):
         return history[-1]
     return question
+
+
+def is_product_overview(question: str, documents: list[str]) -> bool:
+    """A broad explanation request, without a new substantive policy topic."""
+    terms = _subject_terms(question)
+    identity = _subject_terms(" ".join(documents))
+    return bool(re.search(r"\b(?:explain|overview|summary|introduce|how.*works?)\b|解釋|解释|概覽|概览|簡介|简介", question, re.I)) and terms <= identity
+
+
+def retrieval_question(question: str) -> str:
+    terms = _subject_terms(question)
+    if re.search(r"[\u3400-\u9fff]", question) and terms and all(re.fullmatch(r"[a-z]+", t) for t in terms):
+        # Only fully understood domain wording is translated for retrieval;
+        # unfamiliar Chinese conditions/modifiers remain in the original query.
+        return " ".join(sorted(terms))
+    return normalize_question_wording(question)
 
 
 def literal_applicable(

@@ -146,3 +146,19 @@ def test_provider_cannot_force_decompression_of_an_unbounded_reply(monkeypatch):
     )
     with pytest.raises(LLMError, match="identity"):
         asyncio.run(client.complete([]))
+
+@pytest.mark.parametrize(('status','reason'), [(401,'authentication'),(403,'authentication'),(503,'provider_error')])
+def test_provider_status_has_safe_diagnostic_category(monkeypatch,status,reason):
+    client = client_with_transport(monkeypatch, lambda request: httpx.Response(status))
+    with pytest.raises(LLMError) as error:
+        asyncio.run(client.complete([]))
+    assert error.value.reason == reason
+
+
+def test_provider_timeout_is_distinct_from_missing_model(monkeypatch):
+    def respond(request):
+        raise httpx.ReadTimeout('timeout',request=request)
+    client=client_with_transport(monkeypatch,respond)
+    with pytest.raises(LLMError) as error:
+        asyncio.run(client.complete([]))
+    assert error.value.reason == 'timeout'

@@ -145,6 +145,9 @@ def screen_input(message: str) -> GuardrailDecision:
 def localised_notice(language: str, key: str) -> str:
     notices = {
         "en": {
+            "model_timeout": "The explanation service timed out; showing source excerpts only. You can retry shortly.",
+            "model_output_limit": "The generated explanation exceeded its output limit and was withheld; showing source excerpts only.",
+            "model_authentication": "The explanation service rejected the configured credentials; showing source excerpts only. The app administrator needs to check the provider settings.",
             "generation_unverified": "I found related brochure passages, but could not verify a reliable explanation for your question. I have withheld the generated answer. Try asking about one specific policy feature at a time, or check the source document.",
             "provider_unavailable": "The model provider was unavailable; showing source excerpts only.",
             "educational": (
@@ -166,6 +169,9 @@ def localised_notice(language: str, key: str) -> str:
             ),
         },
         "zh-Hans": {
+            "model_timeout": "解释服务超时，目前仅展示册子原文。您可以稍后重试。",
+            "model_output_limit": "生成的解释超出输出限制，因此未展示该解释，目前仅展示册子原文。",
+            "model_authentication": "解释服务拒绝了配置的凭据，目前仅展示册子原文。请由管理员检查服务配置。",
             "generation_unverified": "我找到了相关册子段落，但无法核实针对您问题的解释，因此未展示生成的答案。请尝试每次询问一项具体保单特点，或查阅原始文件。",
             "provider_unavailable": "AI 解释暂时不可用，目前仅展示册子原文。",
             "educational": (
@@ -177,6 +183,9 @@ def localised_notice(language: str, key: str) -> str:
             "sensitive": "册子未必能解决医疗、税务、法律、核保或理赔争议问题，这些事项需向有关机构确认。",
         },
         "zh-Hant": {
+            "model_timeout": "解釋服務逾時，目前僅展示冊子原文。您可以稍後重試。",
+            "model_output_limit": "生成的解釋超出輸出限制，因此未展示該解釋，目前僅展示冊子原文。",
+            "model_authentication": "解釋服務拒絕了設定的憑證，目前僅展示冊子原文。請由管理員檢查服務設定。",
             "generation_unverified": "我找到了相關冊子段落，但無法核實針對您問題的解釋，因此未展示生成的答案。請嘗試每次詢問一項具體保單特點，或查閱原始文件。",
             "provider_unavailable": "AI 解釋暫時無法使用，目前僅展示冊子原文。",
             "educational": (
@@ -197,12 +206,12 @@ def fixed_response(language: str, key: str) -> str:
             "injection": (
                 "I can’t follow instructions that try to override InsureTutor’s rules "
                 "or make me invent product facts. I can still help you understand the "
-                "FLEXI-ULife Prime Saver brochure using its actual pages and terms. "
+                "active brochure using its actual pages and terms. "
                 "What would you like to check?"
             ),
             "unrelated": (
-                "I’m limited to insurance education and the supplied FLEXI-ULife Prime "
-                "Saver brochure, so I can’t help with that unrelated request. I can "
+                "I’m limited to insurance education and the active "
+                "brochure, so I can’t help with that unrelated request. I can "
                 "explain the plan’s protection options, fees, withdrawals, guarantees, "
                 "risks, eligibility, or Chinese/English insurance terminology."
             ),
@@ -234,11 +243,11 @@ def fixed_response(language: str, key: str) -> str:
         "zh-Hans": {
             "injection": (
                 "我不能遵从试图覆盖 InsureTutor 规则或要求我编造产品事实的指示。"
-                "我仍可根据 FLEXI-ULife Prime Saver 册子的实际页面和条款，帮您理解该产品。"
+                "我仍可根据当前册子的实际页面和条款，帮您理解该产品。"
                 "您想查看哪一项？"
             ),
             "unrelated": (
-                "我只能协助保险教育及解释所提供的 FLEXI-ULife Prime Saver 册子，"
+                "我只能协助保险教育及解释当前提供的册子，"
                 "因此无法处理这个无关请求。我可以解释保障选择、费用、提款、保证、"
                 "风险、投保资料或中英文保险术语。"
             ),
@@ -261,11 +270,11 @@ def fixed_response(language: str, key: str) -> str:
         "zh-Hant": {
             "injection": (
                 "我不能遵從試圖覆蓋 InsureTutor 規則或要求我編造產品事實的指示。"
-                "我仍可根據 FLEXI-ULife Prime Saver 冊子的實際頁面和條款，幫您理解該產品。"
+                "我仍可根據目前冊子的實際頁面和條款，幫您理解該產品。"
                 "您想查看哪一項？"
             ),
             "unrelated": (
-                "我只能協助保險教育及解釋所提供的 FLEXI-ULife Prime Saver 冊子，"
+                "我只能協助保險教育及解釋目前提供的冊子，"
                 "因此無法處理這個無關請求。我可以解釋保障選擇、費用、提款、保證、"
                 "風險、投保資料或中英文保險術語。"
             ),

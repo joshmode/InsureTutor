@@ -214,3 +214,32 @@ def test_natural_english_questions_reach_original_brochure(retriever, question):
     answer = asyncio.run(app.answer(ChatRequest(message=question, language='en')))
     assert answer.kind == 'answer' and answer.citations
     assert not answer.model_generated
+
+
+def test_beginner_product_overview_balances_basics_costs_and_risk(retriever):
+    app = orchestrator(retriever, [])
+    app.llm.configured = False
+    question = 'Explain FLEXI-ULife Prime Saver to me like I’m 18 and have never bought insurance.'
+    result = app._retrieve(question, [])
+    assert result.sufficient and len(result.hits) <= app.settings.max_context_chunks
+    evidence = ' '.join(h.chunk.citation_excerpt for h in result.hits).lower()
+    assert 'universal life insurance' in evidence
+    assert 'charge' in evidence and 'risk' in evidence
+    assert 'account value' in evidence
+    assert not all(h.chunk.section.startswith('Important Information') for h in result.hits)
+
+
+def test_specific_overview_question_retains_unsupported_modifier(retriever):
+    from backend.app.guardrails.grounding import is_product_overview
+    documents = [c.document for c in retriever.chunks]
+    assert not is_product_overview('Explain FLEXI-ULife Prime Saver veterinary benefits.', documents)
+    assert not is_product_overview('Explain the surrender charge.', documents)
+
+@pytest.mark.parametrize(('reason','notice'), [('timeout','timed out'),('output_limit','output limit'),('authentication','credentials')])
+def test_provider_failure_explains_specific_reason_without_claiming_missing_model(retriever, reason, notice):
+    app = orchestrator(retriever, [LLMError('provider failure', reason=reason)])
+    answer = asyncio.run(app.answer(ChatRequest(message='What are the charges?',language='en')))
+    assert answer.citations and not answer.model_generated
+    assert notice in ' '.join(answer.notices)
+    assert 'couldn’t produce a verified explanation' in answer.message
+    assert 'model is not available' not in answer.message

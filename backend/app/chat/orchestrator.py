@@ -13,8 +13,10 @@ from ..guardrails.grounding import (
     applicability_question,
     draft_failure_reasons,
     inspect_draft,
+    is_product_overview,
     literal_applicable,
     normalize_question_wording,
+    retrieval_question,
     review_approved,
     review_messages,
 )
@@ -71,6 +73,34 @@ class ChatOrchestrator:
 
     def _retrieve(self, query: str, history: list[str]) -> RetrievalResult:
         with self._retrieval_lock:
+            if is_product_overview(query, [c.document for c in self.retriever.chunks]):
+                # A beginner needs the product, how value works, costs and risk;
+                # a single similarity search otherwise favors company/age facts.
+                cover = next((c for c in self.retriever.chunks
+                              if c.section == "Product Overview"
+                              and "universal life insurance plan" in c.citation_excerpt.lower()), None)
+                cover = cover or next((c for c in self.retriever.chunks
+                              if c.section == "Product Overview"
+                              and "universal life insurance" in c.citation_excerpt.lower()), None)
+                hits = [RetrievalHit(cover, 1.0, 1.0, 0.0)] if cover else []
+                results = []
+                if cover:
+                    topics = [("Account Value and Cash Value", 1), ("What are the charges?", 2), ("What are the key risks?", 2)]
+                else:
+                    # Other insurance types may have no savings/account value.
+                    hits = [RetrievalHit(c, 1.0, 1.0, 0.0) for c in self.retriever.chunks[:2]]
+                    topics = [("What are the benefits?", 1), ("What are the premiums?", 1), ("What are the exclusions?", 1), ("What are the claim conditions?", 1)]
+                for topic, count in topics:
+                    result = self.retriever.search(topic, top_k=count)
+                    results.append(result)
+                    if result.sufficient:
+                        for hit in result.hits:
+                            if all(h.chunk.id != hit.chunk.id for h in hits):
+                                hits.append(hit)
+                hits = hits[:self.settings.max_context_chunks]
+                return RetrievalResult(hits, bool(hits), results[0].mode,
+                                       max((h.score for h in hits), default=0.0),
+                                       [q for r in results for q in r.queries])
             return self.retriever.search(query, history=history)
 
     def _nofact(
@@ -106,6 +136,7 @@ class ChatOrchestrator:
         *,
         advice: bool = False,
         provider_unavailable: bool = False,
+        provider_failure_reason: str = "provider_error",
     ) -> ChatResponse:
         if not literal_applicable(
             applicability_question(
@@ -116,14 +147,19 @@ class ChatOrchestrator:
             advice=advice,
         ):
             return self._nofact(request.language, retrieval)
-        text = render_offline_answer(request.language, retrieval.hits, sensitive_topics)
+        text = render_offline_answer(
+            request.language, retrieval.hits, sensitive_topics,
+            explanation_failed=provider_unavailable,
+        )
         validated = validate_and_map_citations(text, retrieval.hits)
         framing = advice_framing(request.language) + "\n\n" if advice else ""
         notices = [localised_notice(request.language, "educational")]
         if advice:
             notices.append(localised_notice(request.language, "professional"))
         if provider_unavailable:
-            notices.append(localised_notice(request.language, "provider_unavailable"))
+            key = {"timeout": "model_timeout", "output_limit": "model_output_limit",
+                   "authentication": "model_authentication"}.get(provider_failure_reason, "provider_unavailable")
+            notices.append(localised_notice(request.language, key))
         return ChatResponse(
             message=framing + validated.text,
             citations=validated.citations,
@@ -178,7 +214,7 @@ class ChatOrchestrator:
         query = (
             f"policy features benefits risks fees suitability {contextual_question}"
             if advice
-            else normalize_question_wording(contextual_question)
+            else retrieval_question(contextual_question)
         )
         retrieval = await run_in_threadpool(self._retrieve, query, history)
         # The conflict belongs to reviewed source bytes, not to whichever
@@ -232,19 +268,39 @@ class ChatOrchestrator:
                 "\nExplain only cited product trade-offs. Do not make a personal recommendation. "
                 "The application adds suitability framing and a professional referral."
             )
+        if is_product_overview(contextual_question, [c.document for c in self.retriever.chunks]):
+            messages[0]["content"] += (
+                "\nBEGINNER OVERVIEW: Use four short cited sentences, at most 180 words total. Explain the product, "
+                "how policy value works, costs and risks using only the supplied evidence. "
+                "Explain technical terms within the same cited sentence. Each paragraph must "
+                "end in [S#]. No opening greeting, headings, quotation marks or uncited prose. "
+                "Do not focus on company ownership, application ages or investment strategy. "
+                "Do not promise continued coverage regardless of charges or policy lapse."
+                " Avoid universal claims such as every withdrawal has a fee when the "
+                "evidence contains exceptions or fee waivers."
+                " Do not infer how funds are invested from the label non-linked. "
+                "Do not equate Basic Sum Insured with every option's death payout, or say "
+                "that a death benefit is always on top of savings. Explain option dependence."
+                " This is a broad first introduction: omit rates, ages, fee amounts and "
+                "payout formulas unless specifically asked. Avoid bank or fund analogies "
+                "not supported by the passages. Focus on what it is, policy value, ongoing "
+                "costs and long-term risks."
+            )
         # At most three provider calls: draft, optional deterministic repair,
         # independent review. Never retry a reviewer or a provider/quota error.
         try:
             response = await self.llm.complete(messages)
         except (LLMQuotaExceeded, LLMInputTooLarge):
             raise
-        except LLMError:
+        except LLMError as exc:
+            logger.warning("Explanation failed at draft stage: reason=%s", exc.reason)
             return self._excerpts(
                 request,
                 retrieval,
                 decision.sensitive_topics,
                 advice=advice,
                 provider_unavailable=True,
+                provider_failure_reason=exc.reason,
             )
         try:
             draft = await run_in_threadpool(normalize_generated_script, response.text, language)
@@ -277,11 +333,12 @@ class ChatOrchestrator:
         except GroundingError as exc:
             logger.warning("Generated explanation withheld: %s", exc)
             return self._nofact(language, retrieval, generation_unverified=True)
-        except LLMError:
-            logger.warning("Generation repair or review unavailable; returning source excerpts")
+        except LLMError as exc:
+            logger.warning("Explanation failed during repair/review: reason=%s", exc.reason)
             return self._excerpts(
                 request, retrieval, decision.sensitive_topics,
                 advice=advice, provider_unavailable=True,
+                provider_failure_reason=exc.reason,
             )
         except Exception:
             logger.exception("Unexpected grounding/review failure")

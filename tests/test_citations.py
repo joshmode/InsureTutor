@@ -129,3 +129,13 @@ def test_citation_markers_in_markdown_are_mapped(retriever):
     assert validated.text.count("[1]") == 1
     assert validated.text.count("[2]") == 1
 
+
+
+@pytest.mark.parametrize('answer',[
+    'It is non-linked, meaning your money is not put into external investment portfolios.',
+    'It is not linked to investment funds, meaning your money is not put into external investment portfolios.',
+    'The death benefit is on top of the savings element.',
+])
+def test_observed_beginner_explanations_do_not_invent_investment_or_payout_structure(answer,retriever):
+    result=retriever.search('What are the charges?')
+    assert validate_answer_claims(answer,result.hits) in {'unsupported_nonlinked_definition','unqualified_death_benefit_formula'}

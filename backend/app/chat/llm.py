@@ -15,7 +15,9 @@ logger = logging.getLogger(__name__)
 
 
 class LLMError(RuntimeError):
-    pass
+    def __init__(self, message: str, *, reason: str = "provider_error"):
+        super().__init__(message)
+        self.reason = reason
 
 
 class LLMQuotaExceeded(LLMError):
@@ -35,7 +37,7 @@ class LLMNotConfigured(LLMError):
 def _reject_truncated(choice: dict) -> None:
     if choice.get("finish_reason") == "length":
         logger.warning("Model provider reached the output token limit")
-        raise LLMError("Model provider reached the output token limit")
+        raise LLMError("Model provider reached the output token limit", reason="output_limit")
 
 
 @dataclass
@@ -148,15 +150,16 @@ class OpenAICompatibleClient:
                 ) as response:
                     if response.status_code >= 400:
                         raise LLMError(
-                            f"Model provider returned HTTP {response.status_code}"
+                            f"Model provider returned HTTP {response.status_code}",
+                            reason="authentication" if response.status_code in {401, 403} else "provider_error",
                         )
                     body = bytearray()
                     async for chunk in self._bounded_chunks(response):
                         body.extend(chunk)
         except httpx.TimeoutException as exc:
-            raise LLMError("Model provider timed out") from exc
+            raise LLMError("Model provider timed out", reason="timeout") from exc
         except httpx.HTTPError as exc:
-            raise LLMError("Model provider connection failed") from exc
+            raise LLMError("Model provider connection failed", reason="connection") from exc
         try:
             data = json.loads(body)
             choice = data["choices"][0]
@@ -191,7 +194,8 @@ class OpenAICompatibleClient:
                 ) as response:
                     if response.status_code >= 400:
                         raise LLMError(
-                            f"Model provider returned HTTP {response.status_code}"
+                            f"Model provider returned HTTP {response.status_code}",
+                            reason="authentication" if response.status_code in {401, 403} else "provider_error",
                         )
                     async for line in self._bounded_lines(response):
                         if not line.startswith("data:"):
@@ -210,6 +214,6 @@ class OpenAICompatibleClient:
                         except (ValueError, KeyError, IndexError, TypeError):
                             logger.debug("Skipping malformed SSE event")
         except httpx.TimeoutException as exc:
-            raise LLMError("Model provider timed out") from exc
+            raise LLMError("Model provider timed out", reason="timeout") from exc
         except httpx.HTTPError as exc:
-            raise LLMError("Model provider connection failed") from exc
+            raise LLMError("Model provider connection failed", reason="connection") from exc

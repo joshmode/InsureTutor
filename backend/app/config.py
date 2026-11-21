@@ -35,7 +35,7 @@ class Settings(BaseSettings):
     # OpenAI-compatible reasoning models include hidden reasoning in this cap.
     llm_max_output_tokens: int = Field(default=8000, ge=128, le=8000)
     llm_reasoning_effort: Literal["none", "minimal", "low", "medium", "high", "xhigh", "max"] | None = None
-    llm_timeout_seconds: float = Field(default=60, ge=5, le=180)
+    llm_timeout_seconds: float = Field(default=90, ge=5, le=180)
     llm_extra_headers: str = Field(default="", repr=False)
 
     knowledge_base_dir: Path = Path("knowledge")
@@ -57,6 +57,9 @@ class Settings(BaseSettings):
     retrieval_candidate_limit: int = Field(default=16, ge=4, le=50)
     min_relevance_score: float = Field(default=0.18, ge=0, le=1)
     max_context_chunks: int = Field(default=6, ge=2, le=10)
+    max_brochure_upload_bytes: int = Field(default=8 * 1024 * 1024, ge=1024, le=16 * 1024 * 1024)
+    max_private_brochures: int = Field(default=16, ge=1, le=64)
+    brochure_retention_seconds: int = Field(default=86400, ge=60, le=86400)
 
     # Bounded anonymous demo; counters persist in DATA_DIR across restarts.
     max_request_bytes: int = Field(default=262144, ge=1024, le=1048576)

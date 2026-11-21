@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 
 from ..models import Citation
+from ..ingestion.chunker import REVIEWED_BROCHURE_SHA256
 from ..retrieval.hybrid import RetrievalHit
 
 
@@ -194,7 +195,16 @@ def validate_answer_claims(
         return "system_instruction_leak"
     if _PERSONAL_RECOMMENDATION.search(answer):
         return "personalized_recommendation"
-    supplementary_assertion = _SUPPLEMENTARY_ASSUMED.search(answer)
+    reviewed_source = not hits or any(h.chunk.source_sha256 == REVIEWED_BROCHURE_SHA256 for h in hits)
+    if reviewed_source and re.search(r"non[- ]linked|not linked", answer, re.I) and re.search(
+        r"(?:meaning|means|so|i\.e\.).{0,120}(?:not|no).{0,70}(?:external|portfolios?|investment funds)", answer, re.I
+    ):
+        return "unsupported_nonlinked_definition"
+    if reviewed_source and re.search(r"death benefit|basic sum insured", answer, re.I) and re.search(
+        r"(?:on top of|in addition to).{0,30}(?:savings|account value)", answer, re.I
+    ) and not re.search(r"(?:increasing|incremental) benefit", answer, re.I):
+        return "unqualified_death_benefit_formula"
+    supplementary_assertion = _SUPPLEMENTARY_ASSUMED.search(answer) if reviewed_source else None
     if supplementary_assertion:
         # Optional coverage in the evidence does not support asserting that it
         # comes with the basic plan. Permit an explicit local negation only.
@@ -203,7 +213,9 @@ def validate_answer_claims(
     # Check separate sentences so an unrelated disclaimer cannot negate a
     # contradictory promise in the preceding sentence.
     clauses = re.split(r"(?<=[.!?。；;])\s+|\n", answer)
-    for clause in clauses:
+    # These particular rates and rider assumptions belong to the reviewed
+    # FLEXI brochure. Other products use source-based numeric/claim review.
+    for clause in clauses if reviewed_source else []:
         for match in (*_FALSE_GUARANTEE.finditer(clause), *_ANNUAL_GUARANTEE.finditer(clause)):
             window = clause[max(0, match.start() - 15):match.end()].lower()
             if not re.search(

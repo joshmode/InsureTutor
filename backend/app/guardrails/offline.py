@@ -9,6 +9,8 @@ def render_offline_answer(
     language: str,
     hits: list[RetrievalHit],
     sensitive_topics: tuple[str, ...] = (),
+    *,
+    explanation_failed: bool = False,
 ) -> str:
     if not hits:
         return ""
@@ -20,6 +22,12 @@ def render_offline_answer(
         "zh-Hans": "教学模型暂时不可用，我只能向您展示册子中的相关原文，而不能生成完整解释：",
         "zh-Hant": "教學模型暫時不可用，我只能向您展示冊子中的相關原文，而不能生成完整解釋：",
     }.get(language, "")
+    if explanation_failed:
+        lines = {
+            "en": "I couldn’t produce a verified explanation this time. Here are the relevant brochure passages:",
+            "zh-Hans": "这次未能生成经核实的解释。以下是相关册子原文：",
+            "zh-Hant": "這次未能生成經核實的解釋。以下是相關冊子原文：",
+        }.get(language, lines)
     result = [lines]
     for index, hit in enumerate(hits[:4], start=1):
         excerpt = " ".join(hit.chunk.citation_excerpt.split())
