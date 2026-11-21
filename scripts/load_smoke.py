@@ -66,7 +66,7 @@ async def run(base, requests, concurrency):
         "passed": all(s in (200, 429) for s in statuses)
         and 200 in statuses
         and percentile(health_times) < 500,
-        "scope": "Local responsiveness under bounded lexical chat workload; not a model or production capacity benchmark.",
+        "scope": f"Local responsiveness under bounded {initial['retrieval_mode']} chat workload; not a language-model quality or production capacity benchmark.",
     }
 
 

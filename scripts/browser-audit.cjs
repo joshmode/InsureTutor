@@ -78,8 +78,16 @@ const checks = [];
   p.on("pageerror", (e) => errors.push(e.message));
   await p.goto(base);
   await p.getByRole("heading", { level: 1 }).waitFor();
+  await p.locator(".connection-status").waitFor();
+  await p.evaluate(() => document.fonts.ready);
   for (const width of [1440, 1024, 768, 390, 320]) {
     await p.setViewportSize({ width, height: 844 });
+    // Resize completion can precede viewport-unit layout in Firefox/WebKit.
+    // Keep the same geometry requirement and wait for it before asserting.
+    await p.waitForFunction(() => {
+      const r = document.querySelector("#question").getBoundingClientRect();
+      return r.top >= 0 && r.bottom <= innerHeight;
+    }, null, { timeout: 3000 });
     assert(
       await p.evaluate(
         () => document.documentElement.scrollWidth <= innerWidth,
