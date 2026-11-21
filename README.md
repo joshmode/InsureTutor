@@ -42,7 +42,7 @@ docker compose up --build
 
 Open **http://localhost:8000**.
 
-The brochure is ingested at startup. The resulting 49 page-aware chunks are
+The brochure is ingested at startup. The resulting 52 page-aware chunks are
 persisted in the `insuretutor_data` Docker volume, so rebuilding the model index
 does not require a database service.
 
@@ -58,12 +58,10 @@ On a connected first run, cache the model once:
 
 ```bash
 docker compose run --rm --entrypoint python insuretutor \
-  -m backend.app.scripts.download_embedding_model
+  -m backend.app.scripts.download_embedding_model --revision FULL_UPSTREAM_COMMIT
 ```
 
-Then set `EMBEDDING_ALLOW_DOWNLOAD=false` (the default) and restart. The model is
-downloadable from Hugging Face, not from the selected LLM provider. No provider
-credentials are used for retrieval.
+Use the full 40-character commit from the official Hugging Face model repository. The setup script records artifact hashes; runtime validates those files and never downloads mutable HEAD. Missing or changed caches fall back to lexical mode. `EMBEDDING_ALLOW_DOWNLOAD` is retained as a deprecated setting and does not enable runtime downloads. No chat-provider credentials are used for retrieval.
 
 ## What the application does
 
@@ -155,7 +153,7 @@ The implementation is structure-aware:
 6. Prepend a small retrieval header with section, document and page. The
    citation excerpt omits that header and remains source text.
 
-The result is 49 chunks for the 20-page brochure. Chunks are generally 0.7–1.5
+The result is 52 chunks for the 20-page brochure. Chunks are generally 0.7–1.5
 KB; the largest is bounded to avoid a single passage becoming an entire evidence
 set. This preserves tables and headings without producing page-sized chunks.
 
@@ -311,7 +309,7 @@ All runtime knobs are environment-driven; see [`.env.example`](.env.example).
 | `DATA_DIR` | Chunk manifest and cache parent |
 | `EMBEDDING_MODEL` | Local FastEmbed ONNX model |
 | `EMBEDDING_ENABLED` / `ENABLE_EMBEDDINGS` | Toggle local vector search |
-| `EMBEDDING_ALLOW_DOWNLOAD` | Permit first-run model download |
+| `EMBEDDING_ALLOW_DOWNLOAD` | Deprecated; use the explicit-revision setup script |
 | `HYBRID_VECTOR_WEIGHT` / `HYBRID_LEXICAL_WEIGHT` | Hybrid score weights |
 | `RETRIEVAL_TOP_K` | Maximum accepted evidence chunks |
 | `MIN_RELEVANCE_SCORE` | Confidence gate |
@@ -350,7 +348,7 @@ uv pip install -r backend/requirements-dev.txt
 pytest -q
 ```
 
-The checked-in suite currently passes **95 tests**. It covers:
+The checked-in suite currently passes **153 tests**. It covers:
 
 - deterministic page-aware ingestion and table metadata;
 - interest, withdrawal, comparison, Chinese and unrelated retrieval;
@@ -490,7 +488,7 @@ FLEXI-ULife Prime Saver brochure using its actual pages and terms.
   requires adding their filenames to `DOCUMENTS`; the chunker is generic enough
   for other PDFs but will need heading tuning for significantly different
   layouts.
-- Retrieval is designed for this 49-chunk corpus. It uses an in-memory dot-product
+- Retrieval is designed for this 52-chunk corpus. It uses an in-memory dot-product
   vector index, which is fast and simple here but not a large-scale vector store.
 - The local embedding model must be cached for hybrid mode; otherwise lexical
   retrieval is used. Lexical fallback can mismatch synonyms that are not in the
@@ -566,3 +564,13 @@ financial, legal, tax or insurance advice.
 ## Independent audit and verification
 
 A source-based review and implemented fixes are documented in [the audit report](docs/audit/REPORT.md), including before/after UI screenshots, 95 passing backend tests, browser checks and adversarial response artifacts. Reproduce the offline probes with `python scripts/audit_rag.py`; use `--base-url` to target a running API. These checks verify guardrail decisions and citation resolution, not live-model factuality. No real provider or downloaded embedding model was evaluated in that review. The report records remaining semantic-grounding, source-conflict and public-endpoint risks.
+
+## Remaining-risk hardening
+
+See [the remediation and closure report](docs/audit/RISK-CLOSURE.md) for claim-by-claim validation, separate fail-closed model review, deterministic source-conflict disclosure, durable request/provider allowances, privacy behavior, reproducible dependencies and tested runtime restrictions. Generated answers now require a separate review call, with at most three total calls including an optional repair. A model reviewer is fallible; matching citations are not a factuality certificate. `confidence` is an uncalibrated retrieval score.
+
+The supplied corpus now has 52 chunks, including verbatim form values that were previously lost. Existing persisted indices rebuild automatically when source fingerprints or processing schema change. Unknown PDFs do not inherit this brochure's reconstruction rules.
+
+For hash-locked dependency maintenance and secure corporate-CA builds, read [dependency instructions](docs/DEPENDENCIES.md). The default Compose service runs with a read-only root filesystem, a writable data volume, dropped capabilities and resource limits. Keep the volume to retain daily allowances. Optional `APP_ACCESS_USERNAME` / `APP_ACCESS_PASSWORD` protect a private demo; use HTTPS for remote access. Configure a shared upstream limiter before deploying replicas with separate volumes.
+
+The full OS scan still reports vendor-unfixed Debian advisories, and live-model, actual hybrid and some browser/device checks remain externally blocked or unverified. [The closure report](docs/audit/RISK-CLOSURE.md) records these limits explicitly rather than declaring every risk eliminated.

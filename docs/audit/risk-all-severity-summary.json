@@ -1,0 +1,16 @@
+{
+  "image": "sha256:4801dbb3d0acecb74fda244a7ed68e91261be8cbb6397468ba71a3abfcfbd429",
+  "severity_counts": {
+    "LOW": 67,
+    "HIGH": 47,
+    "MEDIUM": 109,
+    "UNKNOWN": 9
+  },
+  "vendor_status_counts": {
+    "affected": 230,
+    "fix_deferred": 2
+  },
+  "unique_advisory_ids": 102,
+  "published_fixed_entries_remaining": 0,
+  "status": "all remaining entries remain unpatched/open; no suppression or acceptance implied"
+}

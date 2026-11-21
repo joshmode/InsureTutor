@@ -1,0 +1,490 @@
+{
+  "tool": "Trivy",
+  "version": "0.76.2",
+  "officialRelease": "https://github.com/aquasecurity/trivy/releases/tag/v0.76.2",
+  "artifactUrl": "https://github.com/aquasecurity/trivy/releases/download/v0.76.2/trivy_0.76.2_Linux-64bit.tar.gz",
+  "checksumManifestUrl": "https://github.com/aquasecurity/trivy/releases/download/v0.76.2/trivy_0.76.2_checksums.txt",
+  "downloadedBytes": 52714130,
+  "expectedSha256": "bc0fc726e017b8927a62b2d3531d7a84ee01769daf5c99ed866dced54089fdbf",
+  "actualSha256": "bc0fc726e017b8927a62b2d3531d7a84ee01769daf5c99ed866dced54089fdbf",
+  "checksumVerified": true,
+  "tlsVerificationDisabled": false,
+  "status": "completed_with_findings",
+  "scanExitCode": 1,
+  "image": "insuretutor:locked-audit",
+  "imageId": "sha256:2578a09044fb907ed2851c6309a3e735d9d7b87937b1e1c5a8ef4bed8f868c85",
+  "databaseRepository": "ghcr.io/aquasecurity/trivy-db:2",
+  "databaseMetadata": {
+    "Version": 2,
+    "NextUpdate": "2026-11-22T01:10:48.358483881Z",
+    "UpdatedAt": "2026-11-21T01:10:48.358484358Z",
+    "DownloadedAt": "2026-11-21T04:59:26.867752272Z"
+  },
+  "defaultDatabaseAttempt": {
+    "repository": "mirror.gcr.io/aquasec/trivy-db:2",
+    "status": "blocked",
+    "response": "Forbidden"
+  },
+  "scanFlags": [
+    "--image-src docker",
+    "--scanners vuln",
+    "--severity HIGH,CRITICAL",
+    "--exit-code 1"
+  ],
+  "ignoreUnfixed": false,
+  "results": [
+    {
+      "target": "insuretutor:locked-audit (debian 13.7)",
+      "type": "debian",
+      "severityCounts": {
+        "HIGH": 48
+      },
+      "entries": 48,
+      "uniqueAdvisories": 12,
+      "entriesWithPublishedFix": 1,
+      "findings": [
+        {
+          "id": "CVE-2026-76642",
+          "package": "bsdutils",
+          "installedVersion": "1:2.41.5-0+deb13u1",
+          "fixedVersion": null,
+          "status": "affected",
+          "severity": "HIGH"
+        },
+        {
+          "id": "CVE-2026-78408",
+          "package": "bsdutils",
+          "installedVersion": "1:2.41.5-0+deb13u1",
+          "fixedVersion": null,
+          "status": "affected",
+          "severity": "HIGH"
+        },
+        {
+          "id": "CVE-2026-78409",
+          "package": "bsdutils",
+          "installedVersion": "1:2.41.5-0+deb13u1",
+          "fixedVersion": null,
+          "status": "affected",
+          "severity": "HIGH"
+        },
+        {
+          "id": "CVE-2026-78410",
+          "package": "bsdutils",
+          "installedVersion": "1:2.41.5-0+deb13u1",
+          "fixedVersion": null,
+          "status": "affected",
+          "severity": "HIGH"
+        },
+        {
+          "id": "CVE-2026-54369",
+          "package": "libacl1",
+          "installedVersion": "2.3.2-2+b1",
+          "fixedVersion": null,
+          "status": "affected",
+          "severity": "HIGH"
+        },
+        {
+          "id": "CVE-2026-76642",
+          "package": "libblkid1",
+          "installedVersion": "2.41.5-0+deb13u1",
+          "fixedVersion": null,
+          "status": "affected",
+          "severity": "HIGH"
+        },
+        {
+          "id": "CVE-2026-78408",
+          "package": "libblkid1",
+          "installedVersion": "2.41.5-0+deb13u1",
+          "fixedVersion": null,
+          "status": "affected",
+          "severity": "HIGH"
+        },
+        {
+          "id": "CVE-2026-78409",
+          "package": "libblkid1",
+          "installedVersion": "2.41.5-0+deb13u1",
+          "fixedVersion": null,
+          "status": "affected",
+          "severity": "HIGH"
+        },
+        {
+          "id": "CVE-2026-78410",
+          "package": "libblkid1",
+          "installedVersion": "2.41.5-0+deb13u1",
+          "fixedVersion": null,
+          "status": "affected",
+          "severity": "HIGH"
+        },
+        {
+          "id": "CVE-2026-76642",
+          "package": "liblastlog2-2",
+          "installedVersion": "2.41.5-0+deb13u1",
+          "fixedVersion": null,
+          "status": "affected",
+          "severity": "HIGH"
+        },
+        {
+          "id": "CVE-2026-78408",
+          "package": "liblastlog2-2",
+          "installedVersion": "2.41.5-0+deb13u1",
+          "fixedVersion": null,
+          "status": "affected",
+          "severity": "HIGH"
+        },
+        {
+          "id": "CVE-2026-78409",
+          "package": "liblastlog2-2",
+          "installedVersion": "2.41.5-0+deb13u1",
+          "fixedVersion": null,
+          "status": "affected",
+          "severity": "HIGH"
+        },
+        {
+          "id": "CVE-2026-78410",
+          "package": "liblastlog2-2",
+          "installedVersion": "2.41.5-0+deb13u1",
+          "fixedVersion": null,
+          "status": "affected",
+          "severity": "HIGH"
+        },
+        {
+          "id": "CVE-2026-76642",
+          "package": "libmount1",
+          "installedVersion": "2.41.5-0+deb13u1",
+          "fixedVersion": null,
+          "status": "affected",
+          "severity": "HIGH"
+        },
+        {
+          "id": "CVE-2026-78408",
+          "package": "libmount1",
+          "installedVersion": "2.41.5-0+deb13u1",
+          "fixedVersion": null,
+          "status": "affected",
+          "severity": "HIGH"
+        },
+        {
+          "id": "CVE-2026-78409",
+          "package": "libmount1",
+          "installedVersion": "2.41.5-0+deb13u1",
+          "fixedVersion": null,
+          "status": "affected",
+          "severity": "HIGH"
+        },
+        {
+          "id": "CVE-2026-78410",
+          "package": "libmount1",
+          "installedVersion": "2.41.5-0+deb13u1",
+          "fixedVersion": null,
+          "status": "affected",
+          "severity": "HIGH"
+        },
+        {
+          "id": "CVE-2025-69720",
+          "package": "libncursesw6",
+          "installedVersion": "6.5+20250216-2",
+          "fixedVersion": null,
+          "status": "affected",
+          "severity": "HIGH"
+        },
+        {
+          "id": "CVE-2026-76642",
+          "package": "libsmartcols1",
+          "installedVersion": "2.41.5-0+deb13u1",
+          "fixedVersion": null,
+          "status": "affected",
+          "severity": "HIGH"
+        },
+        {
+          "id": "CVE-2026-78408",
+          "package": "libsmartcols1",
+          "installedVersion": "2.41.5-0+deb13u1",
+          "fixedVersion": null,
+          "status": "affected",
+          "severity": "HIGH"
+        },
+        {
+          "id": "CVE-2026-78409",
+          "package": "libsmartcols1",
+          "installedVersion": "2.41.5-0+deb13u1",
+          "fixedVersion": null,
+          "status": "affected",
+          "severity": "HIGH"
+        },
+        {
+          "id": "CVE-2026-78410",
+          "package": "libsmartcols1",
+          "installedVersion": "2.41.5-0+deb13u1",
+          "fixedVersion": null,
+          "status": "affected",
+          "severity": "HIGH"
+        },
+        {
+          "id": "CVE-2026-119373",
+          "package": "libsqlite3-0",
+          "installedVersion": "3.46.1-7+deb13u2",
+          "fixedVersion": null,
+          "status": "affected",
+          "severity": "HIGH"
+        },
+        {
+          "id": "CVE-2026-119374",
+          "package": "libsqlite3-0",
+          "installedVersion": "3.46.1-7+deb13u2",
+          "fixedVersion": null,
+          "status": "affected",
+          "severity": "HIGH"
+        },
+        {
+          "id": "CVE-2026-119379",
+          "package": "libsqlite3-0",
+          "installedVersion": "3.46.1-7+deb13u2",
+          "fixedVersion": null,
+          "status": "affected",
+          "severity": "HIGH"
+        },
+        {
+          "id": "CVE-2026-16742",
+          "package": "libsystemd0",
+          "installedVersion": "257.13-1~deb13u1",
+          "fixedVersion": null,
+          "status": "affected",
+          "severity": "HIGH"
+        },
+        {
+          "id": "CVE-2025-69720",
+          "package": "libtinfo6",
+          "installedVersion": "6.5+20250216-2",
+          "fixedVersion": null,
+          "status": "affected",
+          "severity": "HIGH"
+        },
+        {
+          "id": "CVE-2026-16742",
+          "package": "libudev1",
+          "installedVersion": "257.13-1~deb13u1",
+          "fixedVersion": null,
+          "status": "affected",
+          "severity": "HIGH"
+        },
+        {
+          "id": "CVE-2026-76642",
+          "package": "libuuid1",
+          "installedVersion": "2.41.5-0+deb13u1",
+          "fixedVersion": null,
+          "status": "affected",
+          "severity": "HIGH"
+        },
+        {
+          "id": "CVE-2026-78408",
+          "package": "libuuid1",
+          "installedVersion": "2.41.5-0+deb13u1",
+          "fixedVersion": null,
+          "status": "affected",
+          "severity": "HIGH"
+        },
+        {
+          "id": "CVE-2026-78409",
+          "package": "libuuid1",
+          "installedVersion": "2.41.5-0+deb13u1",
+          "fixedVersion": null,
+          "status": "affected",
+          "severity": "HIGH"
+        },
+        {
+          "id": "CVE-2026-78410",
+          "package": "libuuid1",
+          "installedVersion": "2.41.5-0+deb13u1",
+          "fixedVersion": null,
+          "status": "affected",
+          "severity": "HIGH"
+        },
+        {
+          "id": "CVE-2026-76642",
+          "package": "login",
+          "installedVersion": "1:4.16.0-2+really2.41.5-0+deb13u1",
+          "fixedVersion": null,
+          "status": "affected",
+          "severity": "HIGH"
+        },
+        {
+          "id": "CVE-2026-78408",
+          "package": "login",
+          "installedVersion": "1:4.16.0-2+really2.41.5-0+deb13u1",
+          "fixedVersion": null,
+          "status": "affected",
+          "severity": "HIGH"
+        },
+        {
+          "id": "CVE-2026-78409",
+          "package": "login",
+          "installedVersion": "1:4.16.0-2+really2.41.5-0+deb13u1",
+          "fixedVersion": null,
+          "status": "affected",
+          "severity": "HIGH"
+        },
+        {
+          "id": "CVE-2026-78410",
+          "package": "login",
+          "installedVersion": "1:4.16.0-2+really2.41.5-0+deb13u1",
+          "fixedVersion": null,
+          "status": "affected",
+          "severity": "HIGH"
+        },
+        {
+          "id": "CVE-2026-76642",
+          "package": "mount",
+          "installedVersion": "2.41.5-0+deb13u1",
+          "fixedVersion": null,
+          "status": "affected",
+          "severity": "HIGH"
+        },
+        {
+          "id": "CVE-2026-78408",
+          "package": "mount",
+          "installedVersion": "2.41.5-0+deb13u1",
+          "fixedVersion": null,
+          "status": "affected",
+          "severity": "HIGH"
+        },
+        {
+          "id": "CVE-2026-78409",
+          "package": "mount",
+          "installedVersion": "2.41.5-0+deb13u1",
+          "fixedVersion": null,
+          "status": "affected",
+          "severity": "HIGH"
+        },
+        {
+          "id": "CVE-2026-78410",
+          "package": "mount",
+          "installedVersion": "2.41.5-0+deb13u1",
+          "fixedVersion": null,
+          "status": "affected",
+          "severity": "HIGH"
+        },
+        {
+          "id": "CVE-2025-69720",
+          "package": "ncurses-base",
+          "installedVersion": "6.5+20250216-2",
+          "fixedVersion": null,
+          "status": "affected",
+          "severity": "HIGH"
+        },
+        {
+          "id": "CVE-2025-69720",
+          "package": "ncurses-bin",
+          "installedVersion": "6.5+20250216-2",
+          "fixedVersion": null,
+          "status": "affected",
+          "severity": "HIGH"
+        },
+        {
+          "id": "CVE-2026-9538",
+          "package": "perl-base",
+          "installedVersion": "5.40.1-6+deb13u1",
+          "fixedVersion": null,
+          "status": "fix_deferred",
+          "severity": "HIGH"
+        },
+        {
+          "id": "CVE-2026-76642",
+          "package": "util-linux",
+          "installedVersion": "2.41.5-0+deb13u1",
+          "fixedVersion": null,
+          "status": "affected",
+          "severity": "HIGH"
+        },
+        {
+          "id": "CVE-2026-78408",
+          "package": "util-linux",
+          "installedVersion": "2.41.5-0+deb13u1",
+          "fixedVersion": null,
+          "status": "affected",
+          "severity": "HIGH"
+        },
+        {
+          "id": "CVE-2026-78409",
+          "package": "util-linux",
+          "installedVersion": "2.41.5-0+deb13u1",
+          "fixedVersion": null,
+          "status": "affected",
+          "severity": "HIGH"
+        },
+        {
+          "id": "CVE-2026-78410",
+          "package": "util-linux",
+          "installedVersion": "2.41.5-0+deb13u1",
+          "fixedVersion": null,
+          "status": "affected",
+          "severity": "HIGH"
+        },
+        {
+          "id": "CVE-2026-85091",
+          "package": "zlib1g",
+          "installedVersion": "1:1.3.dfsg+really1.3.1-1+b1",
+          "fixedVersion": "1:1.3.dfsg+really1.3.1-1+deb13u1",
+          "status": "fixed",
+          "severity": "HIGH"
+        }
+      ]
+    },
+    {
+      "target": "Python",
+      "type": "python-pkg",
+      "severityCounts": {
+        "HIGH": 5
+      },
+      "entries": 5,
+      "uniqueAdvisories": 5,
+      "entriesWithPublishedFix": 5,
+      "findings": [
+        {
+          "id": "CVE-2026-114613",
+          "package": "msgpack",
+          "installedVersion": "1.1.2",
+          "fixedVersion": "1.2.3",
+          "status": "fixed",
+          "severity": "HIGH"
+        },
+        {
+          "id": "GHSA-6v7p-g79w-8964",
+          "package": "msgpack",
+          "installedVersion": "1.1.2",
+          "fixedVersion": "1.2.1",
+          "status": "fixed",
+          "severity": "HIGH"
+        },
+        {
+          "id": "CVE-2025-47273",
+          "package": "setuptools",
+          "installedVersion": "70.3.0",
+          "fixedVersion": "78.1.1",
+          "status": "fixed",
+          "severity": "HIGH"
+        },
+        {
+          "id": "CVE-2026-97687",
+          "package": "urllib3",
+          "installedVersion": "2.7.0",
+          "fixedVersion": "2.8.0",
+          "status": "fixed",
+          "severity": "HIGH"
+        },
+        {
+          "id": "CVE-2026-97689",
+          "package": "urllib3",
+          "installedVersion": "2.7.0",
+          "fixedVersion": "2.8.0",
+          "status": "fixed",
+          "severity": "HIGH"
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "Scan targets the recorded image digest, not future rebuilds. Rescan the final rebuilt image.",
+    "HIGH/CRITICAL filtering does not mean lower-severity advisories are absent.",
+    "Scanner findings alone do not establish application reachability. No finding has been hidden or suppressed."
+  ]
+}

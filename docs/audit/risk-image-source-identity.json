@@ -1,0 +1,7 @@
+{
+  "matched": true,
+  "file_count": 36,
+  "scope": "All backend Python and supplied PDF",
+  "frontend": "Built in pinned Docker stage; checked by browser; no byte-identical frontend output claim",
+  "image": "sha256:4801dbb3d0acecb74fda244a7ed68e91261be8cbb6397468ba71a3abfcfbd429"
+}

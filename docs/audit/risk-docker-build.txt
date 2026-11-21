@@ -1,0 +1,80 @@
+#0 building with "default" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 3.10kB done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/python:3.13-slim@sha256:e48f59cdba69a3cbd9ed2cf0f348d90d45a8d350d98134cf1070bc106ee9ed90
+#2 ...
+
+#3 [internal] load metadata for docker.io/library/node:22-alpine@sha256:1314fb30ec37592d5845e5a160d522c0e680972aa534549940b8d73bde88481a
+#3 DONE 1.1s
+
+#2 [internal] load metadata for docker.io/library/python:3.13-slim@sha256:e48f59cdba69a3cbd9ed2cf0f348d90d45a8d350d98134cf1070bc106ee9ed90
+#2 DONE 1.1s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 252B done
+#4 DONE 0.0s
+
+#5 [runtime  1/11] FROM docker.io/library/python:3.13-slim@sha256:e48f59cdba69a3cbd9ed2cf0f348d90d45a8d350d98134cf1070bc106ee9ed90
+#5 DONE 0.0s
+
+#6 [frontend-builder 1/6] FROM docker.io/library/node:22-alpine@sha256:1314fb30ec37592d5845e5a160d522c0e680972aa534549940b8d73bde88481a
+#6 DONE 0.0s
+
+#7 [internal] load build context
+#7 transferring context: 7.23kB 0.0s done
+#7 DONE 0.0s
+
+#8 [frontend-builder 4/6] RUN --mount=type=secret,id=build_ca     if [ -f /run/secrets/build_ca ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/build_ca; fi;     npm ci --strict-ssl=true
+#8 CACHED
+
+#9 [frontend-builder 5/6] COPY frontend/ ./
+#9 CACHED
+
+#10 [frontend-builder 3/6] COPY frontend/package.json frontend/package-lock.json ./
+#10 CACHED
+
+#11 [frontend-builder 2/6] WORKDIR /build/frontend
+#11 CACHED
+
+#12 [frontend-builder 6/6] RUN NEXT_TELEMETRY_DISABLED=1 npm run build
+#12 CACHED
+
+#13 [runtime  6/11] RUN --mount=type=secret,id=build_ca     if [ -f /run/secrets/build_ca ]; then export PIP_CERT=/run/secrets/build_ca; fi;     pip install --no-cache-dir --require-hashes --only-binary=:all: -r /app/backend/requirements.txt     && python -m pip uninstall --yes pip     && rm -rf /usr/local/lib/python3.13/ensurepip
+#13 CACHED
+
+#14 [runtime  2/11] WORKDIR /app
+#14 CACHED
+
+#15 [runtime  3/11] RUN --mount=type=secret,id=build_ca,mode=0444     sed -i 's|http://deb.debian.org|https://deb.debian.org|g' /etc/apt/sources.list.d/debian.sources     && if [ -f /run/secrets/build_ca ]; then set -- -o Acquire::https::CaInfo=/run/secrets/build_ca; else set --; fi     && apt-get "$@" update     && apt-get "$@" install -y --no-install-recommends zlib1g=1:1.3.dfsg+really1.3.1-1+deb13u1     && rm -rf /var/lib/apt/lists/*
+#15 CACHED
+
+#16 [runtime  5/11] COPY backend/requirements.txt /app/backend/requirements.txt
+#16 CACHED
+
+#17 [runtime  4/11] RUN groupadd --system app && useradd --system --gid app app
+#17 CACHED
+
+#18 [runtime  7/11] RUN python -c "import importlib.util; import fastapi, uvicorn, pymupdf, fastembed, numpy, sqlite3; assert importlib.util.find_spec('pip') is None; assert importlib.util.find_spec('ensurepip') is None"
+#18 CACHED
+
+#19 [runtime  8/11] COPY backend/ /app/backend/
+#19 DONE 5.2s
+
+#20 [runtime  9/11] COPY knowledge/ /app/knowledge/
+#20 DONE 3.6s
+
+#21 [runtime 10/11] COPY --from=frontend-builder /build/frontend/out /app/frontend/out
+#21 DONE 3.4s
+
+#22 [runtime 11/11] RUN chmod -R a+rX /app/backend /app/knowledge /app/frontend     && mkdir -p /app/data     && chown -R app:app /app/data
+#22 DONE 4.1s
+
+#23 exporting to image
+#23 exporting layers
+#23 exporting layers 0.9s done
+#23 writing image sha256:4801dbb3d0acecb74fda244a7ed68e91261be8cbb6397468ba71a3abfcfbd429 done
+#23 naming to docker.io/library/insuretutor:risk-final done
+#23 DONE 0.9s

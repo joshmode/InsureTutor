@@ -1,0 +1,69 @@
+{
+  "playwrightVersion": "1.62.1",
+  "browserCache": "/workspace/.cache/ms-playwright",
+  "launches": {
+    "firefox": {
+      "status": "blocked",
+      "error": "browserType.launch: Executable doesn't exist at /workspace/.cache/ms-playwright/firefox-1538/firefox/firefox \u2554\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2557",
+      "executablePath": "/workspace/.cache/ms-playwright/firefox-1538/firefox/firefox"
+    },
+    "webkit": {
+      "status": "blocked",
+      "error": "browserType.launch: Executable doesn't exist at /workspace/.cache/ms-playwright/webkit-2336/pw_run.sh \u2554\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2557",
+      "executablePath": "/workspace/.cache/ms-playwright/webkit-2336/pw_run.sh"
+    },
+    "chromium": {
+      "status": "passed",
+      "executablePath": "/usr/bin/chromium",
+      "version": "156.0.8078.79"
+    }
+  },
+  "observedDate": "2026-11-21",
+  "installationAttempts": {
+    "firefox": {
+      "requested": "Firefox 153.0 / playwright v1538",
+      "exitCode": 1,
+      "responseStatus": 403,
+      "responseBody": "Domain forbidden",
+      "urls": [
+        "https://cdn.playwright.dev/dbazure/download/playwright/builds/firefox/1538/firefox-debian-13.zip",
+        "https://playwright.download.prss.microsoft.com/dbazure/download/playwright/builds/firefox/1538/firefox-debian-13.zip"
+      ]
+    },
+    "webkit": {
+      "requested": "WebKit 26.5 / playwright v2336",
+      "exitCode": 1,
+      "responseStatus": 403,
+      "responseBody": "Domain forbidden",
+      "urls": [
+        "https://cdn.playwright.dev/dbazure/download/playwright/builds/webkit/2336/webkit-debian-13.zip",
+        "https://playwright.download.prss.microsoft.com/dbazure/download/playwright/builds/webkit/2336/webkit-debian-13.zip"
+      ]
+    }
+  },
+  "requiredNetworkDomains": [
+    "cdn.playwright.dev",
+    "playwright.download.prss.microsoft.com"
+  ],
+  "runtimeLibraryCheck": {
+    "status": "not_run",
+    "reason": "Firefox/WebKit artifacts were not downloaded, so no executable is available for ldd or runtime dependency validation."
+  },
+  "osImageVulnerabilityScan": {
+    "status": "completed_with_findings",
+    "trivyInitiallyInstalled": false,
+    "grypeInstalled": false,
+    "verifiedTemporaryTrivyVersion": "0.76.2",
+    "resultArtifact": "os-image-scan.json",
+    "fullReportArtifact": "os-image-vulnerabilities.json",
+    "highEntries": 47,
+    "criticalEntries": 0,
+    "publishedFixedEntriesRemediated": 6,
+    "remainingEntriesWithPublishedFix": 0,
+    "triageArtifact": "os-risk-triage.md"
+  },
+  "limitations": [
+    "A successful system Chromium smoke does not establish Firefox, WebKit, Safari, screen-reader or real mobile-keyboard compatibility.",
+    "Allowlisting download domains only unblocks an installation retry; runtime libraries and application suites must still be exercised afterward."
+  ]
+}

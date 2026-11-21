@@ -1,0 +1,37 @@
+{
+  "target": "Linux x86-64 CPython 3.13; additionally fresh-installed development lock on 3.12",
+  "uv_version": "0.13.9",
+  "lock_regeneration_identical": true,
+  "fresh_dev_hash_install": "passed",
+  "fresh_dev_dependency_check": "passed",
+  "runtime_docker_hash_install": "passed",
+  "dockerfile_build": "tracked Dockerfile with optional build_ca BuildKit secret; TLS preserved",
+  "python_audit_tool": "pip-audit 2.10.1",
+  "python_packages_audited": 54,
+  "python_packages_skipped": 0,
+  "python_known_vulnerabilities": 0,
+  "npm_known_vulnerabilities": 0,
+  "locks": {
+    "requirements.txt": {
+      "sha256": "b31251d9b94632780559da20952728a9f47788e1f90a81a8b2fa0062371992f0",
+      "packages": 49,
+      "exact_version_pins": true,
+      "hashes_required_on_install": true
+    },
+    "requirements-dev.txt": {
+      "sha256": "1c2001695fe099284b3f6cdc301426d8982aa3a2f270ccc928cd10041ff3074f",
+      "packages": 54,
+      "exact_version_pins": true,
+      "hashes_required_on_install": true
+    }
+  },
+  "base_image_index_digests": {
+    "node:22-alpine": "sha256:1314fb30ec37592d5845e5a160d522c0e680972aa534549940b8d73bde88481a",
+    "python:3.13-slim": "sha256:e48f59cdba69a3cbd9ed2cf0f348d90d45a8d350d98134cf1070bc106ee9ed90"
+  },
+  "limitations": [
+    "Application dependency checks do not replace the separate runtime OS-image findings in os-image-scan.json and os-risk-triage.md; no historical secret scan is established by dependency checks.",
+    "No claim of native Windows/macOS/ARM package compatibility.",
+    "Known advisory results are point-in-time and not a guarantee of absence of unknown vulnerabilities."
+  ]
+}

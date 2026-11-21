@@ -1,0 +1,21 @@
+{
+  "image": "sha256:4801dbb3d0acecb74fda244a7ed68e91261be8cbb6397468ba71a3abfcfbd429",
+  "high_entries": 47,
+  "critical_entries": 0,
+  "remaining_published_fixed_entries": 0,
+  "advisory_ids": [
+    "CVE-2025-69720",
+    "CVE-2026-119373",
+    "CVE-2026-119374",
+    "CVE-2026-119379",
+    "CVE-2026-16742",
+    "CVE-2026-54369",
+    "CVE-2026-76642",
+    "CVE-2026-78408",
+    "CVE-2026-78409",
+    "CVE-2026-78410",
+    "CVE-2026-9538"
+  ],
+  "status": "vendor_unfixed_findings_remain_open",
+  "suppressed_findings": false
+}

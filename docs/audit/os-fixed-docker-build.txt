@@ -1,0 +1,298 @@
+#0 building with "default" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 3.10kB done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/node:22-alpine@sha256:1314fb30ec37592d5845e5a160d522c0e680972aa534549940b8d73bde88481a
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/python:3.13-slim@sha256:e48f59cdba69a3cbd9ed2cf0f348d90d45a8d350d98134cf1070bc106ee9ed90
+#3 DONE 0.0s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 252B done
+#4 DONE 0.0s
+
+#5 [runtime  1/11] FROM docker.io/library/python:3.13-slim@sha256:e48f59cdba69a3cbd9ed2cf0f348d90d45a8d350d98134cf1070bc106ee9ed90
+#5 DONE 0.0s
+
+#6 [frontend-builder 1/6] FROM docker.io/library/node:22-alpine@sha256:1314fb30ec37592d5845e5a160d522c0e680972aa534549940b8d73bde88481a
+#6 DONE 0.0s
+
+#7 [runtime  2/11] WORKDIR /app
+#7 CACHED
+
+#8 [internal] load build context
+#8 transferring context: 22.74kB done
+#8 DONE 0.0s
+
+#9 [frontend-builder 3/6] COPY frontend/package.json frontend/package-lock.json ./
+#9 CACHED
+
+#10 [frontend-builder 2/6] WORKDIR /build/frontend
+#10 CACHED
+
+#11 [frontend-builder 4/6] RUN --mount=type=secret,id=build_ca     if [ -f /run/secrets/build_ca ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/build_ca; fi;     npm ci --strict-ssl=true
+#11 CACHED
+
+#12 [frontend-builder 5/6] COPY frontend/ ./
+#12 ...
+
+#13 [runtime  3/11] RUN --mount=type=secret,id=build_ca,mode=0444     sed -i 's|http://deb.debian.org|https://deb.debian.org|g' /etc/apt/sources.list.d/debian.sources     && if [ -f /run/secrets/build_ca ]; then set -- -o Acquire::https::CaInfo=/run/secrets/build_ca; else set --; fi     && apt-get "$@" update     && apt-get "$@" install -y --no-install-recommends zlib1g=1:1.3.dfsg+really1.3.1-1+deb13u1     && rm -rf /var/lib/apt/lists/*
+#13 2.726 Hit:1 https://deb.debian.org/debian trixie InRelease
+#13 2.767 Get:2 https://deb.debian.org/debian trixie-updates InRelease [47.3 kB]
+#13 2.847 Get:3 https://deb.debian.org/debian-security trixie-security InRelease [43.4 kB]
+#13 2.881 Get:4 https://deb.debian.org/debian trixie/main amd64 Packages [9678 kB]
+#13 3.238 Get:5 https://deb.debian.org/debian trixie-updates/main amd64 Packages [1108 B]
+#13 3.275 Get:6 https://deb.debian.org/debian-security trixie-security/main amd64 Packages [308 kB]
+#13 4.843 Fetched 10.1 MB in 2s (4482 kB/s)
+#13 4.843 Reading package lists...
+#13 ...
+
+#12 [frontend-builder 5/6] COPY frontend/ ./
+#12 DONE 6.1s
+
+#14 [frontend-builder 6/6] RUN NEXT_TELEMETRY_DISABLED=1 npm run build
+#14 ...
+
+#13 [runtime  3/11] RUN --mount=type=secret,id=build_ca,mode=0444     sed -i 's|http://deb.debian.org|https://deb.debian.org|g' /etc/apt/sources.list.d/debian.sources     && if [ -f /run/secrets/build_ca ]; then set -- -o Acquire::https::CaInfo=/run/secrets/build_ca; else set --; fi     && apt-get "$@" update     && apt-get "$@" install -y --no-install-recommends zlib1g=1:1.3.dfsg+really1.3.1-1+deb13u1     && rm -rf /var/lib/apt/lists/*
+#13 4.843 Reading package lists...
+#13 6.344 Reading package lists...
+#13 7.403 Building dependency tree...
+#13 7.571 Reading state information...
+#13 7.943 The following packages will be upgraded:
+#13 7.943   zlib1g
+#13 8.121 1 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+#13 8.121 Need to get 88.7 kB of archives.
+#13 8.121 After this operation, 1024 B disk space will be freed.
+#13 8.121 Get:1 https://deb.debian.org/debian-security trixie-security/main amd64 zlib1g amd64 1:1.3.dfsg+really1.3.1-1+deb13u1 [88.7 kB]
+#13 8.461 debconf: unable to initialize frontend: Dialog
+#13 8.461 debconf: (TERM is not set, so the dialog frontend is not usable.)
+#13 8.461 debconf: falling back to frontend: Readline
+#13 8.461 debconf: unable to initialize frontend: Readline
+#13 8.461 debconf: (Can't locate Term/ReadLine.pm in @INC (you may need to install the Term::ReadLine module) (@INC entries checked: /etc/perl /usr/local/lib/x86_64-linux-gnu/perl/5.40.1 /usr/local/share/perl/5.40.1 /usr/lib/x86_64-linux-gnu/perl5/5.40 /usr/share/perl5 /usr/lib/x86_64-linux-gnu/perl-base /usr/lib/x86_64-linux-gnu/perl/5.40 /usr/share/perl/5.40 /usr/local/lib/site_perl) at /usr/share/perl5/Debconf/FrontEnd/Readline.pm line 8, <STDIN> line 1.)
+#13 8.461 debconf: falling back to frontend: Teletype
+#13 8.461 debconf: unable to initialize frontend: Teletype
+#13 8.461 debconf: (This frontend requires a controlling tty.)
+#13 8.461 debconf: falling back to frontend: Noninteractive
+#13 9.648 Fetched 88.7 kB in 0s (477 kB/s)
+#13 9.709 (Reading database ...
+(Reading database ... 5%
+(Reading database ... 10%
+(Reading database ... 15%
+(Reading database ... 20%
+(Reading database ... 25%
+(Reading database ... 30%
+(Reading database ... 35%
+(Reading database ... 40%
+(Reading database ... 45%
+(Reading database ... 50%
+(Reading database ... 55%
+(Reading database ... 60%
+(Reading database ... 65%
+(Reading database ... 70%
+(Reading database ... 75%
+(Reading database ... 80%
+(Reading database ... 85%
+(Reading database ... 90%
+(Reading database ... 95%
+(Reading database ... 100%
+(Reading database ... 5658 files and directories currently installed.)
+#13 9.720 Preparing to unpack .../zlib1g_1%3a1.3.dfsg+really1.3.1-1+deb13u1_amd64.deb ...
+#13 9.749 Unpacking zlib1g:amd64 (1:1.3.dfsg+really1.3.1-1+deb13u1) over (1:1.3.dfsg+really1.3.1-1+b1) ...
+#13 9.801 Setting up zlib1g:amd64 (1:1.3.dfsg+really1.3.1-1+deb13u1) ...
+#13 9.832 Processing triggers for libc-bin (2.41-12+deb13u4) ...
+#13 DONE 9.9s
+
+#15 [runtime  4/11] RUN groupadd --system app && useradd --system --gid app app
+#15 DONE 2.8s
+
+#14 [frontend-builder 6/6] RUN NEXT_TELEMETRY_DISABLED=1 npm run build
+#14 ...
+
+#16 [runtime  5/11] COPY backend/requirements.txt /app/backend/requirements.txt
+#16 DONE 4.0s
+
+#14 [frontend-builder 6/6] RUN NEXT_TELEMETRY_DISABLED=1 npm run build
+#14 ...
+
+#17 [runtime  6/11] RUN --mount=type=secret,id=build_ca     if [ -f /run/secrets/build_ca ]; then export PIP_CERT=/run/secrets/build_ca; fi;     pip install --no-cache-dir --require-hashes --only-binary=:all: -r /app/backend/requirements.txt     && python -m pip uninstall --yes pip     && rm -rf /usr/local/lib/python3.13/ensurepip
+#17 5.078 Collecting annotated-doc==0.0.7 (from -r /app/backend/requirements.txt (line 1))
+#17 5.287   Downloading annotated_doc-0.0.7-py3-none-any.whl (5.3 kB)
+#17 5.428 Collecting annotated-types==0.8.0 (from -r /app/backend/requirements.txt (line 4))
+#17 5.547   Downloading annotated_types-0.8.0-py3-none-any.whl (13 kB)
+#17 5.633 Collecting anyio==4.16.0 (from -r /app/backend/requirements.txt (line 7))
+#17 5.743   Downloading anyio-4.16.0-py3-none-any.whl (134 kB)
+#17 5.915 Collecting certifi==2026.11.20 (from -r /app/backend/requirements.txt (line 10))
+#17 5.963   Downloading certifi-2026.11.20-py3-none-any.whl (127 kB)
+#17 6.438 Collecting charset-normalizer==3.5.2 (from -r /app/backend/requirements.txt (line 13))
+#17 6.517   Downloading charset_normalizer-3.5.2-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (254 kB)
+#17 6.585 Collecting click==8.5.1 (from -r /app/backend/requirements.txt (line 186))
+#17 6.640   Downloading click-8.5.1-py3-none-any.whl (126 kB)
+#17 6.775 Collecting fastapi==0.165.0 (from -r /app/backend/requirements.txt (line 189))
+#17 6.827   Downloading fastapi-0.165.0-py3-none-any.whl (159 kB)
+#17 6.951 Collecting fastembed==0.9.1 (from -r /app/backend/requirements.txt (line 192))
+#17 7.002   Downloading fastembed-0.9.1-py3-none-any.whl (150 kB)
+#17 7.087 Collecting filelock==4.2.12 (from -r /app/backend/requirements.txt (line 195))
+#17 7.130   Downloading filelock-4.2.12-py3-none-any.whl (222 kB)
+#17 7.222 Collecting flatbuffers==25.12.19 (from -r /app/backend/requirements.txt (line 198))
+#17 7.323   Downloading flatbuffers-25.12.19-py2.py3-none-any.whl (26 kB)
+#17 7.389 Collecting fsspec==2026.9.0 (from -r /app/backend/requirements.txt (line 200))
+#17 7.443   Downloading fsspec-2026.9.0-py3-none-any.whl (221 kB)
+#17 7.602 Collecting h11==0.16.0 (from -r /app/backend/requirements.txt (line 203))
+#17 7.647   Downloading h11-0.16.0-py3-none-any.whl (37 kB)
+#17 7.751 Collecting hf-xet==1.8.0 (from -r /app/backend/requirements.txt (line 206))
+#17 7.802   Downloading hf_xet-1.8.0-cp38-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (4.3 MB)
+#17 7.957      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.3/4.3 MB 30.7 MB/s  0:00:00
+#17 8.022 Collecting httpcore==1.0.9 (from -r /app/backend/requirements.txt (line 224))
+#17 8.077   Downloading httpcore-1.0.9-py3-none-any.whl (78 kB)
+#17 8.169 Collecting httptools==0.9.0 (from -r /app/backend/requirements.txt (line 227))
+#17 8.216   Downloading httptools-0.9.0-cp313-cp313-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (520 kB)
+#17 8.300 Collecting httpx==0.28.1 (from -r /app/backend/requirements.txt (line 346))
+#17 8.348   Downloading httpx-0.28.1-py3-none-any.whl (73 kB)
+#17 8.513 Collecting huggingface-hub==1.33.0 (from -r /app/backend/requirements.txt (line 349))
+#17 8.567   Downloading huggingface_hub-1.33.0-py3-none-any.whl (846 kB)
+#17 8.622      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 846.4/846.4 kB 67.3 MB/s  0:00:00
+#17 8.691 Collecting idna==3.20 (from -r /app/backend/requirements.txt (line 352))
+#17 8.742   Downloading idna-3.20-py3-none-any.whl (69 kB)
+#17 8.785 Collecting loguru==0.7.3 (from -r /app/backend/requirements.txt (line 355))
+#17 8.834   Downloading loguru-0.7.3-py3-none-any.whl (61 kB)
+#17 8.974 Collecting mmh3==5.3.1 (from -r /app/backend/requirements.txt (line 358))
+#17 9.032   Downloading mmh3-5.3.1-cp313-cp313-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (103 kB)
+#17 9.111 Collecting networkx==3.7 (from -r /app/backend/requirements.txt (line 519))
+#17 9.164   Downloading networkx-3.7-py3-none-any.whl (2.1 MB)
+#17 9.236      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.1/2.1 MB 31.1 MB/s  0:00:00
+#17 9.925 Collecting numpy==2.5.5 (from -r /app/backend/requirements.txt (line 522))
+#17 10.01   Downloading numpy-2.5.5-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (15.7 MB)
+#17 ...
+
+#14 [frontend-builder 6/6] RUN NEXT_TELEMETRY_DISABLED=1 npm run build
+#14 11.32
+#14 11.32 > build
+#14 11.32 > next build
+#14 11.32
+#14 12.09 ▲ Next.js 16.4.6 (Turbopack)
+#14 12.17 ✓ Running next.config.ts took 90ms
+#14 12.20
+#14 12.26   Creating an optimized production build ...
+#14 ...
+
+#17 [runtime  6/11] RUN --mount=type=secret,id=build_ca     if [ -f /run/secrets/build_ca ]; then export PIP_CERT=/run/secrets/build_ca; fi;     pip install --no-cache-dir --require-hashes --only-binary=:all: -r /app/backend/requirements.txt     && python -m pip uninstall --yes pip     && rm -rf /usr/local/lib/python3.13/ensurepip
+#17 10.97      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 15.7/15.7 MB 16.7 MB/s  0:00:00
+#17 11.52 Collecting onnxruntime==1.32.0 (from -r /app/backend/requirements.txt (line 589))
+#17 11.61   Downloading onnxruntime-1.32.0-cp313-cp313-manylinux_2_28_x86_64.whl (27.8 MB)
+#17 14.05      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 27.8/27.8 MB 11.4 MB/s  0:00:02
+#17 14.26 Collecting opentelemetry-api==1.45.2 (from -r /app/backend/requirements.txt (line 614))
+#17 14.30   Downloading opentelemetry_api-1.45.2-py3-none-any.whl (60 kB)
+#17 14.40 Collecting packaging==26.3 (from -r /app/backend/requirements.txt (line 617))
+#17 14.45   Downloading packaging-26.3-py3-none-any.whl (129 kB)
+#17 14.76 Collecting pillow==13.0.0 (from -r /app/backend/requirements.txt (line 620))
+#17 14.83   Downloading pillow-13.0.0-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (7.1 MB)
+#17 15.08      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 7.1/7.1 MB 30.0 MB/s  0:00:00
+#17 15.86 Collecting protobuf==7.36.2 (from -r /app/backend/requirements.txt (line 704))
+#17 15.91   Downloading protobuf-7.36.2-cp310-abi3-manylinux2014_x86_64.whl (343 kB)
+#17 16.33 Collecting psutil==7.2.2 (from -r /app/backend/requirements.txt (line 713))
+#17 16.39   Downloading psutil-7.2.2-cp36-abi3-manylinux2010_x86_64.manylinux_2_12_x86_64.manylinux_2_28_x86_64.whl (155 kB)
+#17 16.55 Collecting py-rust-stemmers==0.1.8 (from -r /app/backend/requirements.txt (line 735))
+#17 16.60   Downloading py_rust_stemmers-0.1.8-cp313-cp313-manylinux_2_28_x86_64.whl (324 kB)
+#17 16.85 Collecting pydantic==2.14.4 (from -r /app/backend/requirements.txt (line 791))
+#17 16.91   Downloading pydantic-2.14.4-py3-none-any.whl (494 kB)
+#17 18.30 Collecting pydantic-core==2.50.5 (from -r /app/backend/requirements.txt (line 794))
+#17 18.35   Downloading pydantic_core-2.50.5-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (2.3 MB)
+#17 18.45      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.3/2.3 MB 24.1 MB/s  0:00:00
+#17 18.52 Collecting pydantic-settings==2.16.3 (from -r /app/backend/requirements.txt (line 935))
+#17 18.56   Downloading pydantic_settings-2.16.3-py3-none-any.whl (82 kB)
+#17 18.80 Collecting pymupdf==2.1 (from -r /app/backend/requirements.txt (line 938))
+#17 18.85   Downloading pymupdf-2.1-cp311-abi3-manylinux_2_28_x86_64.whl (69.0 MB)
+#17 21.16      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 69.0/69.0 MB 30.1 MB/s  0:00:02
+#17 21.31 Collecting pymupdf-layout==2.1 (from -r /app/backend/requirements.txt (line 944))
+#17 21.38   Downloading pymupdf_layout-2.1-py3-none-any.whl (1.0 kB)
+#17 21.43 Collecting pymupdf4llm==2.1 (from -r /app/backend/requirements.txt (line 946))
+#17 21.48   Downloading pymupdf4llm-2.1-py3-none-any.whl (1.0 kB)
+#17 21.55 Collecting python-dotenv==1.2.4 (from -r /app/backend/requirements.txt (line 948))
+#17 21.61   Downloading python_dotenv-1.2.4-py3-none-any.whl (23 kB)
+#17 21.72 Collecting pyyaml==6.0.4 (from -r /app/backend/requirements.txt (line 951))
+#17 21.77   Downloading pyyaml-6.0.4-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (838 kB)
+#17 21.80      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 838.5/838.5 kB 32.8 MB/s  0:00:00
+#17 21.88 Collecting requests==2.34.2 (from -r /app/backend/requirements.txt (line 1027))
+#17 21.93   Downloading requests-2.34.2-py3-none-any.whl (73 kB)
+#17 22.00 Collecting starlette==1.10.0 (from -r /app/backend/requirements.txt (line 1030))
+#17 22.06   Downloading starlette-1.10.0-py3-none-any.whl (80 kB)
+#17 22.11 Collecting tabulate==0.10.0 (from -r /app/backend/requirements.txt (line 1033))
+#17 22.16   Downloading tabulate-0.10.0-py3-none-any.whl (39 kB)
+#17 22.43 Collecting tokenizers==0.23.3 (from -r /app/backend/requirements.txt (line 1036))
+#17 22.48   Downloading tokenizers-0.23.3-cp310-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (3.4 MB)
+#17 22.63      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.4/3.4 MB 23.9 MB/s  0:00:00
+#17 22.74 Collecting tqdm==4.70.1 (from -r /app/backend/requirements.txt (line 1061))
+#17 22.79   Downloading tqdm-4.70.1-py3-none-any.whl (80 kB)
+#17 22.87 Collecting typing-extensions==4.16.0 (from -r /app/backend/requirements.txt (line 1064))
+#17 22.92   Downloading typing_extensions-4.16.0-py3-none-any.whl (45 kB)
+#17 22.98 Collecting typing-inspection==0.4.5 (from -r /app/backend/requirements.txt (line 1067))
+#17 23.04   Downloading typing_inspection-0.4.5-py3-none-any.whl (14 kB)
+#17 23.14 Collecting urllib3==2.8.0 (from -r /app/backend/requirements.txt (line 1070))
+#17 23.18   Downloading urllib3-2.8.0-py3-none-any.whl (135 kB)
+#17 23.27 Collecting uvicorn==0.54.0 (from -r /app/backend/requirements.txt (line 1073))
+#17 23.32   Downloading uvicorn-0.54.0-py3-none-any.whl (87 kB)
+#17 23.45 Collecting uvloop==0.23.0 (from -r /app/backend/requirements.txt (line 1076))
+#17 23.49   Downloading uvloop-0.23.0-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (4.5 MB)
+#17 23.66      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.5/4.5 MB 28.8 MB/s  0:00:00
+#17 23.83 Collecting watchfiles==1.3.0 (from -r /app/backend/requirements.txt (line 1138))
+#17 23.88   Downloading watchfiles-1.3.0-cp310-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (458 kB)
+#17 24.25 Collecting websockets==17.4 (from -r /app/backend/requirements.txt (line 1172))
+#17 24.31   Downloading websockets-17.4-cp313-cp313-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (226 kB)
+#17 24.69 Installing collected packages: flatbuffers, websockets, uvloop, urllib3, typing-extensions, tqdm, tabulate, pyyaml, python-dotenv, py-rust-stemmers, psutil, protobuf, pillow, packaging, numpy, networkx, mmh3, loguru, idna, httptools, hf-xet, h11, fsspec, filelock, click, charset-normalizer, certifi, annotated-types, annotated-doc, uvicorn, typing-inspection, requests, pydantic-core, opentelemetry-api, onnxruntime, httpcore, anyio, watchfiles, starlette, pydantic, httpx, pydantic-settings, huggingface-hub, fastapi, tokenizers, fastembed, pymupdf4llm, pymupdf-layout, pymupdf
+#17 ...
+
+#14 [frontend-builder 6/6] RUN NEXT_TELEMETRY_DISABLED=1 npm run build
+#14 26.15 ✓ Compiled successfully in 13.9s
+#14 26.19   Running TypeScript ...
+#14 36.73   Finished TypeScript in 10.5s ...
+#14 36.74   Collecting page data using 4 workers ...
+#14 37.91   Generating static pages using 4 workers (0/3) ...
+#14 39.00 ✓ Generating static pages using 4 workers (3/3) in 1072ms
+#14 39.01   Finalizing page optimization ...
+#14 39.07
+#14 39.08 Route (app)
+#14 39.08 ┌ ○ /
+#14 39.08 └ ○ /_not-found
+#14 39.08
+#14 39.08
+#14 39.08 ○  (Static)  prerendered as static content
+#14 39.08
+#14 DONE 39.2s
+
+#17 [runtime  6/11] RUN --mount=type=secret,id=build_ca     if [ -f /run/secrets/build_ca ]; then export PIP_CERT=/run/secrets/build_ca; fi;     pip install --no-cache-dir --require-hashes --only-binary=:all: -r /app/backend/requirements.txt     && python -m pip uninstall --yes pip     && rm -rf /usr/local/lib/python3.13/ensurepip
+#17 39.13
+#17 39.14 Successfully installed annotated-doc-0.0.7 annotated-types-0.8.0 anyio-4.16.0 certifi-2026.11.20 charset-normalizer-3.5.2 click-8.5.1 fastapi-0.165.0 fastembed-0.9.1 filelock-4.2.12 flatbuffers-25.12.19 fsspec-2026.9.0 h11-0.16.0 hf-xet-1.8.0 httpcore-1.0.9 httptools-0.9.0 httpx-0.28.1 huggingface-hub-1.33.0 idna-3.20 loguru-0.7.3 mmh3-5.3.1 networkx-3.7 numpy-2.5.5 onnxruntime-1.32.0 opentelemetry-api-1.45.2 packaging-26.3 pillow-13.0.0 protobuf-7.36.2 psutil-7.2.2 py-rust-stemmers-0.1.8 pydantic-2.14.4 pydantic-core-2.50.5 pydantic-settings-2.16.3 pymupdf-2.1 pymupdf-layout-2.1 pymupdf4llm-2.1 python-dotenv-1.2.4 pyyaml-6.0.4 requests-2.34.2 starlette-1.10.0 tabulate-0.10.0 tokenizers-0.23.3 tqdm-4.70.1 typing-extensions-4.16.0 typing-inspection-0.4.5 urllib3-2.8.0 uvicorn-0.54.0 uvloop-0.23.0 watchfiles-1.3.0 websockets-17.4
+#17 39.14 WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
+#17 39.15
+#17 39.15 [notice] A new release of pip is available: 26.2.2 -> 26.3
+#17 39.15 [notice] To update, run: pip install --upgrade pip
+#17 40.81 Found existing installation: pip 26.2.2
+#17 40.84 Uninstalling pip-26.2.2:
+#17 40.85   Successfully uninstalled pip-26.2.2
+#17 40.86 WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
+#17 DONE 41.0s
+
+#18 [runtime  7/11] RUN python -c "import importlib.util; import fastapi, uvicorn, pymupdf, fastembed, numpy, sqlite3; assert importlib.util.find_spec('pip') is None; assert importlib.util.find_spec('ensurepip') is None"
+#18 DONE 5.8s
+
+#19 [runtime  8/11] COPY backend/ /app/backend/
+#19 DONE 4.1s
+
+#20 [runtime  9/11] COPY knowledge/ /app/knowledge/
+#20 DONE 3.3s
+
+#21 [runtime 10/11] COPY --from=frontend-builder /build/frontend/out /app/frontend/out
+#21 DONE 4.0s
+
+#22 [runtime 11/11] RUN chmod -R a+rX /app/backend /app/knowledge /app/frontend     && mkdir -p /app/data     && chown -R app:app /app/data
+#22 DONE 6.4s
+
+#23 exporting to image
+#23 exporting layers
+#23 exporting layers 4.4s done
+#23 writing image sha256:2e1b508f8f99fb98637279923334de3f022b176fe712f136276e4326d3d42513 done
+#23 naming to docker.io/library/insuretutor:hardened-os-audit done
+#23 DONE 4.5s

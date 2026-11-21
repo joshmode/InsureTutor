@@ -13,7 +13,7 @@
     "orientationAngle": 0,
     "orientationType": "landscape-primary"
   },
-  "timestamp": "2026-11-21T04:41:52.484Z",
+  "timestamp": "2026-11-21T05:22:51.989Z",
   "url": "http://127.0.0.1:8013/",
   "toolOptions": {
     "runOnly": {
@@ -2643,7 +2643,7 @@
           "impact": null,
           "html": "<p>YF Life · Universal Life</p>",
           "target": [
-            "p:nth-child(4)"
+            ".reference-card > p:nth-child(4)"
           ]
         },
         {
@@ -2869,6 +2869,31 @@
           "html": "<p class=\"welcome-body\">Ask about protection, cash value, fees or risk. Explore this plan with answers linked to the brochure. Check the original passages as you go.</p>",
           "target": [
             ".welcome-body"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "fgColor": "#5e7068",
+                "bgColor": "#f6f5ef",
+                "contrastRatio": 4.81,
+                "fontSize": "9.0pt (12px)",
+                "fontWeight": "normal",
+                "expectedContrastRatio": "4.5:1"
+              },
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "Element has sufficient color contrast of 4.81"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<p class=\"privacy-notice\">Chats stay in this page. With AI connected, your question and recent conversation are sent to the configured model provider. Avoid personal or medical details.</p>",
+          "target": [
+            ".privacy-notice"
           ]
         },
         {

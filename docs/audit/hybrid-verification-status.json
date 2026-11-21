@@ -1,0 +1,9 @@
+{
+  "status": "blocked",
+  "actual_model_execution_verified": false,
+  "operation": "HTTPS GET official Hugging Face model metadata before selecting a pinned revision",
+  "url": "https://huggingface.co/api/models/Qdrant/paraphrase-multilingual-MiniLM-L12-v2-onnx-Q",
+  "observed_error": "Tunnel connection failed: 403 Forbidden",
+  "integrity_and_fallback_regressions": "passed using local test fixtures, not real model weights",
+  "required_action": "Apply the saved Hugging Face network-domain requirements; resolve and cache a reviewed full upstream commit, then rerun actual multilingual retrieval tests."
+}

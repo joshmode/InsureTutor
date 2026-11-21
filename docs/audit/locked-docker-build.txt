@@ -1,0 +1,254 @@
+#0 building with "default" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 1.96kB done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/node:22-alpine@sha256:1314fb30ec37592d5845e5a160d522c0e680972aa534549940b8d73bde88481a
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/python:3.13-slim@sha256:e48f59cdba69a3cbd9ed2cf0f348d90d45a8d350d98134cf1070bc106ee9ed90
+#3 DONE 0.0s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 252B done
+#4 DONE 0.0s
+
+#5 [runtime 1/9] FROM docker.io/library/python:3.13-slim@sha256:e48f59cdba69a3cbd9ed2cf0f348d90d45a8d350d98134cf1070bc106ee9ed90
+#5 DONE 0.0s
+
+#6 [frontend-builder 1/6] FROM docker.io/library/node:22-alpine@sha256:1314fb30ec37592d5845e5a160d522c0e680972aa534549940b8d73bde88481a
+#6 DONE 0.0s
+
+#7 [internal] load build context
+#7 transferring context: 370.75kB 0.0s done
+#7 DONE 0.0s
+
+#8 [runtime 2/9] WORKDIR /app
+#8 CACHED
+
+#9 [runtime 3/9] RUN groupadd --system app && useradd --system --gid app app
+#9 CACHED
+
+#10 [frontend-builder 2/6] WORKDIR /build/frontend
+#10 CACHED
+
+#11 [frontend-builder 3/6] COPY frontend/package.json frontend/package-lock.json ./
+#11 CACHED
+
+#12 [frontend-builder 4/6] RUN --mount=type=secret,id=build_ca     if [ -f /run/secrets/build_ca ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/build_ca; fi;     npm ci --strict-ssl=true
+#12 ...
+
+#13 [runtime 4/9] COPY backend/requirements.txt /app/backend/requirements.txt
+#13 DONE 1.9s
+
+#14 [runtime 5/9] RUN --mount=type=secret,id=build_ca     if [ -f /run/secrets/build_ca ]; then export PIP_CERT=/run/secrets/build_ca; fi;     pip install --no-cache-dir --require-hashes --only-binary=:all: -r /app/backend/requirements.txt
+#14 5.962 Collecting annotated-doc==0.0.7 (from -r /app/backend/requirements.txt (line 1))
+#14 6.765   Downloading annotated_doc-0.0.7-py3-none-any.whl (5.3 kB)
+#14 7.240 Collecting annotated-types==0.8.0 (from -r /app/backend/requirements.txt (line 4))
+#14 7.744   Downloading annotated_types-0.8.0-py3-none-any.whl (13 kB)
+#14 8.918 Collecting anyio==4.16.0 (from -r /app/backend/requirements.txt (line 7))
+#14 10.04   Downloading anyio-4.16.0-py3-none-any.whl (134 kB)
+#14 10.63 Collecting certifi==2026.11.20 (from -r /app/backend/requirements.txt (line 10))
+#14 11.40   Downloading certifi-2026.11.20-py3-none-any.whl (127 kB)
+#14 12.49 Collecting charset-normalizer==3.5.2 (from -r /app/backend/requirements.txt (line 13))
+#14 13.08   Downloading charset_normalizer-3.5.2-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (254 kB)
+#14 13.60 Collecting click==8.5.1 (from -r /app/backend/requirements.txt (line 186))
+#14 14.01   Downloading click-8.5.1-py3-none-any.whl (126 kB)
+#14 14.43 Collecting fastapi==0.165.0 (from -r /app/backend/requirements.txt (line 189))
+#14 14.88   Downloading fastapi-0.165.0-py3-none-any.whl (159 kB)
+#14 15.51 Collecting fastembed==0.9.1 (from -r /app/backend/requirements.txt (line 192))
+#14 15.79   Downloading fastembed-0.9.1-py3-none-any.whl (150 kB)
+#14 ...
+
+#12 [frontend-builder 4/6] RUN --mount=type=secret,id=build_ca     if [ -f /run/secrets/build_ca ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/build_ca; fi;     npm ci --strict-ssl=true
+#12 17.92 npm warn deprecated eslint@9.39.5: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+#12 ...
+
+#14 [runtime 5/9] RUN --mount=type=secret,id=build_ca     if [ -f /run/secrets/build_ca ]; then export PIP_CERT=/run/secrets/build_ca; fi;     pip install --no-cache-dir --require-hashes --only-binary=:all: -r /app/backend/requirements.txt
+#14 16.32 Collecting filelock==4.2.12 (from -r /app/backend/requirements.txt (line 195))
+#14 16.69   Downloading filelock-4.2.12-py3-none-any.whl (222 kB)
+#14 17.21 Collecting flatbuffers==25.12.19 (from -r /app/backend/requirements.txt (line 198))
+#14 17.49   Downloading flatbuffers-25.12.19-py2.py3-none-any.whl (26 kB)
+#14 17.94 Collecting fsspec==2026.9.0 (from -r /app/backend/requirements.txt (line 200))
+#14 18.53   Downloading fsspec-2026.9.0-py3-none-any.whl (221 kB)
+#14 19.74 Collecting h11==0.16.0 (from -r /app/backend/requirements.txt (line 203))
+#14 20.48   Downloading h11-0.16.0-py3-none-any.whl (37 kB)
+#14 21.38 Collecting hf-xet==1.8.0 (from -r /app/backend/requirements.txt (line 206))
+#14 21.72   Downloading hf_xet-1.8.0-cp38-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (4.3 MB)
+#14 21.92      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.3/4.3 MB 27.4 MB/s  0:00:00
+#14 21.98 Collecting httpcore==1.0.9 (from -r /app/backend/requirements.txt (line 224))
+#14 22.03   Downloading httpcore-1.0.9-py3-none-any.whl (78 kB)
+#14 22.10 Collecting httptools==0.9.0 (from -r /app/backend/requirements.txt (line 227))
+#14 22.15   Downloading httptools-0.9.0-cp313-cp313-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (520 kB)
+#14 22.23 Collecting httpx==0.28.1 (from -r /app/backend/requirements.txt (line 346))
+#14 22.28   Downloading httpx-0.28.1-py3-none-any.whl (73 kB)
+#14 22.36 Collecting huggingface-hub==1.33.0 (from -r /app/backend/requirements.txt (line 349))
+#14 22.40   Downloading huggingface_hub-1.33.0-py3-none-any.whl (846 kB)
+#14 22.45      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 846.4/846.4 kB 19.2 MB/s  0:00:00
+#14 22.54 Collecting idna==3.20 (from -r /app/backend/requirements.txt (line 352))
+#14 22.58   Downloading idna-3.20-py3-none-any.whl (69 kB)
+#14 22.65 Collecting loguru==0.7.3 (from -r /app/backend/requirements.txt (line 355))
+#14 22.70   Downloading loguru-0.7.3-py3-none-any.whl (61 kB)
+#14 22.85 Collecting mmh3==5.3.1 (from -r /app/backend/requirements.txt (line 358))
+#14 22.89   Downloading mmh3-5.3.1-cp313-cp313-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (103 kB)
+#14 22.97 Collecting networkx==3.7 (from -r /app/backend/requirements.txt (line 519))
+#14 23.01   Downloading networkx-3.7-py3-none-any.whl (2.1 MB)
+#14 23.10      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.1/2.1 MB 26.1 MB/s  0:00:00
+#14 23.42 Collecting numpy==2.5.5 (from -r /app/backend/requirements.txt (line 522))
+#14 23.47   Downloading numpy-2.5.5-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (15.7 MB)
+#14 24.12      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 15.7/15.7 MB 24.6 MB/s  0:00:00
+#14 24.23 Collecting onnxruntime==1.32.0 (from -r /app/backend/requirements.txt (line 589))
+#14 24.30   Downloading onnxruntime-1.32.0-cp313-cp313-manylinux_2_28_x86_64.whl (27.8 MB)
+#14 25.14      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 27.8/27.8 MB 33.4 MB/s  0:00:00
+#14 25.24 Collecting opentelemetry-api==1.45.2 (from -r /app/backend/requirements.txt (line 614))
+#14 ...
+
+#12 [frontend-builder 4/6] RUN --mount=type=secret,id=build_ca     if [ -f /run/secrets/build_ca ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/build_ca; fi;     npm ci --strict-ssl=true
+#12 27.18
+#12 27.18 added 491 packages, and audited 492 packages in 25s
+#12 27.18
+#12 27.18 239 packages are looking for funding
+#12 27.18   run `npm fund` for details
+#12 27.18
+#12 27.18 found 0 vulnerabilities
+#12 27.19 npm notice
+#12 27.19 npm notice New major version of npm available! 10.9.9 -> 12.2.3
+#12 27.19 npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.3
+#12 27.19 npm notice To update run: npm install -g npm@12.2.3
+#12 27.19 npm notice
+#12 DONE 27.3s
+
+#14 [runtime 5/9] RUN --mount=type=secret,id=build_ca     if [ -f /run/secrets/build_ca ]; then export PIP_CERT=/run/secrets/build_ca; fi;     pip install --no-cache-dir --require-hashes --only-binary=:all: -r /app/backend/requirements.txt
+#14 25.28   Downloading opentelemetry_api-1.45.2-py3-none-any.whl (60 kB)
+#14 25.33 Collecting packaging==26.3 (from -r /app/backend/requirements.txt (line 617))
+#14 25.38   Downloading packaging-26.3-py3-none-any.whl (129 kB)
+#14 25.63 Collecting pillow==13.0.0 (from -r /app/backend/requirements.txt (line 620))
+#14 25.67   Downloading pillow-13.0.0-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (7.1 MB)
+#14 25.91      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 7.1/7.1 MB 30.4 MB/s  0:00:00
+#14 26.10 Collecting protobuf==7.36.2 (from -r /app/backend/requirements.txt (line 704))
+#14 26.16   Downloading protobuf-7.36.2-cp310-abi3-manylinux2014_x86_64.whl (343 kB)
+#14 26.28 Collecting psutil==7.2.2 (from -r /app/backend/requirements.txt (line 713))
+#14 26.33   Downloading psutil-7.2.2-cp36-abi3-manylinux2010_x86_64.manylinux_2_12_x86_64.manylinux_2_28_x86_64.whl (155 kB)
+#14 26.42 Collecting py-rust-stemmers==0.1.8 (from -r /app/backend/requirements.txt (line 735))
+#14 26.47   Downloading py_rust_stemmers-0.1.8-cp313-cp313-manylinux_2_28_x86_64.whl (324 kB)
+#14 26.82 Collecting pydantic==2.14.4 (from -r /app/backend/requirements.txt (line 791))
+#14 26.86   Downloading pydantic-2.14.4-py3-none-any.whl (494 kB)
+#14 27.86 Collecting pydantic-core==2.50.5 (from -r /app/backend/requirements.txt (line 794))
+#14 27.92   Downloading pydantic_core-2.50.5-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (2.3 MB)
+#14 28.01      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.3/2.3 MB 32.5 MB/s  0:00:00
+#14 28.07 Collecting pydantic-settings==2.16.3 (from -r /app/backend/requirements.txt (line 935))
+#14 28.11   Downloading pydantic_settings-2.16.3-py3-none-any.whl (82 kB)
+#14 28.28 Collecting pymupdf==2.1 (from -r /app/backend/requirements.txt (line 938))
+#14 28.33   Downloading pymupdf-2.1-cp311-abi3-manylinux_2_28_x86_64.whl (69.0 MB)
+#14 30.32      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 69.0/69.0 MB 35.0 MB/s  0:00:01
+#14 30.45 Collecting pymupdf-layout==2.1 (from -r /app/backend/requirements.txt (line 944))
+#14 30.48   Downloading pymupdf_layout-2.1-py3-none-any.whl (1.0 kB)
+#14 30.54 Collecting pymupdf4llm==2.1 (from -r /app/backend/requirements.txt (line 946))
+#14 30.58   Downloading pymupdf4llm-2.1-py3-none-any.whl (1.0 kB)
+#14 30.62 Collecting python-dotenv==1.2.4 (from -r /app/backend/requirements.txt (line 948))
+#14 30.67   Downloading python_dotenv-1.2.4-py3-none-any.whl (23 kB)
+#14 30.77 Collecting pyyaml==6.0.4 (from -r /app/backend/requirements.txt (line 951))
+#14 30.81   Downloading pyyaml-6.0.4-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (838 kB)
+#14 30.83      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 838.5/838.5 kB 73.4 MB/s  0:00:00
+#14 30.88 Collecting requests==2.34.2 (from -r /app/backend/requirements.txt (line 1027))
+#14 30.92   Downloading requests-2.34.2-py3-none-any.whl (73 kB)
+#14 30.98 Collecting starlette==1.10.0 (from -r /app/backend/requirements.txt (line 1030))
+#14 31.02   Downloading starlette-1.10.0-py3-none-any.whl (80 kB)
+#14 31.07 Collecting tabulate==0.10.0 (from -r /app/backend/requirements.txt (line 1033))
+#14 31.11   Downloading tabulate-0.10.0-py3-none-any.whl (39 kB)
+#14 31.38 Collecting tokenizers==0.23.3 (from -r /app/backend/requirements.txt (line 1036))
+#14 31.42   Downloading tokenizers-0.23.3-cp310-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (3.4 MB)
+#14 31.54      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.4/3.4 MB 28.7 MB/s  0:00:00
+#14 31.60 Collecting tqdm==4.70.1 (from -r /app/backend/requirements.txt (line 1061))
+#14 31.65   Downloading tqdm-4.70.1-py3-none-any.whl (80 kB)
+#14 31.70 Collecting typing-extensions==4.16.0 (from -r /app/backend/requirements.txt (line 1064))
+#14 31.73   Downloading typing_extensions-4.16.0-py3-none-any.whl (45 kB)
+#14 31.77 Collecting typing-inspection==0.4.5 (from -r /app/backend/requirements.txt (line 1067))
+#14 31.98   Downloading typing_inspection-0.4.5-py3-none-any.whl (14 kB)
+#14 32.04 Collecting urllib3==2.8.0 (from -r /app/backend/requirements.txt (line 1070))
+#14 32.09   Downloading urllib3-2.8.0-py3-none-any.whl (135 kB)
+#14 32.17 Collecting uvicorn==0.54.0 (from -r /app/backend/requirements.txt (line 1073))
+#14 32.22   Downloading uvicorn-0.54.0-py3-none-any.whl (87 kB)
+#14 32.31 Collecting uvloop==0.23.0 (from -r /app/backend/requirements.txt (line 1076))
+#14 32.35   Downloading uvloop-0.23.0-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (4.5 MB)
+#14 32.51      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.5/4.5 MB 31.5 MB/s  0:00:00
+#14 ...
+
+#15 [frontend-builder 5/6] COPY frontend/ ./
+#15 DONE 7.2s
+
+#14 [runtime 5/9] RUN --mount=type=secret,id=build_ca     if [ -f /run/secrets/build_ca ]; then export PIP_CERT=/run/secrets/build_ca; fi;     pip install --no-cache-dir --require-hashes --only-binary=:all: -r /app/backend/requirements.txt
+#14 32.68 Collecting watchfiles==1.3.0 (from -r /app/backend/requirements.txt (line 1138))
+#14 ...
+
+#16 [frontend-builder 6/6] RUN NEXT_TELEMETRY_DISABLED=1 npm run build
+#16 ...
+
+#14 [runtime 5/9] RUN --mount=type=secret,id=build_ca     if [ -f /run/secrets/build_ca ]; then export PIP_CERT=/run/secrets/build_ca; fi;     pip install --no-cache-dir --require-hashes --only-binary=:all: -r /app/backend/requirements.txt
+#14 32.74   Downloading watchfiles-1.3.0-cp310-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (458 kB)
+#14 32.97 Collecting websockets==17.4 (from -r /app/backend/requirements.txt (line 1172))
+#14 33.01   Downloading websockets-17.4-cp313-cp313-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (226 kB)
+#14 33.32 Installing collected packages: flatbuffers, websockets, uvloop, urllib3, typing-extensions, tqdm, tabulate, pyyaml, python-dotenv, py-rust-stemmers, psutil, protobuf, pillow, packaging, numpy, networkx, mmh3, loguru, idna, httptools, hf-xet, h11, fsspec, filelock, click, charset-normalizer, certifi, annotated-types, annotated-doc, uvicorn, typing-inspection, requests, pydantic-core, opentelemetry-api, onnxruntime, httpcore, anyio, watchfiles, starlette, pydantic, httpx, pydantic-settings, huggingface-hub, fastapi, tokenizers, fastembed, pymupdf4llm, pymupdf-layout, pymupdf
+#14 ...
+
+#16 [frontend-builder 6/6] RUN NEXT_TELEMETRY_DISABLED=1 npm run build
+#16 7.978
+#16 7.978 > build
+#16 7.978 > next build
+#16 7.978
+#16 9.071 ▲ Next.js 16.4.6 (Turbopack)
+#16 9.144 ✓ Running next.config.ts took 71ms
+#16 9.168
+#16 9.208   Creating an optimized production build ...
+#16 16.87 ✓ Compiled successfully in 7.6s
+#16 16.90   Running TypeScript ...
+#16 ...
+
+#14 [runtime 5/9] RUN --mount=type=secret,id=build_ca     if [ -f /run/secrets/build_ca ]; then export PIP_CERT=/run/secrets/build_ca; fi;     pip install --no-cache-dir --require-hashes --only-binary=:all: -r /app/backend/requirements.txt
+#14 52.16
+#14 52.17 Successfully installed annotated-doc-0.0.7 annotated-types-0.8.0 anyio-4.16.0 certifi-2026.11.20 charset-normalizer-3.5.2 click-8.5.1 fastapi-0.165.0 fastembed-0.9.1 filelock-4.2.12 flatbuffers-25.12.19 fsspec-2026.9.0 h11-0.16.0 hf-xet-1.8.0 httpcore-1.0.9 httptools-0.9.0 httpx-0.28.1 huggingface-hub-1.33.0 idna-3.20 loguru-0.7.3 mmh3-5.3.1 networkx-3.7 numpy-2.5.5 onnxruntime-1.32.0 opentelemetry-api-1.45.2 packaging-26.3 pillow-13.0.0 protobuf-7.36.2 psutil-7.2.2 py-rust-stemmers-0.1.8 pydantic-2.14.4 pydantic-core-2.50.5 pydantic-settings-2.16.3 pymupdf-2.1 pymupdf-layout-2.1 pymupdf4llm-2.1 python-dotenv-1.2.4 pyyaml-6.0.4 requests-2.34.2 starlette-1.10.0 tabulate-0.10.0 tokenizers-0.23.3 tqdm-4.70.1 typing-extensions-4.16.0 typing-inspection-0.4.5 urllib3-2.8.0 uvicorn-0.54.0 uvloop-0.23.0 watchfiles-1.3.0 websockets-17.4
+#14 52.17 WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
+#14 52.17
+#14 52.17 [notice] A new release of pip is available: 26.2.2 -> 26.3
+#14 52.17 [notice] To update, run: pip install --upgrade pip
+#14 DONE 52.5s
+
+#16 [frontend-builder 6/6] RUN NEXT_TELEMETRY_DISABLED=1 npm run build
+#16 ...
+
+#17 [runtime 6/9] COPY backend/ /app/backend/
+#17 DONE 2.5s
+
+#16 [frontend-builder 6/6] RUN NEXT_TELEMETRY_DISABLED=1 npm run build
+#16 22.10   Finished TypeScript in 5.2s ...
+#16 22.11   Collecting page data using 4 workers ...
+#16 23.31   Generating static pages using 4 workers (0/3) ...
+#16 24.25 ✓ Generating static pages using 4 workers (3/3) in 935ms
+#16 24.26   Finalizing page optimization ...
+#16 24.31
+#16 24.32 Route (app)
+#16 24.32 ┌ ○ /
+#16 24.32 └ ○ /_not-found
+#16 24.32
+#16 24.32
+#16 24.32 ○  (Static)  prerendered as static content
+#16 24.32
+#16 DONE 24.4s
+
+#18 [runtime 7/9] COPY knowledge/ /app/knowledge/
+#18 DONE 2.4s
+
+#19 [runtime 8/9] COPY --from=frontend-builder /build/frontend/out /app/frontend/out
+#19 DONE 2.5s
+
+#20 [runtime 9/9] RUN chmod -R a+rX /app/backend /app/knowledge /app/frontend     && mkdir -p /app/data     && chown -R app:app /app/data
+#20 DONE 2.8s
+
+#21 exporting to image
+#21 exporting layers
+#21 exporting layers 2.9s done
+#21 writing image sha256:2578a09044fb907ed2851c6309a3e735d9d7b87937b1e1c5a8ef4bed8f868c85
+#21 writing image sha256:2578a09044fb907ed2851c6309a3e735d9d7b87937b1e1c5a8ef4bed8f868c85 done
+#21 naming to docker.io/library/insuretutor:locked-audit 0.0s done
+#21 DONE 3.0s

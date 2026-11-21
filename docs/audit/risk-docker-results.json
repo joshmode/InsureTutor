@@ -1,0 +1,31 @@
+{
+  "health_after_restart": {
+    "status": "ok",
+    "llm_configured": false,
+    "retrieval_mode": "lexical",
+    "documents": 1,
+    "chunks": 52,
+    "ingest_ready": true
+  },
+  "controls": {
+    "image": "sha256:4801dbb3d0acecb74fda244a7ed68e91261be8cbb6397468ba71a3abfcfbd429",
+    "user": "app",
+    "read_only": true,
+    "cap_drop": [
+      "ALL"
+    ],
+    "security_opt": [
+      "no-new-privileges:true"
+    ],
+    "memory_bytes": 2147483648,
+    "nano_cpus": 2000000000,
+    "pids_limit": 128,
+    "tmpfs": {
+      "/tmp": "rw,noexec,nosuid,size=128m,mode=1777"
+    }
+  },
+  "installer_modules": "absent",
+  "pdf_html_and_path_checks": "passed",
+  "production_allowances": "default values; validation load ran separately against an isolated host server",
+  "final_model_setup_cli_help": true
+}

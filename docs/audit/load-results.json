@@ -1,0 +1,15 @@
+{
+  "requests": 24,
+  "client_concurrency": 8,
+  "retrieval_mode": "lexical",
+  "llm_configured": false,
+  "statuses": {
+    "200": 20,
+    "429": 4
+  },
+  "health_samples": 18,
+  "health_p95_ms": 13.43,
+  "chat_p95_ms": 386.35,
+  "passed": true,
+  "scope": "Local responsiveness under bounded lexical chat workload; not a model or production capacity benchmark."
+}
