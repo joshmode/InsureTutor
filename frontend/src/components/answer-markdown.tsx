@@ -1,118 +1,98 @@
 "use client";
-
-import ReactMarkdown from "react-markdown";
+import ReactMarkdown, { type Components } from "react-markdown";
+import { createContext, useContext } from "react";
 import remarkGfm from "remark-gfm";
 import type { Citation } from "@/lib/types";
 import { CitationChip } from "./citation-chip";
 
-export function AnswerMarkdown({
-  text,
-  citations,
-  activeCitation,
-  onCitationClick,
-}: {
-  text: string;
+type MarkdownNode = {
+  type: string;
+  value?: string;
+  url?: string;
+  children?: MarkdownNode[];
+};
+// Transform text nodes, so citations work inside emphasis, lists and tables.
+// Skip links and code: model-supplied URLs never become evidence controls.
+function citationLinks() {
+  return (tree: MarkdownNode) => {
+    function visit(node: MarkdownNode) {
+      if (!node.children || ["link", "code", "inlineCode"].includes(node.type))
+        return;
+      node.children = node.children.flatMap((child) => {
+        if (child.type !== "text") {
+          visit(child);
+          return [child];
+        }
+        return (child.value ?? "")
+          .split(/(\[\d{1,2}\])/g)
+          .filter(Boolean)
+          .map((part) => {
+            const match = part.match(/^\[(\d{1,2})\]$/);
+            return match
+              ? {
+                  type: "link",
+                  url: `#citation-${match[1]}`,
+                  children: [{ type: "text", value: part }],
+                }
+              : { type: "text", value: part };
+          });
+      });
+    }
+    visit(tree);
+  };
+}
+type CitationContextValue = {
   citations: Citation[];
   activeCitation: number | null;
   onCitationClick: (index: number) => void;
-}) {
-  const withChips = text.split(/(\[\d{1,2}\])/g).map((part, index) => {
-    const match = part.match(/^\[(\d{1,2})\]$/);
-    if (!match) return part;
-    const citationIndex = Number(match[1]);
-    const citation = citations[citationIndex - 1];
-    if (!citation) return "";
-    return `[[[C${citationIndex}]]]`;
-  }).join("");
-
+};
+const CitationContext = createContext<CitationContextValue>({
+  citations: [],
+  activeCitation: null,
+  onCitationClick: () => {},
+});
+// Stable component identities preserve citation focus across answer selection.
+const markdownComponents: Components = {
+  a: function EvidenceLink({ href, children }) {
+    const { citations, activeCitation, onCitationClick } =
+      useContext(CitationContext);
+    const match = href?.match(/^#citation-(\d+)$/);
+    const index = match ? Number(match[1]) : 0;
+    const citation = citations[index - 1];
+    return citation ? (
+      <CitationChip
+        index={index}
+        citation={citation}
+        active={activeCitation === index}
+        onClick={() => onCitationClick(index)}
+      />
+    ) : (
+      <>{children}</>
+    );
+  },
+  table: function EvidenceTable({ children }) {
+    return (
+      <div className="table-scroll" tabIndex={0}>
+        <table>{children}</table>
+      </div>
+    );
+  },
+};
+export function AnswerMarkdown({
+  text,
+  ...context
+}: CitationContextValue & { text: string }) {
   return (
-    <div className="markdown text-[14.5px] leading-[1.72] text-ink-700">
-      <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
-        components={{
-          p: ({ children }) => {
-            const content = renderCitationPlaceholders(
-              children,
-              citations,
-              activeCitation,
-              onCitationClick,
-            );
-            return <p>{content}</p>;
-          },
-          li: ({ children }) => {
-            const content = renderCitationPlaceholders(
-              children,
-              citations,
-              activeCitation,
-              onCitationClick,
-            );
-            return <li>{content}</li>;
-          },
-          a: ({ href, children }) => (
-            <a href={href} target="_blank" rel="noreferrer">
-              {children}
-            </a>
-          ),
-        }}
-      >
-        {withChips}
-      </ReactMarkdown>
-    </div>
+    <CitationContext.Provider value={context}>
+      <div className="markdown">
+        <ReactMarkdown
+          disallowedElements={["img"]}
+          remarkPlugins={[remarkGfm, citationLinks]}
+          components={markdownComponents}
+        >
+          {text}
+        </ReactMarkdown>
+      </div>
+    </CitationContext.Provider>
   );
 }
-
-function renderCitationPlaceholders(
-  children: React.ReactNode,
-  citations: Citation[],
-  activeCitation: number | null,
-  onCitationClick: (index: number) => void,
-): React.ReactNode {
-  return Array.isArray(children)
-    ? children.flatMap((child, index) =>
-        typeof child === "string"
-          ? splitCitationText(
-              child,
-              `k${index}`,
-              citations,
-              activeCitation,
-              onCitationClick,
-            )
-          : child,
-      )
-    : typeof children === "string"
-      ? splitCitationText(
-          children,
-          "single",
-          citations,
-          activeCitation,
-          onCitationClick,
-        )
-      : children;
-}
-
-function splitCitationText(
-  text: string,
-  key: string,
-  citations: Citation[],
-  activeCitation: number | null,
-  onCitationClick: (index: number) => void,
-): React.ReactNode[] {
-  return text.split(/(\[\[\[C\d{1,2}\]\]\])/g).map((part, index) => {
-    const match = part.match(/^\[\[\[C(\d{1,2})\]\]\]$/);
-    if (!match) return <span key={`${key}-${index}`}>{part}</span>;
-    const citationIndex = Number(match[1]);
-    const citation = citations[citationIndex - 1];
-    if (!citation) return null;
-    return (
-      <span key={`${key}-c-${citationIndex}-${index}`} className="mx-0.5 inline-block">
-        <CitationChip
-          index={citationIndex}
-          citation={citation}
-          active={activeCitation === citationIndex}
-          onClick={() => onCitationClick(citationIndex)}
-        />
-      </span>
-    );
-  });
-}
-

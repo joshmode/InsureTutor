@@ -29,8 +29,9 @@ export function CitationChip({
     >
       <FileText size={12} strokeWidth={2.2} aria-hidden="true" />
       {index}
-      <span className="hidden font-medium opacity-80 sm:inline">p.{citation.page}</span>
+      <span className="hidden font-medium opacity-80 sm:inline">
+        p.{citation.page}
+      </span>
     </button>
   );
 }
-
