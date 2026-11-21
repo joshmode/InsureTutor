@@ -9,7 +9,7 @@ from backend.app.chat.llm import LLMError, OpenAICompatibleClient
 from backend.app.config import Settings
 
 
-def client_with_transport(monkeypatch, handler):
+def client_with_transport(monkeypatch, handler, **settings):
     original_client = httpx.AsyncClient
     transport = httpx.MockTransport(handler)
     monkeypatch.setattr(
@@ -23,6 +23,7 @@ def client_with_transport(monkeypatch, handler):
             llm_base_url="https://example.invalid/custom/v1/",
             llm_model="test-model",
             _env_file=None,
+            **settings,
         )
     )
 
@@ -36,6 +37,7 @@ def test_configurable_provider_receives_chat_not_embeddings(monkeypatch):
         payload = json.loads(request.content)
         assert payload["model"] == "test-model"
         assert payload["messages"] == [{"role": "user", "content": "question"}]
+        assert "reasoning_effort" not in payload
         return httpx.Response(
             200, json={"choices": [{"message": {"content": "answer [S1]"}}]}
         )
@@ -43,6 +45,27 @@ def test_configurable_provider_receives_chat_not_embeddings(monkeypatch):
     client = client_with_transport(monkeypatch, respond)
     answer = asyncio.run(client.complete([{"role": "user", "content": "question"}]))
     assert answer.text == "answer [S1]"
+
+
+@pytest.mark.parametrize("effort", ["none", "low", ""])
+def test_optional_reasoning_effort_is_sent_only_when_configured(monkeypatch, effort):
+    import json
+
+    def respond(request):
+        payload = json.loads(request.content)
+        if effort:
+            assert payload["reasoning_effort"] == effort
+        else:
+            assert "reasoning_effort" not in payload
+        return httpx.Response(200, json={"choices": [{"message": {"content": "answer"}}]})
+
+    client = client_with_transport(monkeypatch, respond, llm_reasoning_effort=effort)
+    assert asyncio.run(client.complete([])).text == "answer"
+
+
+def test_unsupported_reasoning_effort_fails_configuration_validation():
+    with pytest.raises(ValueError):
+        Settings(llm_reasoning_effort="unsupported", _env_file=None)
 
 
 @pytest.mark.parametrize(

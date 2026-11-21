@@ -61,6 +61,18 @@ def test_equivalent_decimal_percentage_is_supported():
     assert validate_answer_claims("The assumed rate is 4% and the charge is US$4.", hits) is None
 
 
+@pytest.mark.parametrize("amount", ["MOP$200", "USD25", "HKD200"])
+def test_unambiguous_currency_spellings_match_the_same_source_value(amount):
+    hits = [RetrievalHit(Chunk("id", "test.pdf", 1, "Fees", "US$25 / HK$200 / MOP200"), 1, 1, 0)]
+    assert validate_answer_claims("The charge is " + amount + ".", hits) is None
+
+
+@pytest.mark.parametrize("amount", ["MOP$25", "USD200", "$25"])
+def test_currency_aliases_do_not_excuse_a_different_or_ambiguous_currency(amount):
+    hits = [RetrievalHit(Chunk("id", "test.pdf", 1, "Fees", "US$25 / HK$200 / MOP200"), 1, 1, 0)]
+    assert validate_answer_claims("The charge is " + amount + ".", hits) == "unsupported_numeric_claim"
+
+
 def test_unrelated_disclaimer_does_not_excuse_false_guarantee():
     assert validate_answer_claims("Not financial advice: 4% is guaranteed every year.", []) == "false_guarantee"
     assert validate_answer_claims("The policy guarantees a 4% return.", []) == "false_guarantee"

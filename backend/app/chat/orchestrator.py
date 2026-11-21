@@ -11,6 +11,7 @@ from ..guardrails.concepts import is_credentials_request, missing_concept_eviden
 from ..guardrails.grounding import (
     GroundingError,
     applicability_question,
+    draft_failure_reasons,
     inspect_draft,
     literal_applicable,
     review_approved,
@@ -29,6 +30,7 @@ from ..guardrails.source_conflicts import source_conflict_response
 from ..models import ChatRequest, ChatResponse
 from ..retrieval.hybrid import HybridRetriever, RetrievalHit, RetrievalResult
 from .llm import LLMError, LLMInputTooLarge, LLMQuotaExceeded, OpenAICompatibleClient
+from .language import normalize_generated_script
 from .prompts import build_messages, citation_repair_messages
 
 logger = logging.getLogger(__name__)
@@ -238,17 +240,21 @@ class ChatOrchestrator:
                 provider_unavailable=True,
             )
         try:
+            draft = await run_in_threadpool(normalize_generated_script, response.text, language)
             try:
-                claims = inspect_draft(response.text, retrieval.hits)
+                claims = inspect_draft(draft, retrieval.hits)
             except GroundingError as exc:
+                errors = await run_in_threadpool(
+                    draft_failure_reasons, draft, retrieval.hits, str(exc)
+                )
                 repaired = await self.llm.complete(
                     citation_repair_messages(
-                        messages, draft=response.text, error=str(exc)
+                        messages, draft=draft, error=", ".join(errors)
                     ),
                     temperature=0.0,
                 )
-                response = repaired
-                claims = inspect_draft(response.text, retrieval.hits)
+                draft = await run_in_threadpool(normalize_generated_script, repaired.text, language)
+                claims = inspect_draft(draft, retrieval.hits)
             review = await self.llm.complete(
                 review_messages(
                     request.message, language, claims, retrieval.hits, history=history
@@ -265,7 +271,7 @@ class ChatOrchestrator:
         except Exception:
             logger.exception("Unexpected grounding/review failure")
             return self._nofact(language, retrieval)
-        validated = validate_and_map_citations(response.text, retrieval.hits)
+        validated = validate_and_map_citations(draft, retrieval.hits)
         notices = [localised_notice(language, "educational")]
         if advice:
             notices.append(localised_notice(language, "professional"))

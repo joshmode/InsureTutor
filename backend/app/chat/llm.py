@@ -76,7 +76,7 @@ class OpenAICompatibleClient:
         stream: bool,
         temperature: float | None = None,
     ) -> dict:
-        return {
+        payload = {
             "model": self.settings.llm_model,
             "messages": messages,
             "temperature": (
@@ -85,6 +85,9 @@ class OpenAICompatibleClient:
             "max_tokens": self.settings.llm_max_output_tokens,
             "stream": stream,
         }
+        if self.settings.llm_reasoning_effort is not None:
+            payload["reasoning_effort"] = self.settings.llm_reasoning_effort
+        return payload
 
     async def _reserve(self, messages, stream, temperature):
         self._headers()

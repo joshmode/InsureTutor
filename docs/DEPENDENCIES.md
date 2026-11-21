@@ -4,7 +4,7 @@ The supported and exercised container target is Linux x86-64 / CPython 3.13. Dev
 
 ## Python
 
-`backend/requirements.in` and `backend/requirements-dev.in` are the reviewed direct declarations. Their `.txt` counterparts are **complete transitive locks**, with every distribution pinned to an exact version and SHA-256 allowlist. Runtime has 49 locked packages; development has 54. The initial locks preserve the already validated package versions; this change does not bulk-upgrade application dependencies.
+`backend/requirements.in` and `backend/requirements-dev.in` are the reviewed direct declarations. Their `.txt` counterparts are **complete transitive locks**, with every distribution pinned to an exact version and SHA-256 allowlist. Runtime has 50 locked packages; development has 55. The live-provider follow-up adds only `opencc-python-reimplemented==0.1.7` for consistent Chinese scripts; existing versions remain pinned. Conversion runs before claim validation and review, preserves literal quotes/URLs, and never changes citation excerpts. The earlier audit measurements below cover the initial 49/54-package locks; the later complete audit is in `docs/audit/live-model/python-dependency-audit.json`.
 
 Existing install commands remain compatible. Install with integrity enforcement:
 

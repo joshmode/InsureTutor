@@ -49,7 +49,8 @@ FORMAT
   Simplified Chinese must be internally consistent; do not mix scripts unnecessarily.
 - Use one short factual sentence per paragraph or bullet, each ending with its own valid
   [S#] marker. Do not use headings, tables, code, links or an uncited introductory sentence.
-  Do not invent direct quotations. The interface adds educational/advice framing. Avoid a long
+  Paraphrase without quotation marks; original quotations are available in the source panel.
+  The interface adds educational/advice framing. Avoid a long
   generic disclaimer; the interface already shows one. Be concise but complete.
 """
 
@@ -117,6 +118,21 @@ def citation_repair_messages(
     draft: str,
     error: str,
 ) -> list[dict]:
+    corrections = {
+        "uncited_claim": (
+            "Remove uncited introductory or concluding sentences. Every retained "
+            "factual sentence must end with its own evidence marker. "
+        ),
+        "unsupported_quote": (
+            "Remove quotation marks and paraphrase the supported information; "
+            "punctuation, translations and shortened wording are not verbatim source quotes. "
+        ),
+        "missing_surrender_charge_start_events": (
+            "Preserve both the Policy Date and the effective date of each increase in "
+            "Basic Sum Insured when stating the surrender-charge period. "
+        ),
+    }
+    correction = "".join(corrections.get(code, "") for code in error.split(", "))
     return [
         *messages,
         {"role": "assistant", "content": draft},
@@ -124,7 +140,7 @@ def citation_repair_messages(
             "role": "user",
             "content": (
                 f"Your previous draft was rejected ({error}). Rewrite "
-                "the answer now. Every product-specific claim must end with a valid [S#] "
+                f"the answer now. {correction}Every product-specific claim must end with a valid [S#] "
                 "marker from the evidence list. Do not add facts not present in the "
                 "evidence. If the evidence cannot support the answer, state that clearly."
             ),

@@ -52,6 +52,8 @@ class ScriptedLLM:
         response = self.responses.pop(0)
         if isinstance(response, Exception):
             raise response
+        if callable(response):
+            response = response(messages)
         return SimpleNamespace(text=response)
 
 
@@ -68,6 +70,19 @@ def orchestrator(responses, hits=HITS):
     return ChatOrchestrator(
         Settings(_env_file=None), StaticRetriever(hits), ScriptedLLM(responses)
     )
+
+
+@pytest.mark.parametrize("needs_repair", [False, True])
+def test_requested_script_is_normalized_before_review_and_after_repair(needs_repair):
+    draft = "提款費用為US$25。 [S1]"
+    responses = (["提款費用為US$25。", draft] if needs_repair else [draft]) + [APPROVAL]
+    app = orchestrator(responses)
+    answer = asyncio.run(app.answer(ChatRequest(message="What is the withdrawal charge?", language="zh-Hans")))
+    assert answer.model_generated
+    assert "提款费用为US$25" in answer.message
+    reviewed = json.loads(app.llm.calls[-1][1]["content"])
+    assert "提款费用为US$25" in reviewed["claims"][0]["text"]
+    assert answer.citations[0].excerpt == HITS[0].chunk.citation_excerpt
 
 
 def test_each_sentence_needs_its_own_citation():
@@ -89,6 +104,7 @@ def test_surrender_duration_cannot_omit_the_restart_on_increased_cover(knowledge
 
 @pytest.mark.parametrize("claim", [
     "Surrender charges apply in the first 14 years from the Policy Date or the effective date of each increase in Basic Sum Insured.",
+    "Surrender charges may apply in the first 14 years of each coverage layer.",
     "退保費用適用於保單日期或每次增加基本保障額的生效日期起計首14年。",
     "退保费用适用于保单日期或每次增加基本保障额的生效日期起计首14年。",
 ])
@@ -101,9 +117,52 @@ def test_duration_gate_does_not_invent_restart_terms_for_other_sources():
     assert inspect_draft("Surrender charges apply in the first 14 years. [S1]", [hit("Surrender charges apply in the first 14 years.")])
 
 
+def test_surrender_start_events_can_span_adjacent_claims_from_the_same_source(knowledge_chunks):
+    source = next(c for c in knowledge_chunks if c.page == 18 and "effective date of each increase" in c.citation_excerpt)
+    draft = "Surrender charges apply in the first 14 years from the Policy Date. [S1]\nIt is also applicable in the first 14 years from the effective date of each increase in Basic Sum Insured. [S1]"
+    assert len(inspect_draft(draft, [RetrievalHit(source, 1, 1, 0)])) == 2
+
+
+@pytest.mark.parametrize("qualifier", [
+    "It is also applicable in the first 14 years from the effective date of each increase in Basic Sum Insured. [S2]",
+    "The maturity benefit lasts 14 years from the effective date of each increase in Basic Sum Insured. [S1]",
+])
+def test_another_source_or_benefit_cannot_supply_the_surrender_clock(knowledge_chunks, qualifier):
+    source = next(c for c in knowledge_chunks if c.page == 18 and "effective date of each increase" in c.citation_excerpt)
+    draft = "Surrender charges apply in the first 14 years from the Policy Date. [S1]\n" + qualifier
+    with pytest.raises(GroundingError, match="missing_surrender_charge_start_events"):
+        inspect_draft(draft, [RetrievalHit(source, 1, 1, 0), hit(source.citation_excerpt, "other")])
+
+
+def test_one_repair_receives_all_independent_draft_failures(knowledge_chunks):
+    source = next(c for c in knowledge_chunks if c.page == 18 and "effective date of each increase" in c.citation_excerpt)
+    bad = "Here is the answer. Surrender charges apply in the first 14 years. [S1]"
+    valid = "Surrender charges apply in the first 14 years from the Policy Date or the effective date of each increase in Basic Sum Insured. [S1]"
+
+    def repair(messages):
+        feedback = messages[-1]["content"]
+        return valid if all(code in feedback for code in ("uncited_claim", "missing_surrender_charge_start_events")) else bad
+
+    app = orchestrator([bad, repair, APPROVAL], [RetrievalHit(source, 1, 1, 0)])
+    answer = asyncio.run(app.answer(ChatRequest(message="Explain surrender charges.", language="en")))
+    assert answer.model_generated
+    assert "effective date of each increase" in answer.message
+    assert len(app.llm.calls) == 3
+
+
 def test_number_must_occur_in_the_claims_own_cited_source():
     with pytest.raises(GroundingError, match="unsupported_numeric_claim"):
         inspect_draft("The withdrawal charge is US$200. [S1]", HITS)
+
+
+@pytest.mark.parametrize("number", ["101", "101.5"])
+def test_sentence_final_period_cannot_hide_an_unsupported_bare_number(number):
+    with pytest.raises(GroundingError, match="unsupported_claim_number"):
+        inspect_draft(f"The benefit term is {number}. [S1]", [hit("The benefit term is 100.")])
+
+
+def test_sentence_final_decimal_value_keeps_its_complete_value():
+    assert inspect_draft("The value is 100.50. [S1]", [hit("The value is 100.5.")])
 
 
 @pytest.mark.parametrize(

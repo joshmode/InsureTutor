@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from functools import lru_cache
 from pathlib import Path
+from typing import Literal
 from urllib.parse import urlsplit
 
 from pydantic import Field, field_validator, model_validator
@@ -33,6 +34,7 @@ class Settings(BaseSettings):
     llm_temperature: float = Field(default=0.1, ge=0, le=1.5)
     # OpenAI-compatible reasoning models include hidden reasoning in this cap.
     llm_max_output_tokens: int = Field(default=3000, ge=128, le=8000)
+    llm_reasoning_effort: Literal["none", "minimal", "low", "medium", "high", "xhigh", "max"] | None = None
     llm_timeout_seconds: float = Field(default=60, ge=5, le=180)
     llm_extra_headers: str = Field(default="", repr=False)
 
@@ -70,6 +72,11 @@ class Settings(BaseSettings):
     # Optional browser-native access control; use only behind HTTPS remotely.
     app_access_username: str = ""
     app_access_password: str = Field(default="", repr=False)
+
+    @field_validator("llm_reasoning_effort", mode="before")
+    @classmethod
+    def _optional_reasoning_effort(cls, value):
+        return (value.strip() or None) if isinstance(value, str) else value
 
     @field_validator("llm_base_url")
     @classmethod
