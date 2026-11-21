@@ -42,7 +42,10 @@ class ChatResponse(BaseModel):
     kind: Literal["answer", "scope", "insufficient", "blocked", "advice"] = "answer"
     used_retrieval: bool = False
     retrieval_mode: str | None = None
-    confidence: float | None = None
+    confidence: float | None = Field(
+        default=None,
+        description="Uncalibrated retrieval ranking score, not the probability that an answer is true",
+    )
     notices: list[str] = Field(default_factory=list)
 
 
@@ -62,4 +65,3 @@ class SourceChunk(BaseModel):
     section: str
     content: str
     score: float = 0
-

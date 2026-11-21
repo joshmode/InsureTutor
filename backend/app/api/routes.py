@@ -4,6 +4,7 @@ import logging
 
 from fastapi import APIRouter, HTTPException, Request
 
+from ..chat.llm import LLMQuotaExceeded, LLMInputTooLarge
 from ..models import ChatRequest, ChatResponse, HealthResponse
 
 logger = logging.getLogger(__name__)
@@ -50,10 +51,20 @@ async def chat(payload: ChatRequest, request: Request) -> ChatResponse:
         )
     try:
         return await runtime.orchestrator.answer(payload)
+    except LLMQuotaExceeded as exc:
+        raise HTTPException(
+            status_code=429,
+            detail="The AI allowance is exhausted. Please try again later.",
+            headers={"Retry-After": str(exc.retry_after)},
+        ) from None
+    except LLMInputTooLarge:
+        raise HTTPException(
+            status_code=413,
+            detail="This conversation is too long. Start a new conversation.",
+        ) from None
     except Exception:
         logger.exception("Unhandled chat error")
         raise HTTPException(
             status_code=502,
             detail="The tutor could not complete the request. Please try again.",
         ) from None
-

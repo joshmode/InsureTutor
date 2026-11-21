@@ -10,6 +10,8 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from .api.routes import router
+from .api.protection import ProtectionMiddleware
+from .services.consumption import ConsumptionGuard
 from .config import get_settings
 from .logging_config import configure_logging
 from .services.runtime import AppRuntime
@@ -21,10 +23,13 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     settings = get_settings()
     configure_logging(settings.log_level)
-    runtime = AppRuntime(settings)
+    app.state.consumption = ConsumptionGuard(settings)
+    runtime = AppRuntime(settings, consumption=app.state.consumption)
     app.state.runtime = runtime
     try:
-        runtime.initialize()
+        from starlette.concurrency import run_in_threadpool
+
+        await run_in_threadpool(runtime.initialize)
     except Exception:
         logger.exception("Startup initialization failed")
         raise
@@ -47,6 +52,7 @@ app.add_middleware(
 app.include_router(router, prefix="/api")
 
 STATIC_DIR = Path(__file__).resolve().parents[2] / "frontend" / "out"
+app.add_middleware(ProtectionMiddleware, settings=settings, static_dir=STATIC_DIR)
 settings.knowledge_base_dir.mkdir(parents=True, exist_ok=True)
 settings.data_dir.mkdir(parents=True, exist_ok=True)
 if STATIC_DIR.exists():
@@ -82,5 +88,6 @@ async def serve_frontend(full_path: str):
     index = STATIC_DIR / "index.html"
     if index.exists():
         return FileResponse(index)
-    return {"message": "InsureTutor API is running. Build the frontend to serve the UI."}
-
+    return {
+        "message": "InsureTutor API is running. Build the frontend to serve the UI."
+    }

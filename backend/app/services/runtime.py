@@ -12,11 +12,11 @@ logger = logging.getLogger(__name__)
 
 
 class AppRuntime:
-    def __init__(self, settings: Settings):
+    def __init__(self, settings: Settings, consumption=None):
         self.settings = settings
         self.knowledge = KnowledgeBase(settings)
         self.retriever: HybridRetriever | None = None
-        self.llm = OpenAICompatibleClient(settings)
+        self.llm = OpenAICompatibleClient(settings, consumption=consumption)
         self.orchestrator: ChatOrchestrator | None = None
         self.ready = False
 
@@ -25,9 +25,7 @@ class AppRuntime:
         if not chunks:
             raise RuntimeError("Knowledge base is empty after ingestion")
         self.retriever = HybridRetriever(chunks, self.settings)
-        self.orchestrator = ChatOrchestrator(
-            self.settings, self.retriever, self.llm
-        )
+        self.orchestrator = ChatOrchestrator(self.settings, self.retriever, self.llm)
         self.ready = True
         logger.info(
             "Runtime ready: %d chunks, retrieval=%s, llm_configured=%s",
@@ -35,4 +33,3 @@ class AppRuntime:
             self.retriever.mode,
             self.llm.configured,
         )
-
