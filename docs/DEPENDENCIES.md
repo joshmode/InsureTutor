@@ -55,7 +55,7 @@ BUILD_CA_FILE=/etc/ssl/certs/ca-certificates.crt \
   docker compose -f docker-compose.yml -f docker-compose.build-ca.yml up --build
 ```
 
-`BUILD_CA_FILE` is the path to a trusted CA bundle, not an API key. The bundle is mounted only in the two dependency-download build steps and is not copied into image layers. `npm --strict-ssl=true`, pip TLS verification and package hashes stay enabled. Do not use `--trusted-host`, `strict-ssl=false` or disable certificate verification. Runtime provider HTTPS behind a proxy may separately need the platform's supported trust configuration; build trust does not configure a running provider connection.
+`BUILD_CA_FILE` is the path to a trusted CA bundle, not an API key. The bundle is mounted only in dependency and signed OS-package download build steps and is not copied into image layers. `npm --strict-ssl=true`, pip TLS verification and package hashes stay enabled. Do not use `--trusted-host`, `strict-ssl=false` or disable certificate verification. Runtime provider HTTPS behind a proxy may separately need the platform's supported trust configuration; build trust does not configure a running provider connection.
 
 ## Audit evidence and scope
 
