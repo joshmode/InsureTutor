@@ -14,6 +14,7 @@ from ..guardrails.grounding import (
     draft_failure_reasons,
     inspect_draft,
     literal_applicable,
+    normalize_question_wording,
     review_approved,
     review_messages,
 )
@@ -77,12 +78,18 @@ class ChatOrchestrator:
         language: str,
         retrieval: RetrievalResult | None = None,
         extra_notice: str | None = None,
+        *,
+        generation_unverified: bool = False,
     ) -> ChatResponse:
         notices = [localised_notice(language, "brochure_only")]
         if extra_notice:
             notices.append(extra_notice)
         return ChatResponse(
-            message=fixed_response(language, "insufficient"),
+            message=(
+                localised_notice(language, "generation_unverified")
+                if generation_unverified
+                else fixed_response(language, "insufficient")
+            ),
             language=language,
             kind="insufficient",
             used_retrieval=retrieval is not None,
@@ -171,7 +178,7 @@ class ChatOrchestrator:
         query = (
             f"policy features benefits risks fees suitability {contextual_question}"
             if advice
-            else contextual_question
+            else normalize_question_wording(contextual_question)
         )
         retrieval = await run_in_threadpool(self._retrieve, query, history)
         # The conflict belongs to reviewed source bytes, not to whichever
@@ -244,6 +251,7 @@ class ChatOrchestrator:
             try:
                 claims = inspect_draft(draft, retrieval.hits)
             except GroundingError as exc:
+                logger.info("Generated draft requires repair: %s", exc)
                 errors = await run_in_threadpool(
                     draft_failure_reasons, draft, retrieval.hits, str(exc)
                 )
@@ -262,15 +270,22 @@ class ChatOrchestrator:
                 temperature=0.0,
             )
             if not review_approved(review.text, claims):
-                logger.info("Independent grounding review did not approve the draft")
-                return self._nofact(language, retrieval)
+                logger.warning("Generated explanation withheld: grounding review rejected draft")
+                return self._nofact(language, retrieval, generation_unverified=True)
         except (LLMQuotaExceeded, LLMInputTooLarge):
             raise
-        except (GroundingError, LLMError):
-            return self._nofact(language, retrieval)
+        except GroundingError as exc:
+            logger.warning("Generated explanation withheld: %s", exc)
+            return self._nofact(language, retrieval, generation_unverified=True)
+        except LLMError:
+            logger.warning("Generation repair or review unavailable; returning source excerpts")
+            return self._excerpts(
+                request, retrieval, decision.sensitive_topics,
+                advice=advice, provider_unavailable=True,
+            )
         except Exception:
             logger.exception("Unexpected grounding/review failure")
-            return self._nofact(language, retrieval)
+            return self._nofact(language, retrieval, generation_unverified=True)
         validated = validate_and_map_citations(draft, retrieval.hits)
         notices = [localised_notice(language, "educational")]
         if advice:

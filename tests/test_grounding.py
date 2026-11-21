@@ -304,7 +304,6 @@ def test_generated_answer_requires_separate_review():
     "review",
     [
         "{}",
-        LLMError("reviewer unavailable"),
         APPROVAL.replace('"supported": true', '"supported": false'),
     ],
 )
@@ -331,6 +330,20 @@ def test_matching_number_is_not_enough_for_semantic_approval():
         app.answer(ChatRequest(message="Explain the administrative charge."))
     )
     assert answer.kind == "insufficient"
+    assert "could not verify" in answer.message
+
+
+@pytest.mark.parametrize('responses', [
+    [DRAFT, LLMError('reviewer unavailable')],
+    ['Uncited draft', LLMError('repair unavailable')],
+])
+def test_repair_or_reviewer_outage_shows_only_original_excerpts(responses):
+    app = orchestrator(responses)
+    answer = asyncio.run(app.answer(ChatRequest(message='What is the administrative charge?')))
+    assert answer.kind == 'answer' and answer.citations
+    assert answer.model_generated is False
+    assert 'provider was unavailable' in ' '.join(answer.notices)
+    assert 'Uncited draft' not in answer.message
 
 
 def test_quota_exhaustion_does_not_retry_or_generate_excerpts():
@@ -721,3 +734,22 @@ def test_maximum_sum_insured_retains_actual_source_value(retriever, question):
         for citation in answer.citations
     )
     assert "Individual consideration" in answer.message
+
+@pytest.mark.parametrize(('question','source'), [
+    ('What currencies are available?', 'Policy Currency: USD and HKD.'),
+    ('What payment methods are available?', 'Payment modes: annual and monthly.'),
+    ('What are the exclusions?', 'Exclusion: suicide within one year.'),
+    ('What risks should I know about?', 'Early surrender risk and credit risk.'),
+    ('Explain the charges in simple English.', 'Administrative charge and withdrawal charge apply.'),
+])
+def test_natural_english_wording_retains_supported_subject(question, source):
+    assert literal_applicable(question, [hit(source)])
+
+@pytest.mark.parametrize('question', [
+    'What veterinary benefits are available?',
+    'What are the earthquake exclusions?',
+    'Explain the English law charges.',
+    'What payment methods involving cryptocurrency are available?',
+])
+def test_question_scaffolding_does_not_remove_unknown_subjects(question):
+    assert not literal_applicable(question, [hit('Payment modes: annual and monthly. Administrative charge. Exclusion. Life insurance risk.')])

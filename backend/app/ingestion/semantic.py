@@ -52,6 +52,7 @@ CONCEPTS: dict[str, tuple[str, ...]] = {
         "early surrender inflation credit risk lapse exclusions duty disclosure cooling off",
         "提早退保 通脹風險 信貸風險 保單失效 不保事項 提供資料責任 冷靜期",
     ),
+    "exclusion": ("exclusion exclusions key exclusions", "主要不保事項 不保事项 除外責任"),
     "account": (
         "account value cash value premium charges interest death benefit",
         "賬戶價值 現金價值 保費 費用 利息 身故保障",
@@ -144,16 +145,15 @@ TRIGGERS: dict[str, tuple[str, ...]] = {
     ),
     "risk": (
         "risk",
-        "exclusion",
         "lapse",
         "inflation",
         "credit",
         "风险",
         "風險",
-        "不保",
         "通胀",
         "通脹",
     ),
+    "exclusion": ("exclusion", "excluded", "不保", "除外"),
     "account": ("account value", "cash value", "账户", "賬戶", "现金价值", "現金價值"),
     "eligibility": (
         "age",
@@ -278,6 +278,7 @@ def _stem(word: str) -> str:
         ("interest", "interest"),
         ("fees", "fee"),
         ("claims", "claim"),
+        ("exclusions", "exclusion"),
         ("miss", "skip"),
         ("missing", "skip"),
         ("skipping", "skip"),

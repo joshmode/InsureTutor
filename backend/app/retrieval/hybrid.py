@@ -322,6 +322,16 @@ class HybridRetriever:
         normalized_query = " ".join(tokenize(query))
         for chunk in self.chunks:
             if chunk.content_type != "form":
+                # A single named topic can be a printed paragraph heading,
+                # just as a form field is. Do not rank a generic reference to
+                # "exclusions" above the actual Key Exclusions clause.
+                terms = set(tokenize(query))
+                if len(terms) == 1 and any(
+                    re.search(r"(?im)^(?:key |major )?" + re.escape(term) + r"s?(?:\s|$)", chunk.citation_excerpt)
+                    for term in terms
+                ):
+                    direct_fields.add(chunk.id)
+                    merged[chunk.id]["lexical"] = 1.0
                 continue
             label = chunk.section.rsplit(" · ", 1)[-1]
             labels = [label, chunk.citation_excerpt.splitlines()[0]]
@@ -381,6 +391,17 @@ class HybridRetriever:
                     for term in DIRECT_CONCEPTS[concept]
                 )
             ]
+            # For an English exclusions question, its verbatim English clause
+            # can fall below the initial window behind Chinese risk passages.
+            # Recover it from scored candidates without lowering relevance.
+            if "exclusion" in direct_concepts and not re.search(r"[\u3400-\u9fff]", query):
+                english_exclusions = [
+                    hit for hit in hits
+                    if hit.score >= threshold
+                    and re.search(r"\bexclusions?\b", hit.chunk.citation_excerpt, re.I)
+                ]
+                if english_exclusions:
+                    supported = english_exclusions
             # If an explicit product concept has no supporting passage, do not
             # substitute an adjacent topic just to fill the context window.
             if not supported:
@@ -528,7 +549,11 @@ class HybridRetriever:
                 if phrase in haystack:
                     literal_covered.add(phrase)
                     covered_here.add(phrase)
-            if raw_top >= 4.0 and hit.lexical_score >= 0.8 and len(covered_here) >= 2:
+            named_heading = len(literal_set) == 1 and any(
+                re.search(r"(?im)^(?:key |major )?" + re.escape(term) + r"s?(?:\s|$)", hit.chunk.citation_excerpt)
+                for term in covered_here
+            )
+            if raw_top >= 4.0 and hit.lexical_score >= 0.8 and (len(covered_here) >= 2 or named_heading):
                 strong_literal_support = True
         if lower_query.strip().rstrip("?.!") in {
             "what is the capital of france",

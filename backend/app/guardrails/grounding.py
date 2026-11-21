@@ -311,17 +311,24 @@ _CJK_SCAFFOLD = re.compile(
 )
 
 
+def normalize_question_wording(text: str) -> str:
+    # Wording of the request is not an additional product condition. Keep
+    # substantive modifiers (e.g. English law or cryptocurrency) as anchors.
+    text = re.sub(r"\bin (?:simple |plain )?english\b", " ", text, flags=re.I)
+    return re.sub(r"\bpayment methods?\b", "payment mode", text, flags=re.I)
+
+
 def _subject_terms(text: str) -> set[str]:
-    text = normalize_term(text)
+    text = normalize_question_wording(normalize_term(text))
     text = re.sub(r"\blike i[’']?m\s+\d+", "", text)
     text = _CJK_SCAFFOLD.sub(" ", text)
     terms = set(tokenize(text))
     return {
         # These identify the subject, not whether a charge exists or is waived.
         # The cited draft/reviewer must still establish the actual conditions.
-        ({"fee": "charge", "free": "charge", "rights": "right", "risks": "risk", "options": "option"}.get(t, t))
+        ({"fee": "charge", "free": "charge", "rights": "right", "risks": "risk", "options": "option", "exclusions": "exclusion"}.get(t, t))
         for t in terms
-        if t not in _QUERY_SCAFFOLD and not t[0].isdigit()
+        if t not in _QUERY_SCAFFOLD and t != "available" and not t[0].isdigit()
     }
 
 
@@ -346,7 +353,7 @@ def literal_applicable(
     if not terms:
         return advice or bool(
             re.search(
-                r"\b(?:policy|plan|insurance|brochure)\b|計劃|计划|保單|保单|保險|保险",
+                r"\b(?:policy|plan|insurance|brochure|risks?|options?|benefits?)\b|計劃|计划|保單|保单|保險|保险",
                 question,
                 re.I,
             )

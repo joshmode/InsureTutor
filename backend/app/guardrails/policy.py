@@ -145,6 +145,7 @@ def screen_input(message: str) -> GuardrailDecision:
 def localised_notice(language: str, key: str) -> str:
     notices = {
         "en": {
+            "generation_unverified": "I found related brochure passages, but could not verify a reliable explanation for your question. I have withheld the generated answer. Try asking about one specific policy feature at a time, or check the source document.",
             "provider_unavailable": "The model provider was unavailable; showing source excerpts only.",
             "educational": (
                 "InsureTutor is an educational assistant, not a licensed insurance "
@@ -165,6 +166,7 @@ def localised_notice(language: str, key: str) -> str:
             ),
         },
         "zh-Hans": {
+            "generation_unverified": "我找到了相关册子段落，但无法核实针对您问题的解释，因此未展示生成的答案。请尝试每次询问一项具体保单特点，或查阅原始文件。",
             "provider_unavailable": "AI 解释暂时不可用，目前仅展示册子原文。",
             "educational": (
                 "InsureTutor 是保险教育助手，并非持牌保险顾问。它只解释所提供的产品册子，"
@@ -175,6 +177,7 @@ def localised_notice(language: str, key: str) -> str:
             "sensitive": "册子未必能解决医疗、税务、法律、核保或理赔争议问题，这些事项需向有关机构确认。",
         },
         "zh-Hant": {
+            "generation_unverified": "我找到了相關冊子段落，但無法核實針對您問題的解釋，因此未展示生成的答案。請嘗試每次詢問一項具體保單特點，或查閱原始文件。",
             "provider_unavailable": "AI 解釋暫時無法使用，目前僅展示冊子原文。",
             "educational": (
                 "InsureTutor 是保險教育助手，並非持牌保險顧問。它只解釋所提供的產品冊子，"

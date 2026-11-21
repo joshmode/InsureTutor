@@ -103,3 +103,11 @@ def test_payment_mode_retrieves_at_a_glance(retriever):
         for hit in result.hits
     )
 
+
+
+def test_printed_exclusion_heading_survives_missing_vector_candidate(retriever, monkeypatch):
+    monkeypatch.setattr(retriever.embedding_backend, 'available', True)
+    monkeypatch.setattr(retriever.vector, 'search', lambda *args, **kwargs: [])
+    result = retriever.search('What are the exclusions?')
+    assert result.sufficient
+    assert any('exclusions' in h.chunk.citation_excerpt.lower() for h in result.hits)

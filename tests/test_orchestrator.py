@@ -200,3 +200,17 @@ def test_provider_prompt_uses_configured_history_bound_and_conflict_policy(retri
     assert "Do not silently choose one" in sent[0]["content"]
     assert "0.25% retrospective additional" in sent[0]["content"]
     assert "2.75%/5.5% Extra Bonus" in sent[0]["content"]
+
+@pytest.mark.parametrize('question', [
+    'What currencies are available?',
+    'What payment methods are available?',
+    'What are the exclusions?',
+    'What risks should I know about?',
+    'Explain the charges in simple English.',
+])
+def test_natural_english_questions_reach_original_brochure(retriever, question):
+    app = orchestrator(retriever, [])
+    app.llm.configured = False
+    answer = asyncio.run(app.answer(ChatRequest(message=question, language='en')))
+    assert answer.kind == 'answer' and answer.citations
+    assert not answer.model_generated
