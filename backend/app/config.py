@@ -33,7 +33,7 @@ class Settings(BaseSettings):
     llm_model: str = "gpt-4.1-mini"
     llm_temperature: float = Field(default=0.1, ge=0, le=1.5)
     # OpenAI-compatible reasoning models include hidden reasoning in this cap.
-    llm_max_output_tokens: int = Field(default=3000, ge=128, le=8000)
+    llm_max_output_tokens: int = Field(default=8000, ge=128, le=8000)
     llm_reasoning_effort: Literal["none", "minimal", "low", "medium", "high", "xhigh", "max"] | None = None
     llm_timeout_seconds: float = Field(default=60, ge=5, le=180)
     llm_extra_headers: str = Field(default="", repr=False)

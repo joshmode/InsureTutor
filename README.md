@@ -316,7 +316,7 @@ All runtime knobs are environment-driven; see [`.env.example`](.env.example).
 | `LLM_BASE_URL` | Any OpenAI-compatible base URL ending in `/v1` |
 | `LLM_MODEL` | Chat model name |
 | `LLM_TEMPERATURE` | Generation temperature (default 0.1) |
-| `LLM_MAX_OUTPUT_TOKENS` | Per-call output cap, default 3000; reasoning tokens consume this allowance on reasoning models |
+| `LLM_MAX_OUTPUT_TOKENS` | Per-call output cap, default 8000; reasoning tokens consume this allowance on reasoning models |
 | `LLM_REASONING_EFFORT` | Optional provider setting; blank omits the field. Supported values: `none`, `minimal`, `low`, `medium`, `high`, `xhigh`, `max`; availability depends on the selected model |
 | `LLM_TIMEOUT_SECONDS` | Provider timeout |
 | `LLM_EXTRA_HEADERS` | Optional `key:value;key:value` headers |
