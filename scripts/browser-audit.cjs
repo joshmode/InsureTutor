@@ -2,12 +2,21 @@
  * CHROMIUM_PATH selects a system browser, otherwise Playwright's installed Chromium is used.
  * This audits the built client and both real and controlled API responses.
  */
-const { chromium } = require("playwright");
+const path = require("node:path");
+const frontendRequire = require("node:module").createRequire(
+  path.resolve(__dirname, "../frontend/package.json"),
+);
+const browsers = frontendRequire("playwright");
+const engine = process.env.BROWSER_ENGINE || "chromium";
+if (!["chromium", "firefox", "webkit"].includes(engine))
+  throw new Error("Unknown browser engine");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
-const path = require("node:path");
 const base = process.env.BASE_URL || "http://127.0.0.1:8010";
-const output = path.resolve(__dirname, "../docs/audit");
+const output =
+  process.env.AUDIT_OUTPUT_DIR || path.resolve(__dirname, "../docs/audit");
+const axePath =
+  process.env.AXE_PATH || frontendRequire.resolve("axe-core/axe.min.js");
 fs.mkdirSync(output, { recursive: true });
 const citation = {
   id: "fixture-chunk",
@@ -30,23 +39,42 @@ const answer = {
   used_retrieval: true,
   retrieval_mode: "lexical",
 };
-answer.message += "\n\n![tracking image](https://example.invalid/tracker.png) [Untrusted link](https://example.invalid/verify)";
+answer.message +=
+  "\n\n![tracking image](https://example.invalid/tracker.png) [Untrusted link](https://example.invalid/verify)";
 const checks = [];
 (async () => {
-  const browser = await chromium.launch({
-    executablePath: process.env.CHROMIUM_PATH || "/usr/bin/chromium",
+  const browser = await browsers[engine].launch({
+    ...(engine === "chromium"
+      ? {
+          executablePath:
+            process.env.CHROMIUM_PATH ||
+            (fs.existsSync("/usr/bin/chromium")
+              ? "/usr/bin/chromium"
+              : undefined),
+          args: ["--no-sandbox"],
+        }
+      : {}),
     headless: true,
-    args: ["--no-sandbox"],
   });
   const context = await browser.newContext({
     viewport: { width: 1440, height: 1000 },
-    permissions: ["clipboard-read", "clipboard-write"],
+    permissions:
+      engine === "chromium" ? ["clipboard-read", "clipboard-write"] : [],
     reducedMotion: "reduce",
   });
   const p = await context.newPage();
   const errors = [];
+  p.on("console", (message) => {
+    if (message.type() === "error") {
+      const expectedMockError = message.location().url === `${base}/api/chat` && /Failed to load resource.*(?:502|429|413)/.test(message.text());
+      if (!expectedMockError) errors.push(message.text());
+    }
+  });
   const externalRequests = [];
-  p.on("request", request => {if (request.url().includes("example.invalid")) externalRequests.push(request.url());});
+  p.on("request", (request) => {
+    if (request.url().includes("example.invalid"))
+      externalRequests.push(request.url());
+  });
   p.on("pageerror", (e) => errors.push(e.message));
   await p.goto(base);
   await p.getByRole("heading", { level: 1 }).waitFor();
@@ -78,6 +106,7 @@ const checks = [];
   await p.getByRole("button", { name: /02 The 4% rate/ }).click();
   await p.locator(".markdown").waitFor();
   assert(await p.locator(".markdown").innerText());
+  assert.equal(await p.locator('[role="log"]').getAttribute("aria-live"), "polite");
   assert(await p.getByRole("button", { name: /Citation 1:/ }).count());
   await p.screenshot({ path: path.join(output, "after-chat.png") });
   await p
@@ -125,11 +154,15 @@ const checks = [];
       .isVisible(),
   );
   await p.getByRole("button", { name: "Copy answer", exact: true }).click();
-  assert(
-    (await p.evaluate(() => navigator.clipboard.readText())).includes(
-      "**not guaranteed [1]**",
-    ),
-  );
+  if (engine === "chromium") {
+    assert(
+      (await p.evaluate(() => navigator.clipboard.readText())).includes(
+        "**not guaranteed [1]**",
+      ),
+    );
+  } else {
+    await p.getByText("Copied", { exact: true }).waitFor();
+  }
   checks.push(
     "nested Markdown citations in emphasis/table; every notice visible; copy original answer",
   );
@@ -152,9 +185,14 @@ const checks = [];
   await p.screenshot({ path: path.join(output, "after-sources.png") });
   await p.keyboard.press("Escape");
   checks.push("source dialog traps keyboard focus and closes with Escape");
-  assert.equal(await p.locator('.markdown img, .markdown a[href^="https:"]').count(), 0);
+  assert.equal(
+    await p.locator('.markdown img, .markdown a[href^="https:"]').count(),
+    0,
+  );
   assert.deepEqual(externalRequests, []);
-  checks.push("model-supplied images and external links cannot trigger external browsing requests");
+  checks.push(
+    "model-supplied images and external links cannot trigger external browsing requests",
+  );
   // Repeat error then retry without duplicating the user turn.
   await p.getByRole("button", { name: "New conversation" }).click();
   await p.unroute("**/api/chat");
@@ -171,6 +209,25 @@ const checks = [];
   await p.locator(".markdown").waitFor();
   assert.equal(await p.locator(".user-message").count(), 1);
   checks.push("network error and retry keep one user turn");
+  for (const [status, phrase] of [
+    [429, "request allowance"],
+    [413, "conversation is too long"],
+  ]) {
+    await p.getByRole("button", { name: "New conversation" }).click();
+    await p.unroute("**/api/chat");
+    await p.route("**/api/chat", (route) =>
+      route.fulfill({ status, json: { detail: "Not displayed raw" } }),
+    );
+    await p.locator("#question").fill("Check the error explanation");
+    await p.getByRole("button", { name: "Send question" }).click();
+    await p.locator(".assistant-message[role=alert]").waitFor();
+    assert(
+      (await p.locator(".assistant-message[role=alert]").innerText()).includes(
+        phrase,
+      ),
+    );
+  }
+  checks.push("quota and length limits show accurate recovery instructions");
   // Preserve a follow-up drafted while an earlier answer is loading.
   await p.getByRole("button", { name: "New conversation" }).click();
   await p.unroute("**/api/chat");
@@ -240,9 +297,10 @@ const checks = [];
   checks.push(
     "720px effective viewport (1440 at 200%); short 390x420 viewport",
   );
-  if (process.env.AXE_PATH) {
+  if (axePath) {
     await p.setViewportSize({ width: 1440, height: 1000 });
-    await p.addScriptTag({ path: process.env.AXE_PATH });
+    // Run trusted diagnostic code through browser automation; do not relax the page CSP.
+    await p.evaluate(fs.readFileSync(axePath, "utf8"));
     let result = await p.evaluate(() =>
       axe.run(document, {
         runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21aa"] },
@@ -287,11 +345,13 @@ const checks = [];
     );
     checks.push("axe WCAG A/AA home and open source dialog: zero violations");
   }
-  assert.deepEqual(errors, [], "browser runtime errors");
-  checks.push("no browser JavaScript errors");
+  assert.deepEqual(errors, [], "browser runtime and console errors");
+  checks.push(
+    "no unexpected browser JavaScript or console errors (including CSP violations)",
+  );
   fs.writeFileSync(
-    path.join(output, "browser-results.json"),
-    JSON.stringify({ checks, passed: checks.length }, null, 2),
+    path.join(output, "browser-risk-results.json"),
+    JSON.stringify({ engine, checks, passed: checks.length }, null, 2),
   );
   console.log(checks.join("\n"));
   await browser.close();

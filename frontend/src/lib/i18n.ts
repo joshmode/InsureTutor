@@ -22,6 +22,9 @@ export const LANGUAGES: {
 ];
 
 type Copy = {
+  quotaError: string;
+  lengthError: string;
+  privacyNotice: string;
   enterHint: string;
   excerptMode: string;
   connectedMode: string;
@@ -73,6 +76,12 @@ type Copy = {
 };
 
 const en: Copy = {
+  quotaError:
+    "The service has reached its request allowance. Your question is still here; please try again later.",
+  lengthError:
+    "This conversation is too long. Start a new conversation and ask again.",
+  privacyNotice:
+    "Chats stay in this page. With AI connected, your question and recent conversation are sent to the configured model provider. Avoid personal or medical details.",
   enterHint: "Enter to send · Shift + Enter for a new line",
   excerptMode: "Source excerpts · AI model not connected",
   connectedMode: "Brochure ready",
@@ -156,6 +165,10 @@ const en: Copy = {
 };
 
 const zhHans: Copy = {
+  quotaError: "服务已达到请求限额。您的问题仍在此处，请稍后重试。",
+  lengthError: "对话过长，请开启新对话后再次提问。",
+  privacyNotice:
+    "对话仅保留在此页面。连接 AI 后，问题和近期对话会发送给所配置的模型服务商。请勿输入个人或医疗资料。",
   enterHint: "回车发送 · Shift + 回车换行",
   excerptMode: "原文模式 · 未连接 AI 模型",
   connectedMode: "册子已就绪",
@@ -227,6 +240,10 @@ const zhHans: Copy = {
 
 const zhHant: Copy = {
   ...zhHans,
+  quotaError: "服務已達到請求限額。您的問題仍在此處，請稍後重試。",
+  lengthError: "對話過長，請開啟新對話後再次提問。",
+  privacyNotice:
+    "對話僅保留在此頁面。連接 AI 後，問題和近期對話會傳送給所設定的模型服務商。請勿輸入個人或醫療資料。",
   enterHint: "Enter 發送 · Shift + Enter 換行",
   excerptMode: "原文模式 · 未連接 AI 模型",
   connectedMode: "冊子已就緒",

@@ -888,3 +888,11 @@ textarea:focus-visible,
     transition-duration: 0.01ms !important;
   }
 }
+
+.privacy-notice {
+  font-size: 12px;
+  line-height: 1.8;
+  color: var(--muted);
+  margin: -15px 0 28px;
+  max-width: 580px;
+}

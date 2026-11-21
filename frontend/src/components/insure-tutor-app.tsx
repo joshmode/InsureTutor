@@ -24,6 +24,9 @@ export function InsureTutorApp() {
   const [draft, setDraft] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
+  const [errorReason, setErrorReason] = useState<
+    "quota" | "length" | "network"
+  >("network");
   const [lastQuestion, setLastQuestion] = useState("");
   const [activeCitation, setActiveCitation] = useState<number | null>(null);
   const [sourceMessage, setSourceMessage] = useState<string | null>(null);
@@ -101,6 +104,7 @@ export function InsureTutorApp() {
     const history = historyForRequest();
     setDraft("");
     setError(false);
+    setErrorReason("network");
     setLastQuestion(question);
     setLoading(true);
     setMessages((current) => [
@@ -126,7 +130,17 @@ export function InsureTutorApp() {
         body: JSON.stringify({ message: question, language, history }),
         signal: controller.signal,
       });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      if (abortRef.current !== controller) return;
+      if (!response.ok) {
+        setErrorReason(
+          response.status === 429
+            ? "quota"
+            : response.status === 413
+              ? "length"
+              : "network",
+        );
+        throw new Error(`HTTP ${response.status}`);
+      }
       const result: ChatResponse = await response.json();
       if (abortRef.current !== controller) return;
       setMessages((current) =>
@@ -239,6 +253,13 @@ export function InsureTutorApp() {
                   {error && (
                     <ErrorBubble
                       language={language}
+                      detail={
+                        errorReason === "quota"
+                          ? copy.quotaError
+                          : errorReason === "length"
+                            ? copy.lengthError
+                            : undefined
+                      }
                       onRetry={() => sendMessage(lastQuestion, true)}
                     />
                   )}

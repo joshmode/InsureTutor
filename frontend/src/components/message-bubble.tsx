@@ -150,7 +150,9 @@ export function AssistantBubble({
 export function ErrorBubble({
   language,
   onRetry,
+  detail,
 }: {
+  detail?: string;
   language: LanguageCode;
   onRetry: () => void;
 }) {
@@ -170,7 +172,7 @@ export function ErrorBubble({
               {copy.errorTitle}
             </p>
             <p className="mt-0.5 text-[11px] leading-5 text-red-800/80">
-              {copy.errorBody}
+              {detail ?? copy.errorBody}
             </p>
             <button
               type="button"
