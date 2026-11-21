@@ -56,6 +56,41 @@ def test_malformed_provider_response_is_a_controlled_error(monkeypatch, payload)
         asyncio.run(client.complete([]))
 
 
+@pytest.mark.parametrize("content", [None, "A partly completed explanation [S1]."])
+def test_output_limit_rejects_even_nonempty_truncated_completion(monkeypatch, content):
+    client = client_with_transport(
+        monkeypatch,
+        lambda request: httpx.Response(
+            200,
+            json={"choices": [{"message": {"content": content}, "finish_reason": "length"}]},
+        ),
+    )
+    with pytest.raises(LLMError, match="output token limit"):
+        asyncio.run(client.complete([]))
+
+
+@pytest.mark.parametrize("content", [None, "A partial explanation"])
+def test_stream_reports_truncation_instead_of_success(monkeypatch, content):
+    import json
+
+    events = [
+        {"choices": [{"delta": {"content": content}, "finish_reason": None}]},
+        {"choices": [{"delta": {}, "finish_reason": "length"}]},
+    ]
+    client = client_with_transport(
+        monkeypatch,
+        lambda request: httpx.Response(
+            200, text="".join("data: " + json.dumps(event) + "\n\n" for event in events)
+        ),
+    )
+
+    async def consume():
+        return [chunk async for chunk in client.stream([])]
+
+    with pytest.raises(LLMError, match="output token limit"):
+        asyncio.run(consume())
+
+
 def test_provider_error_body_is_not_exposed_in_exception(monkeypatch):
     client = client_with_transport(
         monkeypatch,

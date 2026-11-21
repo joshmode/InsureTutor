@@ -139,6 +139,7 @@ def test_input_and_output_budgets_prevent_network_calls(tmp_path, monkeypatch):
     config = settings(
         tmp_path,
         llm_api_key="test-only",
+        llm_max_output_tokens=1200,
         provider_calls_per_day=1,
         provider_output_tokens_per_day=1200,
     )

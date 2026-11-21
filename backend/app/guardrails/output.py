@@ -183,6 +183,28 @@ def validate_answer_claims(answer: str, hits: list[RetrievalHit]) -> str | None:
             ):
                 return "false_guarantee"
     evidence_text = " ".join(hit.chunk.citation_excerpt for hit in hits)
+    plain_answer = answer.replace("*", "").replace("_", "")
+    # The brochure restarts this period for increased cover. A bare "first
+    # 14 years" summary can imply the charge disappears at policy year 14.
+    # Apply this narrow gate only when the claim's own source states the restart.
+    if (
+        re.search(r"surrender charges?|退保[費费]用", plain_answer, re.I)
+        and re.search(r"(?:14|十四)\s*[- ]*(?:policy\s+)?(?:years?|年)", plain_answer, re.I)
+        and re.search(
+            r"effective date of each increase|每次增加基本保障[額额]的生效日期",
+            " ".join(evidence_text.split()), re.I,
+        )
+    ):
+        original_start = re.search(
+            r"policy\s+(?:date|inception|start|issue date)|保[單单](?:日期|生效日)|(?:each|per)\s+layer|每[層层]",
+            plain_answer, re.I,
+        )
+        increased_cover = re.search(
+            r"(?:each|every|any)\s+(?:increase|new\s+layer)|(?:each|per)\s+layer|每次增加|每[層层]",
+            plain_answer, re.I,
+        )
+        if not original_start or not increased_cover:
+            return "missing_surrender_charge_start_events"
     unsupported = _numbers(answer) - _numbers(evidence_text)
     if unsupported:
         return "unsupported_numeric_claim"

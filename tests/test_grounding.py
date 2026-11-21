@@ -75,6 +75,32 @@ def test_each_sentence_needs_its_own_citation():
         inspect_draft(DRAFT + " Your principal can never fall.", HITS)
 
 
+@pytest.mark.parametrize("claim", [
+    "A surrender charge may apply in the first 14 years on lapse, surrender, or decrease in Basic Sum Insured.",
+    "A surrender **charge** may apply in the first 14 **years**.",
+    "退保費用適用於首14年。",
+    "退保费用适用于首14年。",
+])
+def test_surrender_duration_cannot_omit_the_restart_on_increased_cover(knowledge_chunks, claim):
+    source = next(c for c in knowledge_chunks if c.page == 18 and "effective date of each increase" in c.citation_excerpt)
+    with pytest.raises(GroundingError, match="missing_surrender_charge_start_events"):
+        inspect_draft(claim + " [S1]", [RetrievalHit(source, 1, 1, 0)])
+
+
+@pytest.mark.parametrize("claim", [
+    "Surrender charges apply in the first 14 years from the Policy Date or the effective date of each increase in Basic Sum Insured.",
+    "退保費用適用於保單日期或每次增加基本保障額的生效日期起計首14年。",
+    "退保费用适用于保单日期或每次增加基本保障额的生效日期起计首14年。",
+])
+def test_surrender_duration_retains_both_source_start_events(knowledge_chunks, claim):
+    source = next(c for c in knowledge_chunks if c.page == 18 and "effective date of each increase" in c.citation_excerpt)
+    assert inspect_draft(claim + " [S1]", [RetrievalHit(source, 1, 1, 0)])
+
+
+def test_duration_gate_does_not_invent_restart_terms_for_other_sources():
+    assert inspect_draft("Surrender charges apply in the first 14 years. [S1]", [hit("Surrender charges apply in the first 14 years.")])
+
+
 def test_number_must_occur_in_the_claims_own_cited_source():
     with pytest.raises(GroundingError, match="unsupported_numeric_claim"):
         inspect_draft("The withdrawal charge is US$200. [S1]", HITS)
@@ -310,6 +336,21 @@ def test_grammatical_preposition_does_not_require_an_unrelated_source_passage():
     assert literal_applicable(
         "Under this policy, will I pay a withdrawal charge?",
         [hit("A cash withdrawal incurs a withdrawal charge of US$25.")],
+    )
+
+
+@pytest.mark.parametrize(("question", "source"), [
+    ("What are the cooling-off rights?", "Cooling-off Period and Right of Cancellation: 21 calendar days."),
+    ("Can I withdraw for free at any time?", "Each cash withdrawal is subject to a withdrawal charge of US$25."),
+])
+def test_ordinary_rights_and_fee_questions_match_the_source_topic(question, source):
+    assert literal_applicable(question, [hit(source)])
+
+
+def test_fee_wording_does_not_excuse_an_unsupported_topic():
+    assert not literal_applicable(
+        "Can I withdraw for free for veterinary treatment?",
+        [hit("Each cash withdrawal is subject to a withdrawal charge of US$25.")],
     )
 
 

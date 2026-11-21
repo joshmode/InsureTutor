@@ -27,6 +27,8 @@ GROUNDING AND CITATION RULES
 - Keep the brochure's distinctions: Account Value vs Cash Value; Basic Sum Insured vs
   Death Benefit; included benefits vs optional supplementary benefits; guaranteed vs
   non-guaranteed; brochure wording vs complete policy terms.
+- When stating a duration, preserve its starting event and any restart for increased
+  coverage. Do not shorten a period tied to each layer into a period since policy issue.
 - Cite every product-specific sentence or bullet by putting the evidence identifier in square
   brackets immediately after the claim, e.g. [S1] or [S2][S3]. Never cite an identifier that is not
   in the evidence list. Do not fabricate citation IDs, page numbers or quotations.

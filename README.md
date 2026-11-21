@@ -300,7 +300,7 @@ All runtime knobs are environment-driven; see [`.env.example`](.env.example).
 | `LLM_BASE_URL` | Any OpenAI-compatible base URL ending in `/v1` |
 | `LLM_MODEL` | Chat model name |
 | `LLM_TEMPERATURE` | Generation temperature (default 0.1) |
-| `LLM_MAX_OUTPUT_TOKENS` | Output cap |
+| `LLM_MAX_OUTPUT_TOKENS` | Per-call output cap, default 3000; reasoning tokens consume this allowance on reasoning models |
 | `LLM_TIMEOUT_SECONDS` | Provider timeout |
 | `LLM_EXTRA_HEADERS` | Optional `key:value;key:value` headers |
 | `KNOWLEDGE_BASE_DIR` | Directory containing the source PDF |
@@ -348,7 +348,7 @@ uv pip install -r backend/requirements-dev.txt
 pytest -q
 ```
 
-The checked-in suite currently passes **227 tests**. It covers:
+The checked-in suite currently passes **242 tests**. It covers:
 
 - deterministic page-aware ingestion and table metadata;
 - interest, withdrawal, comparison, Chinese and unrelated retrieval;
@@ -368,7 +368,9 @@ The checked-in suite currently passes **227 tests**. It covers:
 - unsupported question modifiers, explicit monetary-field attribution across
   actual brochure citations, footnotes and supported English paraphrases;
 - evaluation deadlines and rejecting excerpt fallback during live-model checks;
-- strong selected source evidence when optional vector candidates are missing.
+- strong selected source evidence when optional vector candidates are missing;
+- truncated provider replies, reasoning-model output bounds, source-specific
+  surrender-charge start dates and ordinary rights/fee question wording.
 
 ### Frontend
 

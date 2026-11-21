@@ -32,6 +32,12 @@ class LLMNotConfigured(LLMError):
     pass
 
 
+def _reject_truncated(choice: dict) -> None:
+    if choice.get("finish_reason") == "length":
+        logger.warning("Model provider reached the output token limit")
+        raise LLMError("Model provider reached the output token limit")
+
+
 @dataclass
 class LLMResponse:
     text: str
@@ -150,9 +156,11 @@ class OpenAICompatibleClient:
             raise LLMError("Model provider connection failed") from exc
         try:
             data = json.loads(body)
-            content = data["choices"][0]["message"]["content"]
+            choice = data["choices"][0]
+            content = choice["message"]["content"]
         except (ValueError, KeyError, IndexError, TypeError) as exc:
             raise LLMError("Unexpected chat-completions response shape") from exc
+        _reject_truncated(choice)
         if isinstance(content, list):
             content = "".join(
                 str(part.get("text", "")) for part in content if isinstance(part, dict)
@@ -190,7 +198,9 @@ class OpenAICompatibleClient:
                             continue
                         try:
                             event = json.loads(raw)
-                            delta = event["choices"][0].get("delta", {})
+                            choice = event["choices"][0]
+                            _reject_truncated(choice)
+                            delta = choice.get("delta", {})
                             content = delta.get("content")
                             if content:
                                 yield str(content)
