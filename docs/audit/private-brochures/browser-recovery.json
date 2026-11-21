@@ -1,0 +1,10 @@
+{
+  "checks": [
+    "320px layout has no horizontal overflow",
+    "New upload replaces default title and source URL",
+    "Expired brochure returns clear recovery guidance without futile retry",
+    "Reset returns to default",
+    "Traditional Chinese upload dialog has contained keyboard focus"
+  ],
+  "errors": []
+}

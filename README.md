@@ -81,6 +81,48 @@ are used for retrieval.
 
 ## What the application does
 
+### Use another brochure
+
+Choose **Upload brochure** in the header and select a text-based insurance PDF.
+The upload is private to the current conversation/browser owner. It does not
+replace the shared FLEXI brochure for other visitors. The app extracts the new
+document, rebuilds its text index and local embedding vectors, then starts a
+fresh conversation with the new filename and source links. A failed replacement
+keeps the previous brochure and chat.
+
+Uploads support PDFs up to **8 MiB and 100 pages**. Encrypted documents and
+image-only scans are rejected; scans need OCR first. Parsing runs in a bounded
+child process without provider credentials. Each document has separate chunks
+and vectors while sharing the already-loaded model. The API reports `hybrid` or
+`lexical`; missing local embeddings produce an explicit text-search notice.
+
+**New conversation** returns to the default brochure and requests deletion of
+the current upload. Refreshing also resets the chat UI. Private uploads expire
+within 24 hours; the running app prunes expired files every minute and again at
+startup. Storage is bounded to 16 active uploads by default. Use HTTPS for remote
+access. Relevant excerpts go to the configured language-model provider when
+you ask a question; PDF parsing and embeddings remain local.
+
+The API accepts raw PDF bytes at `POST /api/brochures` with
+`Content-Type: application/pdf` and a URL-encoded `X-File-Name` header. It returns
+`BrochureInfo` and sets an HttpOnly, SameSite owner cookie. Supply its `id` as
+`brochure_id` in chat requests and source/chunk query parameters, using the same
+cookie. `DELETE /api/brochures/{id}` removes it. Missing, expired, or differently
+owned contexts return 404 and never fall back to another document. Unknown chat
+fields return 422 to catch misspelled document selectors.
+
+Existing `.env` values override updated defaults. For the reasoning provider
+verified in this environment, the current settings are
+`LLM_MAX_OUTPUT_TOKENS=8000`, `LLM_TIMEOUT_SECONDS=90` and
+`LLM_REASONING_EFFORT=low`; reasoning support depends on the selected model.
+Restart the backend after changing these values. The overall chat deadline
+remains 180 seconds, and daily token reservations remain bounded.
+
+[Private-brochure and beginner-answer verification](docs/audit/PRIVATE-BROCHURES.md)
+records actual results, failed attempts and remaining limits.
+
+### Tutoring and evidence
+
 - Multi-turn chat with local conversation state and bounded history.
 - English, Simplified Chinese and Traditional Chinese interface and response
   languages.

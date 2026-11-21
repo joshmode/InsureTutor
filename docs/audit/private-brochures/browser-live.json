@@ -1,0 +1,74 @@
+{
+  "uploads": [
+    {
+      "id": "3a20a0abf9218421bfd52c58e671ec16",
+      "filename": "Cedar-verification.pdf",
+      "pages": 1,
+      "chunks": 1,
+      "retrieval_mode": "hybrid",
+      "expires_at": 1795370090.103434
+    },
+    {
+      "id": "b84e85c7cce37a0559195d914d870854",
+      "filename": "Maple-verification.pdf",
+      "pages": 1,
+      "chunks": 1,
+      "retrieval_mode": "hybrid",
+      "expires_at": 1795370103.4361255
+    }
+  ],
+  "answers": [
+    {
+      "message": "The administrative charge is US$12 per month [1].",
+      "citations": [
+        {
+          "id": "brochure-p1-dd05e8abb2f727a6",
+          "document": "Cedar-verification.pdf",
+          "page": 1,
+          "section": "Document page 1",
+          "excerpt": "Cedar Life - fictional verification brochure Insurance benefits This document is a test fixture, not a real policy. Administrative Charge The administrative charge is US$12 monthly. Benefits Life protection is subject to this brochure terms. Exclusions Dental expenses are excluded. Premiums Premiums are paid monthly.",
+          "score": 0.6843
+        }
+      ],
+      "language": "en",
+      "kind": "answer",
+      "used_retrieval": true,
+      "model_generated": true,
+      "retrieval_mode": "hybrid",
+      "confidence": 0.6843293562531472,
+      "notices": [
+        "InsureTutor is an educational assistant, not a licensed insurance adviser. It explains the supplied brochure and cannot determine whether a policy is suitable for you."
+      ]
+    },
+    {
+      "message": "The administrative charge is US$34 per month [1].",
+      "citations": [
+        {
+          "id": "brochure-p1-942964b4d82e7736",
+          "document": "Maple-verification.pdf",
+          "page": 1,
+          "section": "Document page 1",
+          "excerpt": "Maple Life - fictional verification brochure Insurance benefits This document is a test fixture, not a real policy. Administrative Charge The administrative charge is US$34 monthly. Benefits Life protection is subject to this brochure terms. Exclusions Dental expenses are excluded. Premiums Premiums are paid monthly.",
+          "score": 0.6727
+        }
+      ],
+      "language": "en",
+      "kind": "answer",
+      "used_retrieval": true,
+      "model_generated": true,
+      "retrieval_mode": "hybrid",
+      "confidence": 0.6726928770542145,
+      "notices": [
+        "InsureTutor is an educational assistant, not a licensed insurance adviser. It explains the supplied brochure and cannot determine whether a policy is suitable for you."
+      ]
+    }
+  ],
+  "errors": [],
+  "checks": [
+    "Cedar upload rebuilt real local embeddings and generated a cited answer",
+    "Different browser owner cannot access uploaded PDF",
+    "Replacement clears old history/evidence and returns Maple fee with Maple citations",
+    "Invalid PDF leaves the active brochure and chat unchanged",
+    "New conversation deletes current private document and resets default"
+  ]
+}

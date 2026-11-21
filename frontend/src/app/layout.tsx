@@ -4,7 +4,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "InsureTutor — Understand your insurance",
   description:
-    "An AI insurance tutor grounded in the FLEXI-ULife Prime Saver brochure, with page-level citations in English and Chinese.",
+    "An insurance tutor for your brochure, with private PDF uploads and page-level citations in English and Chinese.",
 };
 
 export const viewport: Viewport = {

@@ -159,11 +159,13 @@ export function AssistantBubble({
 export function ErrorBubble({
   language,
   onRetry,
+  canRetry = true,
   detail,
 }: {
   detail?: string;
   language: LanguageCode;
   onRetry: () => void;
+  canRetry?: boolean;
 }) {
   const copy = COPY[language];
   return (
@@ -183,13 +185,13 @@ export function ErrorBubble({
             <p className="mt-0.5 text-[11px] leading-5 text-red-800/80">
               {detail ?? copy.errorBody}
             </p>
-            <button
+            {canRetry && <button
               type="button"
               onClick={onRetry}
               className="mt-2 rounded-full bg-red-900 px-3 py-1 text-[10px] font-bold text-white transition hover:bg-red-800"
             >
               {copy.retry}
-            </button>
+            </button>}
           </div>
         </div>
       </div>

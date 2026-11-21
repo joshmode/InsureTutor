@@ -26,6 +26,11 @@ class AppRuntime:
             raise RuntimeError("Knowledge base is empty after ingestion")
         self.retriever = HybridRetriever(chunks, self.settings)
         self.orchestrator = ChatOrchestrator(self.settings, self.retriever, self.llm)
+        from .brochures import BrochureStore
+        self.brochures = BrochureStore(
+            self.settings, self.llm, self.retriever.embedding_backend,
+            self.orchestrator._retrieval_lock,
+        )
         self.ready = True
         logger.info(
             "Runtime ready: %d chunks, retrieval=%s, llm_configured=%s",

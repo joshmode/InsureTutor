@@ -10,6 +10,7 @@ export function SourcePanel({
   onSelectCitation,
   open,
   onClose,
+  brochureId,
 }: {
   language: LanguageCode;
   citations: Citation[];
@@ -17,13 +18,14 @@ export function SourcePanel({
   onSelectCitation: (index: number) => void;
   open: boolean;
   onClose: () => void;
+  brochureId?: string;
 }) {
   const c = COPY[language],
     ref = useRef<HTMLDialogElement>(null);
   const selectedDocument =
     citations[(activeCitation ?? 1) - 1]?.document ?? citations[0]?.document;
   const sourceHref = (document?: string) =>
-    document
+    brochureId ? `/source-document?brochure_id=${brochureId}${document ? `&document=${encodeURIComponent(document)}` : ""}` : document
       ? `/source-document?document=${encodeURIComponent(document)}`
       : "/source-document";
   useEffect(() => {

@@ -133,8 +133,10 @@ class ProtectionMiddleware:
                 "Authentication required",
                 [(b"www-authenticate", b'Basic realm="InsureTutor", charset="UTF-8"')],
             )
-        if scope["path"] != "/api/chat" or scope["method"] != "POST":
+        if scope["path"] not in {"/api/chat", "/api/brochures"} or scope["method"] != "POST":
             return await self.app(scope, receive, secured_send)
+        body_limit = (self.settings.max_brochure_upload_bytes
+                      if scope["path"] == "/api/brochures" else self.settings.max_request_bytes)
         guard = scope["app"].state.consumption
         admission = None
         try:
@@ -146,7 +148,7 @@ class ProtectionMiddleware:
                     return await error(400, "Invalid Content-Length")
                 if size < 0:
                     return await error(400, "Invalid Content-Length")
-                if size > self.settings.max_request_bytes:
+                if size > body_limit:
                     return await error(413, "Request body is too large")
             # Uses ASGI peer, never an arbitrary request's X-Forwarded-For.
             # Configure trusted proxies at the server, not in application headers.
@@ -162,7 +164,7 @@ class ProtectionMiddleware:
                     if message["type"] == "http.disconnect":
                         return
                     chunk = message.get("body", b"")
-                    if len(body) + len(chunk) > self.settings.max_request_bytes:
+                    if len(body) + len(chunk) > body_limit:
                         return await error(413, "Request body is too large")
                     body.extend(chunk)
                     if not message.get("more_body", False):

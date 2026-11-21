@@ -207,11 +207,11 @@ class RetrievalResult:
 
 
 class HybridRetriever:
-    def __init__(self, chunks: list[Chunk], settings: Settings):
+    def __init__(self, chunks: list[Chunk], settings: Settings, *, embedding_backend=None):
         self.settings = settings
         self.chunks = chunks
         self.lexical = BM25Index(chunks)
-        self.embedding_backend = LocalFastEmbedBackend(
+        self.embedding_backend = embedding_backend or LocalFastEmbedBackend(
             model_name=settings.embedding_model,
             cache_dir=settings.embedding_cache_dir,
             enabled=settings.enable_embeddings and settings.embedding_enabled,
@@ -538,6 +538,16 @@ class HybridRetriever:
             if len(phrase.strip()) >= 2
         ]
         literal_set = set(literal_terms)
+        # IDF scores shrink sharply for a one-page uploaded brochure. Only
+        # scale the absolute gate when even the theoretical maximum literal
+        # BM25 score cannot reach the normal threshold; unknown words still
+        # fail the coverage and applicability checks.
+        maximum_literal_score = sum(
+            self.lexical._idf(term) * (self.lexical.k1 + 1)
+            for term in literal_set if term in self.lexical.document_frequencies
+        )
+        required_raw = (maximum_literal_score * 0.25
+                        if 0 < maximum_literal_score < 4.0 else 4.0)
         literal_covered: set[str] = set()
         # Optional embeddings must not veto strong, selected literal evidence
         # merely because that chunk was absent from the vector candidate list.
@@ -553,7 +563,7 @@ class HybridRetriever:
                 re.search(r"(?im)^(?:key |major )?" + re.escape(term) + r"s?(?:\s|$)", hit.chunk.citation_excerpt)
                 for term in covered_here
             )
-            if raw_top >= 4.0 and hit.lexical_score >= 0.8 and (len(covered_here) >= 2 or named_heading):
+            if raw_top >= required_raw and hit.lexical_score >= 0.8 and (len(covered_here) >= 2 or named_heading):
                 strong_literal_support = True
         if lower_query.strip().rstrip("?.!") in {
             "what is the capital of france",
@@ -590,7 +600,7 @@ class HybridRetriever:
             # A relevance threshold prevents a single incidental token from
             # turning an unrelated question into a "confident" answer.
             coverage_ok = (
-                raw_top >= 4.0
+                raw_top >= required_raw
                 and coverage >= 0.34
                 and (not relevant or relevant[0].score >= 0.52 or strong_literal_support)
             )

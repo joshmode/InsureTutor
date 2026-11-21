@@ -2,24 +2,32 @@
 import { ArrowUpRight } from "lucide-react";
 import { COPY } from "@/lib/i18n";
 import type { LanguageCode } from "@/lib/types";
+import { BROCHURE_COPY } from "@/lib/brochure-copy";
 export function WelcomePanel({
   language,
   onSelectPrompt,
+  uploaded = false,
 }: {
   language: LanguageCode;
   onSelectPrompt: (prompt: string) => void;
+  uploaded?: boolean;
 }) {
   const copy = COPY[language];
+  const u = BROCHURE_COPY[language];
+  const suggestions = uploaded ? [
+    {title:u.overviewTitle,prompt:u.overview}, {title:u.feesTitle,prompt:u.fees},
+    {title:u.exclusionsTitle,prompt:u.exclusions},
+  ] : copy.suggestions;
   return (
     <section className="welcome">
       <p className="eyebrow">{copy.welcomeKicker}</p>
-      <h1>{copy.welcomeTitle}</h1>
-      <p className="welcome-body">{copy.welcomeBody}</p>
-      <p className="privacy-notice">{copy.privacyNotice}</p>
+      <h1>{uploaded ? u.welcome : copy.welcomeTitle}</h1>
+      <p className="welcome-body">{uploaded ? u.body : copy.welcomeBody}</p>
+      <p className="privacy-notice">{uploaded ? u.privacy : copy.privacyNotice}</p>
       <div className="suggestions">
         <h2 className="eyebrow">{copy.suggestionsLabel}</h2>
         <div className="suggestion-grid">
-          {copy.suggestions.map((s, i) => (
+          {suggestions.map((s, i) => (
             <button key={s.title} onClick={() => onSelectPrompt(s.prompt)}>
               <span className="suggestion-number">0{i + 1}</span>
               <span>

@@ -1,5 +1,14 @@
 export type LanguageCode = "en" | "zh-Hans" | "zh-Hant";
 
+export interface BrochureInfo {
+  id: string;
+  filename: string;
+  pages: number;
+  chunks: number;
+  retrieval_mode: string;
+  expires_at: number;
+}
+
 export type ResponseKind =
   | "answer"
   | "scope"

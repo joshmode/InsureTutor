@@ -1,7 +1,8 @@
 "use client";
 import { FileText, MessageSquarePlus } from "lucide-react";
 import { COPY } from "@/lib/i18n";
-import type { LanguageCode } from "@/lib/types";
+import type { BrochureInfo, LanguageCode } from "@/lib/types";
+import { BrochurePicker } from "./brochure-picker";
 import { LanguagePicker } from "./language-picker";
 import { Logo } from "./logo";
 
@@ -11,18 +12,22 @@ export function AppHeader({
   onNewChat,
   onOpenSources,
   conversationsStarted,
+  brochureActive = false, loading = false, onUploaded,
 }: {
   language: LanguageCode;
   onLanguageChange: (language: LanguageCode) => void;
   onNewChat: () => void;
   onOpenSources: () => void;
   conversationsStarted: boolean;
+  brochureActive?: boolean; loading?: boolean;
+  onUploaded: (brochure: BrochureInfo) => void;
 }) {
   const copy = COPY[language];
   return (
     <header className="app-header">
       <Logo />
       <div className="header-actions">
+        <BrochurePicker language={language} active={brochureActive} disabled={loading} onUploaded={onUploaded} />
         <button
           className="text-button header-sources"
           onClick={onOpenSources}

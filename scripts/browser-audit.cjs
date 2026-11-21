@@ -109,7 +109,7 @@ async function waitForLayout(page) {
         return r.top >= 0 && r.bottom <= innerHeight;
       }),
     );
-    assert.equal(await p.locator("dialog").evaluate((d) => d.open), false);
+    assert.equal(await p.locator("dialog[open]").count(), 0);
     const rect = await p.locator(".conversation-scroll").boundingBox(),
       dock = await p.locator(".composer-dock").boundingBox();
     assert(rect.y + rect.height <= dock.y + 1, "composer overlaps content");
@@ -139,7 +139,7 @@ async function waitForLayout(page) {
     ),
   );
   await p.keyboard.press("Escape");
-  await p.waitForFunction(() => !document.querySelector("dialog").open);
+  await p.waitForFunction(() => !document.querySelector("dialog[open]"));
   assert(
     (
       await p.evaluate(() => document.activeElement?.getAttribute("aria-label"))
@@ -205,7 +205,7 @@ async function waitForLayout(page) {
     await p.keyboard.press("Tab");
     assert(
       await p.evaluate(() =>
-        document.querySelector("dialog").contains(document.activeElement),
+        document.querySelector(".source-dialog").contains(document.activeElement),
       ),
       "dialog focus escaped",
     );

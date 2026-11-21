@@ -2,12 +2,14 @@
 import { useEffect, useRef, useState } from "react";
 import { BookOpen, Circle, FileText } from "lucide-react";
 import { COPY } from "@/lib/i18n";
+import { BROCHURE_COPY } from "@/lib/brochure-copy";
 import { chatTimeoutMs, parseChatResponse } from "@/lib/api";
 import type {
   AssistantMessage,
   ChatTurn,
   LanguageCode,
   Message,
+  BrochureInfo,
 } from "@/lib/types";
 import { uid } from "@/lib/utils";
 import { AppHeader } from "./app-header";
@@ -20,12 +22,13 @@ const STORAGE_KEY = "insuretutor-language";
 
 export function InsureTutorApp() {
   const [language, setLanguage] = useState<LanguageCode>("en");
+  const [brochure, setBrochure] = useState<BrochureInfo | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [draft, setDraft] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
   const [errorReason, setErrorReason] = useState<
-    "quota" | "length" | "network"
+    "quota" | "length" | "network" | "brochure"
   >("network");
   const [lastQuestion, setLastQuestion] = useState("");
   const [activeCitation, setActiveCitation] = useState<number | null>(null);
@@ -141,13 +144,14 @@ export function InsureTutorApp() {
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: question, language, history }),
+        body: JSON.stringify({ message: question, language, history, ...(brochure ? {brochure_id:brochure.id} : {}) }),
         signal: controller.signal,
       });
       if (abortRef.current !== controller) return;
       if (!response.ok) {
         setErrorReason(
-          response.status === 429
+          response.status === 404 && brochure
+            ? "brochure" : response.status === 429
             ? "quota"
             : response.status === 413
               ? "length"
@@ -196,6 +200,18 @@ export function InsureTutorApp() {
     }
   }
   function newConversation() {
+    if (brochure) {
+      void fetch(`/api/brochures/${brochure.id}`, {method:"DELETE"}).catch(() => {});
+      setBrochure(null);
+    }
+    clearConversation();
+  }
+  function useBrochure(next: BrochureInfo) {
+    if (brochure) void fetch(`/api/brochures/${brochure.id}`, {method:"DELETE"}).catch(() => {});
+    clearConversation();
+    setBrochure(next);
+  }
+  function clearConversation() {
     const previous = abortRef.current;
     abortRef.current = null;
     previous?.abort();
@@ -227,18 +243,21 @@ export function InsureTutorApp() {
         onLanguageChange={changeLanguage}
         onNewChat={newConversation}
         onOpenSources={showLatestSources}
-        conversationsStarted={messages.length > 0 || draft.length > 0}
+        conversationsStarted={messages.length > 0 || draft.length > 0 || !!brochure}
+        brochureActive={!!brochure}
+        loading={loading}
+        onUploaded={useBrochure}
       />
       <div className="workspace">
         <aside className="reference-rail">
-          <PlanCard language={language} />
+          <PlanCard language={language} brochure={brochure} />
           <p className="rail-disclaimer">{copy.disclaimer}</p>
         </aside>
         <main className="conversation-workspace">
           <div className="workspace-bar">
             <span>
               <BookOpen size={16} />
-              {copy.productName}
+              {brochure?.filename ?? copy.productName}
             </span>
             <button className="text-button" onClick={showLatestSources}>
               <FileText size={15} />
@@ -251,6 +270,7 @@ export function InsureTutorApp() {
                 <WelcomePanel
                   language={language}
                   onSelectPrompt={(p) => sendMessage(p)}
+                  uploaded={!!brochure}
                 />
               ) : (
                 <section
@@ -280,13 +300,14 @@ export function InsureTutorApp() {
                     <ErrorBubble
                       language={language}
                       detail={
-                        errorReason === "quota"
+                        errorReason === "brochure" ? BROCHURE_COPY[language].expired : errorReason === "quota"
                           ? copy.quotaError
                           : errorReason === "length"
                             ? copy.lengthError
                             : undefined
                       }
                       onRetry={() => sendMessage(lastQuestion, true)}
+                      canRetry={errorReason !== "brochure"}
                     />
                   )}
                   <div ref={endRef} />
@@ -299,7 +320,7 @@ export function InsureTutorApp() {
               {health && (
                 <p className="connection-status">
                   <Circle size={7} fill="currentColor" aria-hidden="true" />
-                  {health.llm_configured
+                  {brochure && brochure.retrieval_mode !== "hybrid" ? BROCHURE_COPY[language].lexical : health.llm_configured
                     ? copy.connectedMode
                     : copy.excerptMode}
                 </p>
@@ -323,6 +344,7 @@ export function InsureTutorApp() {
           onSelectCitation={setActiveCitation}
           open={sourceOpen}
           onClose={() => setSourceOpen(false)}
+          brochureId={brochure?.id}
         />
       </div>
     </div>

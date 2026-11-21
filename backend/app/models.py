@@ -23,6 +23,8 @@ class ChatTurn(BaseModel):
 
 
 class ChatRequest(BaseModel):
+    model_config = {"extra": "forbid"}
+    brochure_id: str | None = Field(default=None, pattern=r"^[a-f0-9]{32}$")
     message: str = Field(min_length=1, max_length=4000)
     language: Language = "en"
     history: list[ChatTurn] = Field(default_factory=list, max_length=20)
@@ -61,6 +63,15 @@ class HealthResponse(BaseModel):
     chunks: int
     ingest_ready: bool
     request_timeout_seconds: float
+
+
+class BrochureInfo(BaseModel):
+    id: str
+    filename: str
+    pages: int
+    chunks: int
+    retrieval_mode: str
+    expires_at: float
 
 
 class SourceChunk(BaseModel):

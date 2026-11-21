@@ -1,0 +1,83 @@
+{
+  "engine": "chromium",
+  "checks": [
+    "Private PDF, owned citations and cross-browser access isolation",
+    "Replacement rebuilds reference, clears history and answers from new document",
+    "Invalid upload preserves active brochure and conversation",
+    "Mobile layout, modal focus, deletion and default reset",
+    "Expired references never silently use default evidence and show recovery guidance"
+  ],
+  "uploads": [
+    {
+      "id": "cc2187f2b6395b5f5d10fb63e4ef5df0",
+      "filename": "cedar-brochure.pdf",
+      "pages": 1,
+      "chunks": 1,
+      "retrieval_mode": "lexical",
+      "expires_at": 1795371910.2240505
+    },
+    {
+      "id": "b2c26e40ff9fb5dbc15c50f27efe98f0",
+      "filename": "maple-brochure.pdf",
+      "pages": 1,
+      "chunks": 1,
+      "retrieval_mode": "lexical",
+      "expires_at": 1795371911.3282332
+    },
+    {
+      "id": "f076a43cf0b5b2709c7eb63f6538a4c7",
+      "filename": "cedar-brochure.pdf",
+      "pages": 1,
+      "chunks": 1,
+      "retrieval_mode": "lexical",
+      "expires_at": 1795371912.8949444
+    }
+  ],
+  "answers": [
+    {
+      "message": "The tutoring model is not available, so I can only show the relevant brochure excerpts rather than write a full explanation:\n\n- Cedar Life - fictional verification brochure Insurance benefits This document is a test fixture, not a real policy. Administrative Charge The administrative charge is US$12 monthly. Benefits Life protection is subject to this brochure terms. Exclusions Dental expenses are excluded. Premiums Premiums are paid monthly. [1]",
+      "citations": [
+        {
+          "id": "brochure-p1-dd05e8abb2f727a6",
+          "document": "cedar-brochure.pdf",
+          "page": 1,
+          "section": "Document page 1",
+          "excerpt": "Cedar Life - fictional verification brochure Insurance benefits This document is a test fixture, not a real policy. Administrative Charge The administrative charge is US$12 monthly. Benefits Life protection is subject to this brochure terms. Exclusions Dental expenses are excluded. Premiums Premiums are paid monthly.",
+          "score": 0.999
+        }
+      ],
+      "language": "en",
+      "kind": "answer",
+      "used_retrieval": true,
+      "model_generated": false,
+      "retrieval_mode": "lexical",
+      "confidence": 0.999,
+      "notices": [
+        "InsureTutor is an educational assistant, not a licensed insurance adviser. It explains the supplied brochure and cannot determine whether a policy is suitable for you."
+      ]
+    },
+    {
+      "message": "The tutoring model is not available, so I can only show the relevant brochure excerpts rather than write a full explanation:\n\n- Maple Life - fictional verification brochure Insurance benefits This document is a test fixture, not a real policy. Administrative Charge The administrative charge is US$34 monthly. Benefits Life protection is subject to this brochure terms. Exclusions Dental expenses are excluded. Premiums Premiums are paid monthly. [1]",
+      "citations": [
+        {
+          "id": "brochure-p1-942964b4d82e7736",
+          "document": "maple-brochure.pdf",
+          "page": 1,
+          "section": "Document page 1",
+          "excerpt": "Maple Life - fictional verification brochure Insurance benefits This document is a test fixture, not a real policy. Administrative Charge The administrative charge is US$34 monthly. Benefits Life protection is subject to this brochure terms. Exclusions Dental expenses are excluded. Premiums Premiums are paid monthly.",
+          "score": 0.999
+        }
+      ],
+      "language": "en",
+      "kind": "answer",
+      "used_retrieval": true,
+      "model_generated": false,
+      "retrieval_mode": "lexical",
+      "confidence": 0.999,
+      "notices": [
+        "InsureTutor is an educational assistant, not a licensed insurance adviser. It explains the supplied brochure and cannot determine whether a policy is suitable for you."
+      ]
+    }
+  ],
+  "errors": []
+}

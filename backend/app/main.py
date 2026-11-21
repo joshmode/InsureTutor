@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import logging
+import asyncio
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -33,7 +34,16 @@ async def lifespan(app: FastAPI):
     except Exception:
         logger.exception("Startup initialization failed")
         raise
-    yield
+    async def prune_uploads():
+        while True:
+            await asyncio.sleep(60)
+            await run_in_threadpool(runtime.brochures.prune)
+    cleanup = asyncio.create_task(prune_uploads())
+    try:
+        yield
+    finally:
+        cleanup.cancel()
+        await asyncio.gather(cleanup, return_exceptions=True)
 
 
 settings = get_settings()
@@ -69,7 +79,19 @@ if STATIC_DIR.exists():
 
 
 @app.get("/source-document", include_in_schema=False)
-async def source_document(document: str | None = None):
+async def source_document(request: Request, document: str | None = None, brochure_id: str | None = None):
+    if brochure_id:
+        from .api.routes import private_context
+        from urllib.parse import quote
+        from starlette.concurrency import run_in_threadpool
+        context = await private_context(request, brochure_id)
+        if document is not None and document != context.info.filename:
+            raise HTTPException(status_code=404, detail="Source document not found")
+        content = await run_in_threadpool(context.path.read_bytes)
+        return Response(content, media_type="application/pdf", headers={
+            "Cache-Control": "no-store", "Referrer-Policy": "no-referrer",
+            "Content-Disposition": "inline; filename*=UTF-8''" + quote(context.info.filename, safe=""),
+        })
     names = settings.document_names
     name = document if document is not None else (names[0] if names else "")
     if (

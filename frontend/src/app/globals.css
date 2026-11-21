@@ -896,3 +896,38 @@ textarea:focus-visible,
   margin: -15px 0 28px;
   max-width: 580px;
 }
+
+.brochure-dialog {
+  padding: 0;
+  width: min(560px, calc(100vw - 2rem));
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--canvas);
+  color: var(--ink);
+}
+.brochure-dialog::backdrop { background: rgb(27 48 42 / 35%); }
+.brochure-dialog form { padding: 1.5rem; }
+.brochure-dialog h2 { font-family: var(--font-display); font-size: 1.8rem; margin: .5rem 0 1rem; }
+.brochure-dialog p { font-size: .9rem; line-height: 1.6; margin: .75rem 0; }
+.brochure-dialog .muted { color: var(--muted); font-size: .8rem; }
+.brochure-dialog label { display: block; margin: 1.5rem 0 .5rem; font-weight: 600; }
+.brochure-dialog input { width: 100%; font: inherit; font-size: 1rem; padding: .75rem; border: 1px solid var(--line); background: var(--surface); border-radius: 6px; }
+.brochure-dialog input::file-selector-button { padding: .5rem; border: 1px solid var(--line); border-radius: 4px; background: var(--canvas); color: var(--ink); margin-right: .75rem; }
+.brochure-actions { display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem; }
+.brochure-dialog [role="alert"] { color: #8f341b; }
+.uploaded-cover .cover-title { font-size: 1.8rem; overflow-wrap: anywhere; }
+.reference-card h2 { overflow-wrap: anywhere; }
+.workspace-bar > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.workspace-bar svg { flex-shrink: 0; }
+@media (max-width: 760px) {
+  .brochure-upload-button span { display: none; }
+  .brochure-upload-button { padding: .65rem; }
+}
+.brochure-actions .new-chat { width: auto; height: auto; min-height: 40px; padding: .65rem 1rem; border: 1px solid var(--ink); }
+@media (max-width: 380px) {
+  .app-header > div:first-child > span:last-child { font-size: 18px; }
+  .brochure-upload-button { padding: .5rem; }
+  .language-picker select { max-width: 80px; }
+}
