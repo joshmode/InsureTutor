@@ -22,6 +22,7 @@ profile scored **18/20** in that replay; its failures remain recorded.
 | Quote repair repeated the rejected quotation | Generation requests paraphrases; the repair explicitly addresses non-verbatim quotations, uncited introductions and surrender-period conditions. Exact-source quote validation remains enforced. |
 | Ordinary rights/fee wording was rejected | Canonicalize `rights` to `right` and fee-related `free` to the charge subject. Unknown substantive topics still have to occur in selected evidence; an unrelated veterinary modifier remains rejected. |
 | Compose ignored provider values exported by the caller | Forward key, base URL, model and optional reasoning setting, retaining dotenv configuration and optional model-free operation. A running container probe verifies fake host values, and configuration checks verify dotenv values and literal dollar preservation. No real credential is printed or written into the image. |
+| Hosted CI used actions with a deprecated Node 20 runtime | The successful evidence-commit run emitted a runtime deprecation warning. Pin checkout and both setup actions to official Node 24 releases, retaining read-only permissions and disabled checkout credentials. [Release/runtime evidence](live-model/ci-action-runtimes.json) records immutable commits and official release URLs. The application Node version remains 22. |
 
 A separate review call to the same configured model previously approved an
 incomplete surrender summary. Its approval is therefore not an entailment certificate. The additional
