@@ -79,7 +79,7 @@ def _claim_units(line: str) -> list[str]:
 
 
 _CURRENCY_AMOUNT = (
-    r"(?P<currency>US\$|HK\$|MOP\$?|USD|HKD|\$)\s*"
+    r"(?P<currency>US\$|HK\$|MOP\$?|MOP|USD|HKD|\$)\s*"
     r"(?P<number>\d[\d,]*(?:\.\d+)?)"
 )
 _MONETARY_FIELD = re.compile(
@@ -103,7 +103,7 @@ def _monetary_fields(text: str):
         while amount_match:
             amount = Decimal(amount_match["number"].replace(",", ""))
             currency = amount_match["currency"].upper()
-            currency = {"USD": "US$", "HKD": "HK$", "MOP": "MOP$"}.get(currency, currency)
+            currency = {"USD": "US$", "HKD": "HK$", "MOP$": "MOP"}.get(currency, currency)
             yield label, (amount, currency)
             amount_match = _ALTERNATE_AMOUNT.match(plain, amount_match.end())
 

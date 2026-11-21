@@ -139,15 +139,37 @@ _PERSONAL_RECOMMENDATION = re.compile(
 def _numbers(text: str) -> set[tuple[str, Decimal]]:
     """Compare complete amounts, not substrings (5% is not 2.5%)."""
     text = text.replace(",", "")
+    # The brochure's currency table compresses the same amount into forms such
+    # as "MOP / HK$200,000" and "HK$ / MOP40,000". Treat those explicit
+    # currency pairs as both possible readings; this is a table-notation
+    # normalization, not an inferred amount.
+    text = re.sub(
+        r"MOP\s*/\s*(HK\$)\s*(\d[\d,]*)", r"\1\2", text, flags=re.I
+    )
+    text = re.sub(
+        r"(HK\$)\s*/\s*MOP\s*(\d[\d,]*)", r"\1\2", text, flags=re.I
+    )
     numbers = {
         ("%", Decimal(value))
         for value in re.findall(r"(?<![\d.])(\d+(?:\.\d+)?)\s*[%％]", text)
     }
     numbers.update(
-        ({"MOP$": "MOP", "USD": "US$", "HKD": "HK$"}.get(currency.upper(), currency.upper()), Decimal(value))
-        for currency, value in re.findall(
-            r"(US\$|HK\$|MOP\$?|USD|HKD|\$)\s*(\d+(?:\.\d+)?)", text, re.I
+        (
+            {"MOP$": "MOP", "USD": "US$", "HKD": "HK$"}.get(
+                currency.upper(), currency.upper()
+            ),
+            Decimal(value),
         )
+        for currency, value in re.findall(
+            r"(US\$|HK\$|MOP\$?|MOP|USD|HKD|\$)\s*(\d+(?:\.\d+)?)",
+            text,
+            re.I,
+        )
+    )
+    # "MOP200" without a dollar sign is valid brochure notation.
+    numbers.update(
+        ("MOP", Decimal(value))
+        for value in re.findall(r"(?<![A-Za-z])MOP\s*(\d+(?:\.\d+)?)", text, re.I)
     )
     return numbers
 
