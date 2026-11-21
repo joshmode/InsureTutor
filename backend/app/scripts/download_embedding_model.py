@@ -8,11 +8,9 @@ No provider credentials or embeddings endpoint are involved.
 from __future__ import annotations
 
 import argparse
+import os
 import re
 from pathlib import Path
-
-from fastembed import TextEmbedding
-from huggingface_hub import snapshot_download
 
 from ..config import get_settings
 from ..retrieval.model_cache import write_manifest, verify_manifest
@@ -25,6 +23,16 @@ def main():
     if not re.fullmatch("[0-9a-f]{40}", args.revision):
         parser.error("Use an exact 40-character upstream commit")
     settings = get_settings()
+    # HF's transfer helper has its own cache. Keep it on the writable data
+    # volume, not the container user's nonexistent/read-only home directory.
+    hf_home = os.environ.setdefault(
+        "HF_HOME", str(settings.embedding_cache_dir / "huggingface")
+    )
+    os.environ.setdefault("HF_XET_CACHE", str(Path(hf_home) / "xet"))
+    os.environ.setdefault("HF_HUB_DISABLE_TELEMETRY", "1")
+    from fastembed import TextEmbedding
+    from huggingface_hub import snapshot_download
+
     description = next(
         (
             m
