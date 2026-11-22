@@ -21,14 +21,16 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-# Pin the published Debian security fix without floating the entire OS package
+# Pin the published Debian security fixes without floating the entire OS package
 # graph. HTTPS and Debian's package signatures remain required. The optional CA
 # secret supports the same organizational trust route as pip/npm.
 RUN --mount=type=secret,id=build_ca,mode=0444 \
     sed -i 's|http://deb.debian.org|https://deb.debian.org|g' /etc/apt/sources.list.d/debian.sources \
     && if [ -f /run/secrets/build_ca ]; then set -- -o Acquire::https::CaInfo=/run/secrets/build_ca; else set --; fi \
     && apt-get "$@" update \
-    && apt-get "$@" install -y --no-install-recommends zlib1g=1:1.3.dfsg+really1.3.1-1+deb13u1 \
+    && apt-get "$@" install -y --no-install-recommends \
+        zlib1g=1:1.3.dfsg+really1.3.1-1+deb13u1 \
+        libc6=2.41-12+deb13u5 libc-bin=2.41-12+deb13u5 \
     && rm -rf /var/lib/apt/lists/*
 
 RUN groupadd --system app && useradd --system --gid app app
