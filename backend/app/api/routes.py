@@ -55,7 +55,8 @@ async def upload_brochure(request: Request, response: Response):
     except BrochureError as exc:
         raise HTTPException(status_code=exc.status, detail=str(exc)) from None
     response.set_cookie(OWNER_COOKIE, owner, httponly=True, samesite="strict",
-                        secure=request.url.scheme == "https", max_age=store.settings.brochure_retention_seconds)
+                        secure=store.settings.brochure_cookie_secure or request.url.scheme == "https",
+                        max_age=store.settings.brochure_retention_seconds)
     response.headers["Cache-Control"] = "no-store"
     return context.info
 
@@ -90,8 +91,12 @@ async def health(request: Request) -> HealthResponse:
 @router.get("/chunks/{chunk_id}")
 async def get_chunk(chunk_id: str, request: Request, brochure_id: str | None = None) -> dict:
     runtime = request.app.state.runtime
-    chunks = ((await private_context(request, brochure_id)).retriever.chunks
-              if brochure_id else runtime.knowledge.chunks)
+    try:
+        chunks = (await run_in_threadpool(runtime.brochures.chunks, brochure_id,
+                                        request.cookies.get(OWNER_COOKIE, ""))
+                  if brochure_id else runtime.knowledge.chunks)
+    except BrochureError as exc:
+        raise HTTPException(status_code=exc.status, detail=str(exc)) from None
     for chunk in chunks:
         if chunk.id == chunk_id:
             return {

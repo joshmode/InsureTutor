@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import threading
 from pathlib import Path
 from typing import Protocol
 
@@ -37,6 +38,7 @@ class LocalFastEmbedBackend:
         self.available = False
         self.batch_size = batch_size
         self._model = None
+        self._inference_lock = threading.Lock()
         if not enabled:
             logger.info(
                 "Local embeddings disabled by configuration; lexical mode active"
@@ -77,7 +79,14 @@ class LocalFastEmbedBackend:
             if "e5-" in self.name.lower()
             else texts
         )
-        vectors = list(self._model.embed(prefixed, batch_size=self.batch_size))
+        vectors = []
+        for offset in range(0, len(prefixed), self.batch_size):
+            # Share one native model safely without holding another conversation's
+            # retrieval lock for an entire uploaded document.
+            with self._inference_lock:
+                vectors.extend(self._model.embed(
+                    prefixed[offset:offset + self.batch_size], batch_size=self.batch_size
+                ))
         matrix = np.asarray(vectors, dtype=np.float32)
         norms = np.linalg.norm(matrix, axis=1, keepdims=True)
         return matrix / np.clip(norms, 1e-9, None)
@@ -86,9 +95,10 @@ class LocalFastEmbedBackend:
         if not self.available or self._model is None:
             raise RuntimeError("Embedding backend unavailable")
         prefixed = f"query: {text}" if "e5-" in self.name.lower() else text
-        vector = np.asarray(
-            list(self._model.query_embed([prefixed]))[0], dtype=np.float32
-        )
+        with self._inference_lock:
+            vector = np.asarray(
+                list(self._model.query_embed([prefixed]))[0], dtype=np.float32
+            )
         norm = float(np.linalg.norm(vector))
         return vector / max(norm, 1e-9)
 
@@ -108,7 +118,8 @@ class VectorIndex:
                 logger.warning(
                     "Vector index build failed (%s); using lexical fallback", exc
                 )
-                backend.available = False
+                # A failed upload/index must not disable the shared model for
+                # already-working conversations. This index stays lexical.
 
     def search(self, query: str, limit: int = 16) -> list[tuple[Chunk, float]]:
         if not self.backend.available or self.matrix is None:

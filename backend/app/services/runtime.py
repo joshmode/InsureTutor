@@ -29,7 +29,6 @@ class AppRuntime:
         from .brochures import BrochureStore
         self.brochures = BrochureStore(
             self.settings, self.llm, self.retriever.embedding_backend,
-            self.orchestrator._retrieval_lock,
         )
         self.ready = True
         logger.info(

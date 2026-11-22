@@ -10,6 +10,9 @@ from backend.app.retrieval.hybrid import HybridRetriever
 def test_strong_literal_source_survives_a_missing_vector_candidate(knowledge_chunks, monkeypatch, question):
     retriever = HybridRetriever(knowledge_chunks, Settings(enable_embeddings=False, _env_file=None))
     retriever.embedding_backend.available = True
+    # Simulate an existing vector index whose candidate search returns nothing.
+    import numpy as np
+    retriever.vector.matrix = np.ones((len(knowledge_chunks), 2), dtype=np.float32)
     monkeypatch.setattr(retriever.vector, "search", lambda query, limit: [])
     result = retriever.search(question)
     assert result.mode == "hybrid"

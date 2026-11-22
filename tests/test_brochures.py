@@ -151,6 +151,91 @@ def test_each_upload_regenerates_vectors_without_loading_another_model(client):
     assert store.contexts[second['id']].retriever.embedding_backend is backend
 
 
+def test_source_reads_after_restart_do_not_rebuild_embeddings(client, monkeypatch):
+    document = upload(client).json()
+    store = app.state.runtime.brochures
+    chunk_id = store.contexts[document['id']].retriever.chunks[0].id
+    store.contexts.clear()
+    def forbidden(*args):
+        pytest.fail('Reading source evidence must not construct a vector index')
+    monkeypatch.setattr(store, '_context', forbidden)
+    assert client.get('/source-document', params={'brochure_id': document['id']}).status_code == 200
+    assert client.get('/api/chunks/' + chunk_id, params={'brochure_id': document['id']}).status_code == 200
+
+
+def test_explicit_secure_cookie_for_tls_termination(client):
+    app.state.runtime.brochures.settings.brochure_cookie_secure = True
+    response = upload(client)
+    assert response.status_code == 201
+    assert '; Secure' in response.headers['set-cookie']
+
+
+def test_preparation_slot_remains_held_through_indexing(client, monkeypatch):
+    import concurrent.futures
+    import threading
+    from backend.app.services.brochures import BrochureError, BrochureStore
+    first = app.state.runtime.brochures
+    second = BrochureStore(first.settings, first.llm, first.backend)
+    entered, release = threading.Event(), threading.Event()
+    original = first._context
+    def slow(*args):
+        entered.set()
+        assert release.wait(5)
+        return original(*args)
+    monkeypatch.setattr(first, '_context', slow)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+        pending = pool.submit(first.create, pdf(), 'Fixture.pdf', 'c'*64)
+        try:
+            assert entered.wait(5)
+            with pytest.raises(BrochureError) as error:
+                second.create(pdf(), 'Other.pdf', 'd'*64)
+            assert error.value.status == 429
+        finally:
+            release.set()
+        assert pending.result(timeout=5)
+    assert second.create(pdf(), 'Other.pdf', 'd'*64)
+
+
+def test_reindex_does_not_block_source_reads_or_resurrect_deleted_document(client, monkeypatch):
+    import concurrent.futures
+    import threading
+    from backend.app.services.brochures import BrochureError
+    document = upload(client).json()
+    store = app.state.runtime.brochures
+    owner = client.cookies.get(OWNER_COOKIE)
+    store.contexts.clear()
+    entered, release = threading.Event(), threading.Event()
+    original = store._context
+    def slow(*args):
+        entered.set()
+        assert release.wait(5)
+        return original(*args)
+    monkeypatch.setattr(store, '_context', slow)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
+        rebuilding = pool.submit(store.get, document['id'], owner)
+        try:
+            assert entered.wait(5)
+            reading = pool.submit(store.source, document['id'], owner)
+            assert reading.result(timeout=1)[1].startswith(b'%PDF-')
+            store.delete(document['id'], owner)
+        finally:
+            release.set()
+        with pytest.raises(BrochureError) as error:
+            rebuilding.result(timeout=5)
+        assert error.value.status == 404
+    assert document['id'] not in store.contexts
+
+
+def test_pruning_releases_context_deleted_by_another_worker(client):
+    from backend.app.services.brochures import BrochureStore
+    document = upload(client).json()
+    first = app.state.runtime.brochures
+    second = BrochureStore(first.settings, first.llm, first.backend)
+    second.delete(document['id'], client.cookies.get(OWNER_COOKIE))
+    first.prune()
+    assert document['id'] not in first.contexts
+
+
 def test_other_products_may_have_different_guarantees_and_included_benefits():
     from backend.app.guardrails.grounding import inspect_draft
     from backend.app.ingestion.chunker import Chunk
@@ -205,7 +290,7 @@ def test_native_parsers_are_serialized_across_store_instances(client,monkeypatch
     from backend.app.services.brochures import BrochureStore
     import backend.app.services.brochures as module
     first=app.state.runtime.brochures
-    second=BrochureStore(first.settings,first.llm,first.backend,first.retrieval_lock)
+    second=BrochureStore(first.settings,first.llm,first.backend)
     original=module.subprocess.run;lock=threading.Lock();active=0
     def tracked(*args,**kwargs):
         nonlocal active
@@ -220,5 +305,11 @@ def test_native_parsers_are_serialized_across_store_instances(client,monkeypatch
     content=pdf()
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
         futures=[pool.submit(store.create,content,'Fixture.pdf','c'*64) for store in [first,second]]
-        results=[future.result(timeout=10) for future in futures]
-    assert len({result.info.id for result in results})==2
+        results=[]
+        from backend.app.services.brochures import BrochureError
+        for future in futures:
+            try:
+                results.append(future.result(timeout=10))
+            except BrochureError as exc:
+                assert exc.status == 429
+    assert len(results)==1

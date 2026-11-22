@@ -223,7 +223,7 @@ class HybridRetriever:
 
     @property
     def mode(self) -> str:
-        return "hybrid" if self.embedding_backend.available else "lexical"
+        return "hybrid" if self.embedding_backend.available and self.vector.matrix is not None else "lexical"
 
     def _queries(self, query: str, history: list[str] | None = None) -> list[str]:
         """Expand a complex question into independent evidence needs.

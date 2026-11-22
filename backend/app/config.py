@@ -60,6 +60,7 @@ class Settings(BaseSettings):
     max_brochure_upload_bytes: int = Field(default=8 * 1024 * 1024, ge=1024, le=16 * 1024 * 1024)
     max_private_brochures: int = Field(default=16, ge=1, le=64)
     brochure_retention_seconds: int = Field(default=86400, ge=60, le=86400)
+    brochure_cookie_secure: bool = False  # Enable behind an HTTPS-terminating proxy.
 
     # Bounded anonymous demo; counters persist in DATA_DIR across restarts.
     max_request_bytes: int = Field(default=262144, ge=1024, le=1048576)

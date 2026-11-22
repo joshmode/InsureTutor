@@ -41,15 +41,14 @@ class BrochureContext:
 
 
 class BrochureStore:
-    def __init__(self, settings, llm, embedding_backend, retrieval_lock):
+    def __init__(self, settings, llm, embedding_backend):
         self.settings = settings
         self.llm = llm
         self.backend = embedding_backend
-        self.retrieval_lock = retrieval_lock
         self.root = settings.data_dir / "private-brochures"
         self.root.mkdir(parents=True, exist_ok=True, mode=0o700)
         self.lock = threading.RLock()
-        self.parse_lock = threading.Lock()
+        self.preparation_lock = threading.Lock()
         self.contexts: dict[str, BrochureContext] = {}
         self.prune()
 
@@ -72,6 +71,11 @@ class BrochureStore:
 
     def _cleanup(self):
         now = time.time()
+        # Other workers can delete an owned record; release this worker's
+        # in-memory vectors too instead of retaining unreachable contexts.
+        for identifier in list(self.contexts):
+            if not (self.root / identifier / "metadata.json").is_file():
+                self.contexts.pop(identifier, None)
         for directory in self.root.iterdir():
             if not directory.is_dir() or not re.fullmatch(r"[a-f0-9]{32}", directory.name):
                 continue
@@ -87,17 +91,41 @@ class BrochureStore:
                 self.contexts.pop(directory.name, None)
                 shutil.rmtree(directory)
 
-    def _context(self, directory, metadata):
-        chunks = [Chunk(**c) for c in json.loads((directory / "chunks.json").read_text())["chunks"]]
-        with self.retrieval_lock:
-            retriever = HybridRetriever(chunks, self.settings, embedding_backend=self.backend)
+    @contextmanager
+    def _preparing(self):
+        # Request cancellation cannot stop native inference in a worker thread.
+        # Bound the actual work, rather than just the lifetime of its HTTP request.
+        busy = "Another brochure is being prepared. Please try again shortly."
+        if not self.preparation_lock.acquire(blocking=False):
+            raise BrochureError(busy, 429)
+        try:
+            with (self.root / ".prepare.lock").open("a") as handle:
+                try:
+                    fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                except BlockingIOError:
+                    raise BrochureError(busy, 429) from None
+                try:
+                    yield
+                finally:
+                    fcntl.flock(handle, fcntl.LOCK_UN)
+        finally:
+            self.preparation_lock.release()
+
+    def _chunks(self, directory):
+        return [Chunk(**c) for c in json.loads((directory / "chunks.json").read_text())["chunks"]]
+
+    def _context(self, chunks, metadata):
+        retriever = HybridRetriever(chunks, self.settings, embedding_backend=self.backend)
         orchestrator = ChatOrchestrator(self.settings, retriever, self.llm)
-        orchestrator._retrieval_lock = self.retrieval_lock
         info = BrochureInfo(**{k: metadata[k] for k in BrochureInfo.model_fields})
         info.retrieval_mode = retriever.mode
-        return BrochureContext(info, directory / "brochure.pdf", metadata["owner_hash"], retriever, orchestrator)
+        return BrochureContext(info, self.root / info.id / "brochure.pdf", metadata["owner_hash"], retriever, orchestrator)
 
     def create(self, content: bytes, filename: str, owner: str) -> BrochureContext:
+        with self._preparing():
+            return self._create(content, filename, owner)
+
+    def _create(self, content: bytes, filename: str, owner: str) -> BrochureContext:
         if not content.startswith(b"%PDF-") or len(content) > self.settings.max_brochure_upload_bytes:
             raise BrochureError("Upload a PDF no larger than 8 MiB.")
         filename = filename.strip()
@@ -116,19 +144,12 @@ class BrochureStore:
             source.write_bytes(content)
             output = directory / "chunks.json"
             # No LLM keys, cloud secrets or proxy credentials enter the parser.
-            # Serialize native parsers across workers so simultaneous hostile
-            # PDFs cannot multiply the child-process memory allowance.
-            with self.parse_lock, (self.root / ".parse.lock").open("a") as parser:
-                fcntl.flock(parser, fcntl.LOCK_EX)
-                try:
-                    result = subprocess.run(
-                        [sys.executable, "-m", "backend.app.ingestion.upload_worker", str(source.resolve()), str(output.resolve())],
-                        cwd=Path(__file__).resolve().parents[3],
-                        env={"PATH": os.defpath, "PYTHONDONTWRITEBYTECODE": "1"},
-                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=25,
-                    )
-                finally:
-                    fcntl.flock(parser, fcntl.LOCK_UN)
+            result = subprocess.run(
+                [sys.executable, "-m", "backend.app.ingestion.upload_worker", str(source.resolve()), str(output.resolve())],
+                cwd=Path(__file__).resolve().parents[3],
+                env={"PATH": os.defpath, "PYTHONDONTWRITEBYTECODE": "1"},
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=25,
+            )
             if result.returncode or not output.exists():
                 raise BrochureError("Could not read this PDF within processing limits. Use an unencrypted, text-based brochure with 1–100 pages (scans need OCR first).")
             data = json.loads(output.read_text())
@@ -137,7 +158,7 @@ class BrochureStore:
             metadata = dict(id=identifier, filename=filename, pages=data["pages"], chunks=len(data["chunks"]),
                             retrieval_mode="pending", expires_at=time.time()+self.settings.brochure_retention_seconds,
                             owner_hash=self._owner(owner))
-            context = self._context(directory, metadata)
+            context = self._context([Chunk(**c) for c in data["chunks"]], metadata)
             metadata["retrieval_mode"] = context.info.retrieval_mode
             with self._locked():
                 pending = directory / "metadata.tmp"
@@ -152,21 +173,48 @@ class BrochureStore:
             shutil.rmtree(directory, ignore_errors=True)
             raise
 
+    def _metadata(self, identifier: str, owner: str):
+        """Read an owned record while the caller holds the storage lock."""
+        self._cleanup()
+        if not owner or not re.fullmatch(r"[a-f0-9]{32}", identifier):
+            raise BrochureError("Brochure not found or expired. Upload it again.", 404)
+        directory = self.root / identifier
+        try:
+            metadata = json.loads((directory / "metadata.json").read_text())
+        except FileNotFoundError:
+            raise BrochureError("Brochure not found or expired. Upload it again.", 404) from None
+        if not hmac.compare_digest(metadata["owner_hash"], self._owner(owner)):
+            raise BrochureError("Brochure not found or expired. Upload it again.", 404)
+        return directory, metadata
+
+    def source(self, identifier: str, owner: str, document: str | None = None):
+        with self._locked():
+            directory, metadata = self._metadata(identifier, owner)
+            if document is not None and document != metadata["filename"]:
+                raise BrochureError("Source document not found", 404)
+            # Read before deletion/expiry can remove the owned record.
+            return metadata["filename"], (directory / "brochure.pdf").read_bytes()
+
+    def chunks(self, identifier: str, owner: str):
+        with self._locked():
+            directory, _ = self._metadata(identifier, owner)
+            return self._chunks(directory)
+
     def get(self, identifier: str, owner: str) -> BrochureContext:
         with self._locked():
-            self._cleanup()
-            if not owner or not re.fullmatch(r"[a-f0-9]{32}", identifier):
-                raise BrochureError("Brochure not found or expired. Upload it again.", 404)
-            directory = self.root / identifier
-            try:
-                metadata = json.loads((directory / "metadata.json").read_text())
-            except FileNotFoundError:
-                raise BrochureError("Brochure not found or expired. Upload it again.", 404) from None
-            if not hmac.compare_digest(metadata["owner_hash"], self._owner(owner)):
-                raise BrochureError("Brochure not found or expired. Upload it again.", 404)
-            if identifier not in self.contexts:
-                self.contexts[identifier] = self._context(directory, metadata)
-            return self.contexts[identifier]
+            self._metadata(identifier, owner)
+            if identifier in self.contexts:
+                return self.contexts[identifier]
+        with self._preparing():
+            with self._locked():
+                directory, metadata = self._metadata(identifier, owner)
+                chunks = self._chunks(directory)
+            context = self._context(chunks, metadata)
+            with self._locked():
+                # It could have been deleted or expired during inference.
+                self._metadata(identifier, owner)
+                self.contexts[identifier] = context
+                return context
 
     def delete(self, identifier: str, owner: str):
         with self._locked():
