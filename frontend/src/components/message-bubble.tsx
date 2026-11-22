@@ -127,7 +127,7 @@ export function AssistantBubble({
                   className="inline-flex items-center gap-1.5 rounded-full bg-cream-100 px-2.5 py-1 text-[12px] font-semibold text-ink-700 transition hover:bg-jade-50 hover:text-jade-800"
                 >
                   <BookMarked size={11} aria-hidden="true" />
-                  {message.citations.length} {copy.citations}
+                  {message.citations.length} {language === "en" && message.citations.length === 1 ? "citation" : copy.citations}
                 </button>
               ) : (
                 <span className="text-[10px] text-ink-500">
