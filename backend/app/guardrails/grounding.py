@@ -163,6 +163,21 @@ def _surrender_context(units: list[str], index: int, sources: tuple[int, ...], h
     return "\n".join(context)
 
 
+def _payment_context(units: list[str], index: int, sources: tuple[int, ...]) -> str:
+    context = [units[index]]
+    topic = (r"administrative|行政" if re.search(r"administrative|行政", units[index], re.I)
+             else r"withdraw|提款" if re.search(r"withdraw|提款", units[index], re.I)
+             else r"cooling.off|refund|冷[靜静]|退[回還还]|[發发][還还]" if re.search(r"cooling.off|refund|冷[靜静]|退[回還还]|[發发][還还]", units[index], re.I) else None)
+    if topic:
+        for adjacent in (index - 1, index + 1):
+            if 0 <= adjacent < len(units):
+                unit = units[adjacent]
+                references = {int(n) for n in re.findall(r"\[S(\d+)\]", unit)}
+                if references & set(sources) and re.search(topic, unit, re.I):
+                    context.append(unit)
+    return "\n".join(context)
+
+
 def inspect_draft(text: str, hits: list[RetrievalHit]) -> list[Claim]:
     if not text.strip() or len(text) > 16000:
         raise GroundingError("empty_or_oversized_draft")
@@ -194,16 +209,19 @@ def inspect_draft(text: str, hits: list[RetrievalHit]) -> list[Claim]:
             if not sources or any(n < 1 or n > len(hits) for n in sources):
                 raise GroundingError("uncited_claim")
             evidence = [hits[n - 1] for n in sources]
+            source_text = "\n".join(hit.chunk.citation_excerpt for hit in evidence)
+            _check_monetary_fields(content, source_text)
             issue = validate_answer_claims(
                 content, evidence,
-                qualification_context=_surrender_context(units, unit_index, sources, hits),
+                qualification_context="\n".join((
+                    _surrender_context(units, unit_index, sources, hits),
+                    _payment_context(units, unit_index, sources),
+                )),
             )
             if issue:
                 raise GroundingError(issue)
-            source_text = "\n".join(hit.chunk.citation_excerpt for hit in evidence)
             if not _number_values(content) <= _number_values(source_text):
                 raise GroundingError("unsupported_claim_number")
-            _check_monetary_fields(content, source_text)
             for quoted in re.findall(
                 r'"([^"\n]+)"|“([^”]+)”|「([^」]+)」|『([^』]+)』', content
             ):
@@ -304,6 +322,7 @@ def review_approved(text: str, claims: list[Claim]) -> bool:
 _QUERY_SCAFFOLD = set(
     "policy plan insurance product benefit cover covered coverage happens happen get keep money work works tell much more only still same any every single partial year time these request know need have all considered return buy buying bought suitable good idea sensible wise worth worthwhile me us fit question percent rate says brochure source document explain actually can does difference between many times often frequently back long youngest oldest immediate immediately switch make pay use mean means never like im who really basic basics young person understand terms simple new beginner risks options".split()
 )
+_QUERY_SCAFFOLD.update("just entire regardless always overview summary introduce main correct".split())
 # Linguistic scaffolding is not an insurance topic. Removing it keeps lexical
 # applicability about the subject, rather than the user's requested reading level.
 _CJK_SCAFFOLD = re.compile(
@@ -315,6 +334,10 @@ def normalize_question_wording(text: str) -> str:
     # Wording of the request is not an additional product condition. Keep
     # substantive modifiers (e.g. English law or cryptocurrency) as anchors.
     text = re.sub(r"\bin (?:simple |plain )?(?:english|language)\b", " ", text, flags=re.I)
+    text = re.sub(r"\b(?:pros and cons|advantages and disadvantages)\b", "overview", text, flags=re.I)
+    text = re.sub(r"\bstop paying premiums?\b", "skip premium payments", text, flags=re.I)
+    # 'Cost' names a charge here; it does not add a new policy condition.
+    text = re.sub(r"\bcost\b(?! of insurance)", "charge", text, flags=re.I)
     return re.sub(r"\bpayment methods?\b", "payment mode", text, flags=re.I)
 
 
@@ -325,7 +348,7 @@ def _subject_terms(text: str) -> set[str]:
                            "保費":"premium", "保费":"premium"}.items():
         text = text.replace(source, " " + target + " ")
     text = re.sub(r"\blike i[’']?m\s+\d+", "", text)
-    text = _CJK_SCAFFOLD.sub(" ", text)
+    text = _CJK_SCAFFOLD.sub(" ", text).replace("有", " ")
     terms = set(tokenize(text))
     return {
         # These identify the subject, not whether a charge exists or is waived.
@@ -351,7 +374,7 @@ def is_product_overview(question: str, documents: list[str]) -> bool:
     """A broad explanation request, without a new substantive policy topic."""
     terms = _subject_terms(question)
     identity = _subject_terms(" ".join(documents))
-    return bool(re.search(r"\b(?:explain|overview|summary|introduce|how.*works?)\b|解釋|解释|概覽|概览|簡介|简介", question, re.I)) and terms <= identity
+    return bool(re.search(r"\b(?:explain|overview|summary|introduce|how.*works?)\b|解釋|解释|概覽|概览|簡介|简介", normalize_question_wording(question), re.I)) and terms <= identity
 
 
 def retrieval_question(question: str) -> str:
@@ -371,7 +394,7 @@ def literal_applicable(
 ) -> bool:
     terms = _subject_terms(question)
     if not terms:
-        return advice or bool(
+        return advice or is_product_overview(question, [h.chunk.document for h in hits]) or bool(
             re.search(
                 r"\b(?:policy|plan|insurance|brochure|risks?|options?|benefits?)\b|計劃|计划|保單|保单|保險|保险",
                 question,

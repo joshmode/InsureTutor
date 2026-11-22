@@ -6,7 +6,9 @@ from ..ingestion.chunker import REVIEWED_BROCHURE_SHA256
 REVIEWED_RATE_RULES = """Never state or imply that the 4.0% assumed base rate,
 0.25% retrospective additional interest rate, 2.75%/5.5% Extra Bonus rates or other
 assumed/non-guaranteed figures are guaranteed. Distinguish current assumed rates
-from the 2.5% long-term guaranteed-interest wording and its conditions."""
+from the 2.5% long-term guaranteed-interest wording and its conditions.
+Premium skipping depends on sufficient Cash Value, not a stated mandatory time
+limit; do not invent a requirement to resume payments after a fixed period."""
 
 
 SYSTEM_PROMPT = """You are InsureTutor, an insurance education assistant for the general public.
@@ -34,6 +36,8 @@ GROUNDING AND CITATION RULES
   non-guaranteed; brochure wording vs complete policy terms.
 - When stating a duration, preserve its starting event and any restart for increased
   coverage. Do not shorten a period tied to each layer into a period since policy issue.
+- When stating a fee, preserve variable components and stated waivers. A fixed
+  component is not the entire charge; a per-withdrawal fee may have exceptions.
 - Cite every product-specific sentence or bullet by putting the evidence identifier in square
   brackets immediately after the claim, e.g. [S1] or [S2][S3]. Never cite an identifier that is not
   in the evidence list. Do not fabricate citation IDs, page numbers or quotations.
@@ -54,6 +58,9 @@ FORMAT
   Simplified Chinese must be internally consistent; do not mix scripts unnecessarily.
 - Use one short factual sentence per paragraph or bullet, each ending with its own valid
   [S#] marker. Do not use headings, tables, code, links or an uncited introductory sentence.
+- Answer the question directly in 2–4 sentences where possible. Omit unasked rates
+  and benefits. Every number must occur in that sentence's own cited passage;
+  a related passage or a matching number under another source is not enough.
   Paraphrase without quotation marks; original quotations are available in the source panel.
   The interface adds educational/advice framing. Avoid a long
   generic disclaimer; the interface already shows one. Be concise but complete.
@@ -134,9 +141,34 @@ def citation_repair_messages(
             "Remove quotation marks and paraphrase the supported information; "
             "punctuation, translations and shortened wording are not verbatim source quotes. "
         ),
+        "unsupported_numeric_claim": (
+            "Check each number against that sentence's own S# passage, not the "
+            "combined evidence. Correct the citation or remove the unsupported "
+            "number. Omit unasked rates and unrelated product features. "
+        ),
+        "unsupported_numeric_field": (
+            "Check the fee name, currency and amount together in the cited "
+            "passage. A number for a different charge is not support. "
+        ),
         "missing_surrender_charge_start_events": (
             "Preserve both the Policy Date and the effective date of each increase in "
             "Basic Sum Insured when stating the surrender-charge period. "
+        ),
+        "missing_variable_administrative_charge": (
+            "Distinguish the fixed component from the additional charge based on "
+            "each layer of Basic Sum Insured and its administrative charge rate. "
+        ),
+        "missing_withdrawal_charge_waiver": (
+            "Include the source's waiver for automatic periodic withdrawals when "
+            "stating the withdrawal fee; do not say every withdrawal incurs it. "
+        ),
+        "unsupported_premium_pause_time_limit": (
+            "Remove any invented mandatory time limit or requirement to resume "
+            "premiums. State the sufficient Cash Value condition and lapse risk. "
+        ),
+        "missing_refund_payment_exclusion": (
+            "When promising a full cooling-off refund, retain the exception for "
+            "a benefit payment made, to be made, or impending. "
         ),
     }
     correction = "".join(corrections.get(code, "") for code in error.split(", "))

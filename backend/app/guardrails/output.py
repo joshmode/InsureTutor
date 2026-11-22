@@ -228,6 +228,27 @@ def validate_answer_claims(
     evidence_text = " ".join(hit.chunk.citation_excerpt for hit in hits)
     plain_answer = answer.replace("*", "").replace("_", "")
     qualified = (qualification_context if qualification_context is not None else answer).replace("*", "").replace("_", "")
+    if (re.search(r"no refund can be made if a benefit payment|若曾[獲获][賠赔][償偿]", evidence_text, re.I)
+            and re.search(r"full refund.{0,40}premiums?|refund all premiums?|全[數数額额].{0,15}退[回還还]|退[回還还].{0,12}全[部數数額额]", plain_answer, re.I)
+            and not re.search(r"(?:benefit payment|claim).{0,60}(?:made|paid|payable|impending|pending)|(?:未|不).{0,15}(?:賠償|赔偿)|(?:賠償|赔偿).{0,20}(?:發還|发还|退[回還还])", qualified, re.I)):
+        return "missing_refund_payment_exclusion"
+    if (reviewed_source and re.search(r"skip\w*\s+(?:premium\s+)?payments?", plain_answer, re.I)
+            and re.search(r"skip premium payments", evidence_text, re.I)
+            and re.search(r"cash value", evidence_text, re.I)
+            and re.search(r"not (?:a )?permanent|only (?:a )?temporary|must resume", plain_answer, re.I)):
+        return "unsupported_premium_pause_time_limit"
+    if (re.search(r"administrative charge rate|行政[費费]用率", evidence_text, re.I)
+            and re.search(r"each layer|每[層层]", evidence_text, re.I)
+            and re.search(r"administrative|行政", plain_answer, re.I)
+            and _numbers(plain_answer)
+            and not re.search(r"sum insured|each layer|variable|fixed (?:component|part|portion)|基本保障[額额]|每[層层]|固定部分", qualified, re.I)):
+        return "missing_variable_administrative_charge"
+    if (re.search(r"automatic periodic withdrawal|自動定期提款|自动定期提款", evidence_text, re.I)
+            and re.search(r"waiv|豁免", evidence_text, re.I)
+            and re.search(r"withdraw|提款", plain_answer, re.I)
+            and _numbers(plain_answer)
+            and not re.search(r"waiv|manual|ad.hoc|non.automatic|豁免|手動|手动|非自動|非自动", qualified, re.I)):
+        return "missing_withdrawal_charge_waiver"
     # The brochure restarts this period for increased cover. A bare "first
     # 14 years" summary can imply the charge disappears at policy year 14.
     # Apply this narrow gate only when the claim's own source states the restart.

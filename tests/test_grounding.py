@@ -40,6 +40,80 @@ APPROVAL = json.dumps(
 )
 
 
+@pytest.mark.parametrize('question', [
+    'Is the entire administrative charge just US$4 per month, regardless of my amount of cover?',
+    'Does a withdrawal always cost US$25?',
+    'What happens if I stop paying premiums?',
+    'The base interest rate is guaranteed at 4%, correct?',
+    '是不是每年保证有2.5%的利息？',
+])
+def test_ordinary_question_wording_does_not_veto_relevant_evidence(question, retriever):
+    from backend.app.guardrails.grounding import retrieval_question
+    result = retriever.search(retrieval_question(question))
+    assert result.sufficient
+    assert literal_applicable(question, result.hits)
+
+
+@pytest.mark.parametrize('question', ['What are the pros and cons?', 'What are the main advantages and disadvantages?'])
+def test_balanced_overview_wording(question):
+    from backend.app.guardrails.grounding import is_product_overview
+    assert is_product_overview(question, ['FLEXI-ULife Prime Saver.pdf'])
+    assert literal_applicable(question, [hit('Insurance plan benefits and risks.')])
+    assert not is_product_overview(question + ' of cryptocurrency', ['FLEXI-ULife Prime Saver.pdf'])
+
+
+@pytest.mark.parametrize(('draft', 'source', 'reason'), [
+    ('The administrative charge is US$4 monthly. [S1]',
+     'Administrative Charge is based on each layer of Basic Sum Insured and the Administrative Charge Rate plus a fixed monthly charge of US$4.',
+     'missing_variable_administrative_charge'),
+    ('Every withdrawal costs US$25. [S1]',
+     'Withdrawal Charge is US$25 per withdrawal, waived for the Automatic Periodic Withdrawal Option.',
+     'missing_withdrawal_charge_waiver'),
+])
+def test_fee_amount_is_not_enough_without_material_qualification(draft, source, reason):
+    with pytest.raises(GroundingError, match=reason):
+        inspect_draft(draft, [hit(source)])
+
+
+@pytest.mark.parametrize('draft', [
+    'The fixed component of the administrative charge is US$4 monthly. [S1]',
+    'The administrative charge is based on each layer of Basic Sum Insured plus US$4 monthly. [S1]',
+    'The withdrawal charge is US$25, waived for automatic periodic withdrawals. [S1]',
+    'Manual withdrawals cost US$25. [S1]',
+])
+def test_fee_qualifications_allow_accurate_summaries(draft):
+    source = ('Administrative Charge is based on each layer of Basic Sum Insured and the Administrative Charge Rate plus a fixed monthly charge of US$4. '
+              'Withdrawal Charge is US$25 per withdrawal, waived for the Automatic Periodic Withdrawal Option.')
+    assert inspect_draft(draft, [hit(source)])
+
+
+def test_premium_pause_cannot_invent_a_mandatory_time_limit(knowledge_chunks):
+    source = next(c for c in knowledge_chunks if c.page == 10 and 'skip premium payments' in c.citation_excerpt.lower())
+    with pytest.raises(GroundingError, match='unsupported_premium_pause_time_limit'):
+        inspect_draft('Skipping payments is a temporary flexibility feature; it is not a permanent option. [S1]',
+                      [RetrievalHit(source, 1, 1, 0)])
+
+
+def test_cooling_refund_cannot_drop_payment_exclusion(knowledge_chunks):
+    source = next(c for c in knowledge_chunks if 'No refund can be made' in c.citation_excerpt)
+    evidence = [RetrievalHit(source, 1, 1, 0)]
+    with pytest.raises(GroundingError, match='missing_refund_payment_exclusion'):
+        inspect_draft('You can cancel in the cooling-off period and receive a full refund of premiums paid. [S1]', evidence)
+    assert inspect_draft('You can receive a refund of premiums during the cooling-off period, unless a benefit payment has been made, is to be made or is impending. [S1]', evidence)
+
+
+@pytest.mark.parametrize(('unqualified', 'condition'), [
+    ('冷靜期內可全數退回已繳保費。', '但若曾獲賠償或將獲得賠償，則不獲發還保費。'),
+    ('冷静期内可全数退回已缴保费。', '但若曾获赔偿或将获得赔偿，则不获发还保费。'),
+])
+def test_chinese_refunds_keep_the_actual_payment_exclusion(knowledge_chunks, unqualified, condition):
+    source = next(c for c in knowledge_chunks if '若曾獲賠償' in c.citation_excerpt)
+    evidence = [RetrievalHit(source, 1, 1, 0)]
+    with pytest.raises(GroundingError, match='missing_refund_payment_exclusion'):
+        inspect_draft(unqualified + ' [S1]', evidence)
+    assert inspect_draft(unqualified + ' [S1]\n' + condition + ' [S1]', evidence)
+
+
 class ScriptedLLM:
     configured = True
 
@@ -151,7 +225,7 @@ def test_one_repair_receives_all_independent_draft_failures(knowledge_chunks):
 
 
 def test_number_must_occur_in_the_claims_own_cited_source():
-    with pytest.raises(GroundingError, match="unsupported_numeric_claim"):
+    with pytest.raises(GroundingError, match="unsupported_numeric_field"):
         inspect_draft("The withdrawal charge is US$200. [S1]", HITS)
 
 
@@ -210,7 +284,7 @@ def test_actual_footnoted_withdrawal_charge_and_cross_source_label_swap(knowledg
     # An unrelated amount is deliberately in the same cited evidence so the
     # ordinary number-membership check alone cannot catch a field swap.
     evidence = [hit(source.citation_excerpt + "\nAdministrative charge is US$4 monthly.")]
-    assert inspect_draft(f"The {prefix}withdrawal charge is {amount}. [S1]", evidence)
+    assert inspect_draft(f"The {prefix}withdrawal charge is {amount}, waived for automatic periodic withdrawals. [S1]", evidence)
     with pytest.raises(GroundingError, match="unsupported_numeric_field"):
         inspect_draft(f"The {prefix}withdrawal charge is US$4. [S1]", evidence)
 
