@@ -1,0 +1,1 @@
+{"restart_health": {"status": "ok", "llm_configured": false, "retrieval_mode": "hybrid", "documents": 1, "chunks": 52, "ingest_ready": true, "request_timeout_seconds": 195.0}, "private_source_survives_restart": true, "private_document_deleted": true}

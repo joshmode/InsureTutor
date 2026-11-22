@@ -1,0 +1,149 @@
+[
+  {
+    "id": "withdrawal-waiver",
+    "question": "Does a withdrawal always cost US$25?",
+    "language": "en",
+    "status": 200,
+    "seconds": 29.55,
+    "response": {
+      "message": "The current withdrawal charge is US$25 (or HK$200 / MOP200) for each cash withdrawal [1][2].\n\nThe withdrawal charge is waived for the automatic periodic withdrawal option [1].\n\nThe automatic periodic withdrawal option is only applicable if the policy has been in force for at least 10 years [2].\n\nThe brochure describes the US$25 figure as the \"current\" charge, meaning it is not a permanent fixed rate [1][2].",
+      "citations": [
+        {
+          "id": "flexi-ulife-prime-saver-p18-87fc3e682f2ed2a3",
+          "document": "FLEXI-ULife Prime Saver.pdf",
+          "page": 18,
+          "section": "Policy Information · Surrender Charge",
+          "excerpt": "按基本計劃的每層保障額及退保費用率計算。適用於保單日期 / 每次增加基本保障\n額的生效日期起計首14年，於下列情況收取退保費用：\n退保費用率根據受保人的性別、投保年齡、吸煙習慣、風險級別及已生效的年期而\nDetermined based on each layer of Basic Sum Insured and the Surrender Charge Rate and applicable in the first 14 years from Policy Date / effective date of each increase in Basic Sum Insured upon:\n- Policy lapse or surrender - Decrease in Basic Sum Insured\nSurrender Charge Rate depends on gender, issue age, smoking habit, risk class of the Insured and years in effect\n提取現金價值 Cash Value Withdrawal\n次數不限，現時每次收取25美元 / 200港元 / 200澳門元提款費用10；定期提款權益\nUnlimited frequency. Currently, each cash withdrawal is subject to a withdrawal charge10 of US$25/HK$200/MOP200. Withdrawal charge is waived for automatic periodic withdrawal option\n投保年齡（以上次生日年齡計算） Issue Age (At Last Birthday)\n0 – 75歲（如選擇特級遞增壽險保障，投保年齡則為0 – 55歲）\nAge 0 - 75 (For Increasing Benefit Plus, Issue Age is 0 - 55)\n繳付保費年期 Premium Payment Term",
+          "score": 0.7187
+        },
+        {
+          "id": "flexi-ulife-prime-saver-p12-6afdf0ccf798efe2",
+          "document": "FLEXI-ULife Prime Saver.pdf",
+          "page": 12,
+          "section": "Additional Protections · Unemployment Protection",
+          "excerpt": "5. The sum of the Basic Sum Insured and 50% of Account Value will be net of 50% of all withdrawals made in the 12-month period preceding the date of the Insured's death.\n6. Automatic periodic withdrawal option is only applicable if the Policy has been in force for at least 10 years, the withdrawal charge will be waived. Current requirement on minimum monthly withdrawal amount is US$500/HK$/MOP4,000, with minimum withdrawal period of one year; and the minimum annual withdrawal amount is US$6,000/HK$48,000/ MOP48,000, with minimum withdrawal period of three years. For any change after the application has been confirmed, a nominal fee will be levied.\n7. The current charge for each withdrawal is US$25/HK$ 200/MOP200.\n8. Unemployment Protection is only applicable to the Basic Plan.",
+          "score": 0.5679
+        }
+      ],
+      "language": "en",
+      "kind": "answer",
+      "used_retrieval": true,
+      "model_generated": true,
+      "retrieval_mode": "hybrid",
+      "confidence": 0.8761699056625366,
+      "notices": [
+        "InsureTutor is an educational assistant, not a licensed insurance adviser. It explains the supplied brochure and cannot determine whether a policy is suitable for you."
+      ]
+    },
+    "citations_resolve_exactly": true
+  },
+  {
+    "id": "premium-pause",
+    "question": "What happens if I stop paying premiums?",
+    "language": "en",
+    "status": 200,
+    "seconds": 32.89,
+    "response": {
+      "message": "You can skip premium payments as long as your Policy has accumulated sufficient Cash Value, and you will still enjoy protection without needing to reduce the sum insured [1][2].\n\nNo loan interest is charged while you skip payments [2].\n\nHowever, monthly charges (such as the Cost of Insurance and other policy expenses) continue to be deducted from your Cash Value even while you are not paying premiums [3].\n\nIf your Cash Value is not sufficient to cover those ongoing monthly charges, the Policy will lapse with zero value [3].\n\nThe brochure does not state a fixed time limit after which you must resume payments; the key condition is simply that the Cash Value must remain adequate to cover the monthly charges [1][3].",
+      "citations": [
+        {
+          "id": "flexi-ulife-prime-saver-p10-ff500ea9c28eb01d",
+          "document": "FLEXI-ULife Prime Saver.pdf",
+          "page": 10,
+          "section": "Withdrawals & Premium Flexibility",
+          "excerpt": "When your Policy has accumulated a Cash Value, you can exercise the automatic periodic withdrawal option6 to withdraw a specified amount of Cash Value monthly / annually at preset time intervals, so that you can easily map out your financial needs, e.g. children's university education funds and retirement expenses. In addition, you can withdraw a portion of the Cash Value7 at any time to cope with emergencies.\n暫停繳付保費 Skip Premium Payments\n若需要應急，只要保單內已累積有 足夠的現金價值，您可暫停繳付保 費，令理財更具彈性。\nWhen your Policy has accumulated a Cash Value, you may skip premium payments to cope with emergencies.",
+          "score": 0.4338
+        },
+        {
+          "id": "flexi-ulife-prime-saver-p4-42efd709e588affe",
+          "document": "FLEXI-ULife Prime Saver.pdf",
+          "page": 4,
+          "section": "Product Overview",
+          "excerpt": "可於原有保單內增加保障額，無須另購新保單，省卻額外保單 費用。\nSimply adjust the original Policy to increase the sum insured. No need to apply for a new Policy, thus saving additional policy charges.\nPreferential Premium Rates\nThe premium rate for new coverage will be based on the insured's age when the Policy was first issued instead of current age.\n如保單已累積現金價值，便可暫停繳交保費，而無須支付貸款\nAllows you to skip payments if the Policy has accumulated a cash value, without any loan interest.\nMonthly interest at a compound rate\nFlexible cash withdrawal\nStill enjoy protection without the need to reduce the sum insured.\n萬用壽險 — 真正為客戶度身訂造的保險計劃 Universal Life Insurance – a tailor-made insurance plan\n註 : 以上資料僅供參考，關於個別計劃的保障範圍，請參閱有關保單文件。\nRemarks : The above information is for reference only. Please refer to policy document for detailed benefit coverage.",
+          "score": 0.4217
+        },
+        {
+          "id": "flexi-ulife-prime-saver-p10-28c2010052dfa3de",
+          "document": "FLEXI-ULife Prime Saver.pdf",
+          "page": 10,
+          "section": "Withdrawals & Premium Flexibility · Surrender Charge",
+          "excerpt": "提存彈性 Financial Flexibilities 4\n提取現金、減低或暫停繳付保費，將會影響計劃所累積的現金價值，而每月費用仍會被扣除，如現金價值不足以支付每 月費用時，保單便會終止而沒有任何價值。 Cash withdrawal, reducing the premium amount, or skipping premium payments will affect the accumulation of the Cash Value, while the monthly charges are still deductible. If the Cash Value is not sufficient to cover the monthly charges, the Policy will lapse with zero value.\n現金價值 適用的退保費用 Applicable surrender charge = -\n靈活增加保費 Flexible Increase of Premium\n為賺取更豐厚利息及回報，更快達 至理財目標，您可隨時增加定期 / 非定期供款以累積財富。\nTo achieve your financial goals faster with higher returns, you can increase regular or unscheduled premiums at any time to accumulate wealth.\n只要保單內已累積有足夠的現金價 值，您可行使定期提款權益6，自由 設定每月 / 每年提款金額及年期，讓 各項理財安排（例如子女升學及退休 等）更有規劃。此外，您亦可隨時提 取部分現金價值7，以應不時之需。",
+          "score": 0.4178
+        }
+      ],
+      "language": "en",
+      "kind": "answer",
+      "used_retrieval": true,
+      "model_generated": true,
+      "retrieval_mode": "hybrid",
+      "confidence": 0.45,
+      "notices": [
+        "InsureTutor is an educational assistant, not a licensed insurance adviser. It explains the supplied brochure and cannot determine whether a policy is suitable for you."
+      ]
+    },
+    "citations_resolve_exactly": true
+  },
+  {
+    "id": "balanced-overview",
+    "question": "What are the main advantages and disadvantages?",
+    "language": "en",
+    "status": 200,
+    "seconds": 62.57,
+    "response": {
+      "message": "I found related brochure passages, but could not verify a reliable explanation for your question. I have withheld the generated answer. Try asking about one specific policy feature at a time, or check the source document.",
+      "citations": [],
+      "language": "en",
+      "kind": "insufficient",
+      "used_retrieval": true,
+      "model_generated": false,
+      "retrieval_mode": "hybrid",
+      "confidence": 1.0,
+      "notices": [
+        "This answer is based on the supplied product brochure, which is not the full policy contract."
+      ]
+    },
+    "citations_resolve_exactly": true
+  },
+  {
+    "id": "annual-guarantee",
+    "question": "是不是每年保证有2.5%的利息？",
+    "language": "zh-Hans",
+    "status": 200,
+    "seconds": 41.19,
+    "response": {
+      "message": "我找到了相关册子段落，但无法核实针对您问题的解释，因此未展示生成的答案。请尝试每次询问一项具体保单特点，或查阅原始文件。",
+      "citations": [],
+      "language": "zh-Hans",
+      "kind": "insufficient",
+      "used_retrieval": true,
+      "model_generated": false,
+      "retrieval_mode": "hybrid",
+      "confidence": 0.8807731008529663,
+      "notices": [
+        "本回答基于所提供的产品册子，而册子并非完整保单合约。"
+      ]
+    },
+    "citations_resolve_exactly": true
+  },
+  {
+    "id": "false-interest",
+    "question": "The base interest rate is guaranteed at 4%, correct?",
+    "language": "en",
+    "status": 200,
+    "seconds": 28.59,
+    "response": {
+      "message": "I found related brochure passages, but could not verify a reliable explanation for your question. I have withheld the generated answer. Try asking about one specific policy feature at a time, or check the source document.",
+      "citations": [],
+      "language": "en",
+      "kind": "insufficient",
+      "used_retrieval": true,
+      "model_generated": false,
+      "retrieval_mode": "hybrid",
+      "confidence": 0.9374399101734162,
+      "notices": [
+        "This answer is based on the supplied product brochure, which is not the full policy contract."
+      ]
+    },
+    "citations_resolve_exactly": true
+  }
+]

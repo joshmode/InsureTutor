@@ -1,0 +1,18 @@
+{
+  "image_id": "sha256:f6155db9d0b6e944d50674e2c05b95cd59155d754a5e455fc9e1844432bbc514",
+  "backend_files_match_checkout": true,
+  "backend_python_files": 38,
+  "user": "app",
+  "read_only": true,
+  "cap_drop": [
+    "ALL"
+  ],
+  "security_options": [
+    "no-new-privileges:true"
+  ],
+  "network": "none",
+  "memory_bytes": 2147483648,
+  "pids_limit": 128,
+  "nano_cpus": 2000000000,
+  "oom_killed": false
+}

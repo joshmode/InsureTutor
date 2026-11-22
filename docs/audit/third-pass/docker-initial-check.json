@@ -1,0 +1,1 @@
+{"health": {"status": "ok", "llm_configured": false, "retrieval_mode": "hybrid", "documents": 1, "chunks": 52, "ingest_ready": true, "request_timeout_seconds": 195.0}, "uid": 999, "upload_mode": "hybrid", "private_source_sha256": "2043de40845267fdb1f657280438f3ded04edda6692791960415116a5668a475", "owner_isolation": true, "private_offline_answer": true}

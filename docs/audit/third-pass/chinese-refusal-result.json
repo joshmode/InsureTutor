@@ -1,0 +1,13 @@
+{
+  "message": "我找到了相关册子段落，但无法核实针对您问题的解释，因此未展示生成的答案。请尝试每次询问一项具体保单特点，或查阅原始文件。",
+  "citations": [],
+  "language": "zh-Hans",
+  "kind": "insufficient",
+  "used_retrieval": true,
+  "model_generated": false,
+  "retrieval_mode": "lexical",
+  "confidence": 0.999,
+  "notices": [
+    "本回答基于所提供的产品册子，而册子并非完整保单合约。"
+  ]
+}

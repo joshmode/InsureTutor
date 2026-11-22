@@ -1,0 +1,115 @@
+[
+  {
+    "id": "balanced-overview",
+    "question": "What are the main advantages and disadvantages?",
+    "language": "en",
+    "status": 200,
+    "seconds": 49.2,
+    "response": {
+      "message": "The plan combines flexibility with value growth, allowing you to increase premiums at any time and withdraw part of the Cash Value for unexpected needs [1][2]. You can also set up periodic withdrawals for planned goals such as children's education or retirement [2].\n\nOn the downside, monthly charges continue to be deducted even if you skip premiums or withdraw cash, and if the Cash Value cannot cover them the policy lapses with zero value [2]. Surrender charges apply during the first 14 years from the policy date or from the effective date of each increase in Basic Sum Insured [3]. Non-guaranteed charges may be adjusted with one month's written notice [4]. The product is designed for long-term holding, and early surrender may result in a Cash Value far below the premiums you have paid [4]. Inflation risk means that if actual inflation exceeds expectations, the real value of the amounts you receive may be lower [4].",
+      "citations": [
+        {
+          "id": "flexi-ulife-prime-saver-p2-ab89b2a86fba65e0",
+          "document": "FLEXI-ULife Prime Saver.pdf",
+          "page": 2,
+          "section": "Product Overview",
+          "excerpt": "靈活方案 配合您一生的需要 Flexible solutions to cater for your lifelong needs\n您可創造更豐厚的財富，盡享更精彩人生，只要您及早作出 妥善的理財規劃。一份兼具靈活彈性和回報增長的萬用壽險 計劃，正是伴您一生的最佳保障及理財方案。 With proper financial planning, you can achieve better wealth creation and enjoy a brighter future. A universal life insurance plan combining high flexibility and value growth is the best solution for your life protection and wealth management.\n家人的生活保障 Protection for Family\n子女成才 教育基金 Education Funds",
+          "score": 1.0
+        },
+        {
+          "id": "flexi-ulife-prime-saver-p10-28c2010052dfa3de",
+          "document": "FLEXI-ULife Prime Saver.pdf",
+          "page": 10,
+          "section": "Withdrawals & Premium Flexibility · Surrender Charge",
+          "excerpt": "提存彈性 Financial Flexibilities 4\n提取現金、減低或暫停繳付保費，將會影響計劃所累積的現金價值，而每月費用仍會被扣除，如現金價值不足以支付每 月費用時，保單便會終止而沒有任何價值。 Cash withdrawal, reducing the premium amount, or skipping premium payments will affect the accumulation of the Cash Value, while the monthly charges are still deductible. If the Cash Value is not sufficient to cover the monthly charges, the Policy will lapse with zero value.\n現金價值 適用的退保費用 Applicable surrender charge = -\n靈活增加保費 Flexible Increase of Premium\n為賺取更豐厚利息及回報，更快達 至理財目標，您可隨時增加定期 / 非定期供款以累積財富。\nTo achieve your financial goals faster with higher returns, you can increase regular or unscheduled premiums at any time to accumulate wealth.\n只要保單內已累積有足夠的現金價 值，您可行使定期提款權益6，自由 設定每月 / 每年提款金額及年期，讓 各項理財安排（例如子女升學及退休 等）更有規劃。此外，您亦可隨時提 取部分現金價值7，以應不時之需。",
+          "score": 0.724
+        },
+        {
+          "id": "flexi-ulife-prime-saver-p18-87fc3e682f2ed2a3",
+          "document": "FLEXI-ULife Prime Saver.pdf",
+          "page": 18,
+          "section": "Policy Information · Surrender Charge",
+          "excerpt": "按基本計劃的每層保障額及退保費用率計算。適用於保單日期 / 每次增加基本保障\n額的生效日期起計首14年，於下列情況收取退保費用：\n退保費用率根據受保人的性別、投保年齡、吸煙習慣、風險級別及已生效的年期而\nDetermined based on each layer of Basic Sum Insured and the Surrender Charge Rate and applicable in the first 14 years from Policy Date / effective date of each increase in Basic Sum Insured upon:\n- Policy lapse or surrender - Decrease in Basic Sum Insured\nSurrender Charge Rate depends on gender, issue age, smoking habit, risk class of the Insured and years in effect\n提取現金價值 Cash Value Withdrawal\n次數不限，現時每次收取25美元 / 200港元 / 200澳門元提款費用10；定期提款權益\nUnlimited frequency. Currently, each cash withdrawal is subject to a withdrawal charge10 of US$25/HK$200/MOP200. Withdrawal charge is waived for automatic periodic withdrawal option\n投保年齡（以上次生日年齡計算） Issue Age (At Last Birthday)\n0 – 75歲（如選擇特級遞增壽險保障，投保年齡則為0 – 55歲）\nAge 0 - 75 (For Increasing Benefit Plus, Issue Age is 0 - 55)\n繳付保費年期 Premium Payment Term",
+          "score": 0.5317
+        },
+        {
+          "id": "flexi-ulife-prime-saver-p14-f62871ccaf72ac1a",
+          "document": "FLEXI-ULife Prime Saver.pdf",
+          "page": 14,
+          "section": "Key Disclosures · Terminal Illness",
+          "excerpt": "繳付保費年期及保障年期 繳付保費年期及保障年期最長可至受保人100歲。提取現 金、減低或暫停繳付保費（如適用），將會減少計劃所累積 的現金價值，而每月費用仍會被扣除。我們將至少每年檢視 非保證之費用，於需要時非保證之費用可能會被調整，並會 提前一個月以書面通知您有關更改。我們將會參考包括但 不限於理賠、支出費用、投資回報及退保等因素的過往經 驗和預期未來展望，以釐定任何非保證費用的調整。如現金 價值不足以支付每月費用，而在保費到期日起計31天寬限期 屆滿前仍未繳付保費，保單便會終止而沒有任何價值。\n終止 在下列任何情況下，保單將會終止： • 於保障到期日當日 • 寬限期屆滿 • 保單持有人呈交書面要求終止保單 • 在受保人經確診患上末期病症而需要作出末期病症 保障賠償後 • 受保人身故\n期滿價值 如受保人在保單期滿日仍然在生，您將獲得相等於保單 期滿日的賬戶價值的期滿價值。\n提早退保 本產品是為長線持有而設。如提早終止保單，您所獲得 的現金價值或會遠低於您的已繳保費。\n通脹風險 當實際通脹率較預期為高，即使萬通保險按保單條款履行 合約義務，保單持有人獲得的金額的實質價值可能較少。\n信貸風險 本計劃由萬通保險承保及負責，保單持有人的保單權益 會受其信貸風險所影響。\n主要不保事項 受保人若在保單日期起計一年內自殺，無論其是否在神 智清醒的情況下，我們的全部責任將只限於退還直至受 保人身故當天在保單所累積的賬戶價值的金額加上已扣 除的保險成本（不包括利息）。\n適用於末期病症保障 末期病症保障將不會支付任何保障的賠償予因以下一種 或多種情況而直接或間接引致的末期病症： • 在保障生效日期或批准復效日期（以較後日期爲準）的 六十日內出現的疾病； • 在保障生效日期或批准復效日期（以較後日期爲準） 前，所有受保人本身已存在的情況及按受保人已呈現 的病徵及病狀，受保人已知悉或據常理應該已知悉的 情況； • 自殺、企圖自殺或因神智不清醒、自殘或精神狀態異 常的狀況下受傷；",
+          "score": 0.6176
+        }
+      ],
+      "language": "en",
+      "kind": "answer",
+      "used_retrieval": true,
+      "model_generated": true,
+      "retrieval_mode": "hybrid",
+      "confidence": 1.0,
+      "notices": [
+        "InsureTutor is an educational assistant, not a licensed insurance adviser. It explains the supplied brochure and cannot determine whether a policy is suitable for you."
+      ]
+    },
+    "citations_resolve_exactly": true
+  },
+  {
+    "id": "annual-guarantee",
+    "question": "是不是每年保证有2.5%的利息？",
+    "language": "zh-Hans",
+    "status": 200,
+    "seconds": 40.84,
+    "response": {
+      "message": "我找到了相关册子段落，但无法核实针对您问题的解释，因此未展示生成的答案。请尝试每次询问一项具体保单特点，或查阅原始文件。",
+      "citations": [],
+      "language": "zh-Hans",
+      "kind": "insufficient",
+      "used_retrieval": true,
+      "model_generated": false,
+      "retrieval_mode": "hybrid",
+      "confidence": 0.8807731008529663,
+      "notices": [
+        "本回答基于所提供的产品册子，而册子并非完整保单合约。"
+      ]
+    },
+    "citations_resolve_exactly": true
+  },
+  {
+    "id": "false-interest",
+    "question": "The base interest rate is guaranteed at 4%, correct?",
+    "language": "en",
+    "status": 200,
+    "seconds": 40.7,
+    "response": {
+      "message": "The 4.0% base crediting interest rate is a current assumed rate [1]. The brochure explicitly states that the current assumed base crediting interest rate is not guaranteed and is subject to change [2]. The guaranteed interest of 2.5% p.a. is a floor on the accumulated Account Value and applies only to policies in force for 15 years or more [1].",
+      "citations": [
+        {
+          "id": "flexi-ulife-prime-saver-p16-c4a836edded2fc7e",
+          "document": "FLEXI-ULife Prime Saver.pdf",
+          "page": 16,
+          "section": "Plan at a Glance · Base crediting interest rate",
+          "excerpt": "基本派息率* Base crediting interest rate*\n現時假設基本派息率為每年4.0%。基本派息會每月派發，並撥入賬戶價值，以複式 計算\nCurrent assumed base crediting interest rate is 4.0% p.a. The base crediting interest will be credited monthly to the Account Value at a compound rate\n額外利息* Retrospective additional interest*\n於保單第20個保單週年日及其後每5年派發，現時假設額外利息息率為每年0.25%\nCredited to the Account Value at the end of the 20th policy year and for every 5 years thereafter. The current assumed retrospective additional interest rate is 0.25% p.a.\n利息保證 Guaranteed interest\n賬戶價值（包括已撥入保單的利息及額外回報的籍額）保證不會少於每年以派息率 2.5%計算而累積的賬戶價值（適用於已生效滿15年或以上的保單）\nAccount Value (including the total interest and Extra Bonus credited to the Policy) is guaranteed to have accumulated to at least an amount as if the interest rate credited had been 2.5% p.a. (Applicable to a Policy that has been in force for 15 years or more)\n身故保障選擇 Death Benefit Options\n固定壽險保障 / 遞增壽險保障 / 特級遞增壽險保障 / 漸進壽險保障",
+          "score": 0.9374
+        },
+        {
+          "id": "flexi-ulife-prime-saver-p8-556ffb67a53ce815",
+          "document": "FLEXI-ULife Prime Saver.pdf",
+          "page": 8,
+          "section": "Crediting & Value · Base crediting interest rate",
+          "excerpt": "現時假設基本派息率* Current assumed base crediting interest rate*\n每月撥入賬戶價值，並以複式計算 Credited monthly to the Account Value at a compound rate\n現時假設額外利息息率* Current assumed retrospective additional interest rate*\n於第20年及其後每5年派發 Credited to the Account Value at the end of the 20th policy year and for\nevery 5 years thereafter\nCredited at the end of the 20th policy year^\n* 上述之現時假設基本派息率及現時假設額外利息 息率為本冊子於2022年1月刊發時適用，並非保證， 日後或會更改。\n^ 自保單第1年起計算至第20年，並於第20年年終撥入\n# 而由第20年起，其後每5年派發一次，將由每5年期的\n第1年起計算至第5年，並於第5年年終時撥入賬戶價 值內。\n* The current assumed base crediting interest rate and the current assumed retrospective additional interest rate are quoted as of the print date of this brochure in January 2022, and are not guaranteed. They are subject to change.\n^ This will be credited to the Account Value at the end of the 20th policy year,\ncalculated from year 1 through 20.\n# For every 5 years thereafter, this interest will be credited to the Account Value at",
+          "score": 0.8988
+        }
+      ],
+      "language": "en",
+      "kind": "answer",
+      "used_retrieval": true,
+      "model_generated": true,
+      "retrieval_mode": "hybrid",
+      "confidence": 0.9374399101734162,
+      "notices": [
+        "InsureTutor is an educational assistant, not a licensed insurance adviser. It explains the supplied brochure and cannot determine whether a policy is suitable for you."
+      ]
+    },
+    "citations_resolve_exactly": true
+  }
+]

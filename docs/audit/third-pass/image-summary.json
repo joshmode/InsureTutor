@@ -1,0 +1,11 @@
+{
+  "image_id": "sha256:f6155db9d0b6e944d50674e2c05b95cd59155d754a5e455fc9e1844432bbc514",
+  "severities": {
+    "LOW": 79,
+    "HIGH": 50,
+    "MEDIUM": 74,
+    "UNKNOWN": 7
+  },
+  "findings_with_fixed_versions": 0,
+  "python_findings": 0
+}

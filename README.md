@@ -95,6 +95,10 @@ image-only scans are rejected; scans need OCR first. Parsing runs in a bounded
 child process without provider credentials. Each document has separate chunks
 and vectors while sharing the already-loaded model. The API reports `hybrid` or
 `lexical`; missing local embeddings produce an explicit text-search notice.
+Only one upload or uncached document index is prepared at a time across workers;
+overlapping preparations return 429 so canceled requests cannot create a work queue.
+Viewing a PDF or citation after a restart reads stored evidence without rebuilding
+vectors. Shared-model inference is serialized in bounded batches.
 
 **New conversation** returns to the default brochure and requests deletion of
 the current upload. Refreshing also resets the chat UI. Private uploads expire
@@ -102,6 +106,8 @@ within 24 hours; the running app prunes expired files every minute and again at
 startup. Storage is bounded to 16 active uploads by default. Use HTTPS for remote
 access. Relevant excerpts go to the configured language-model provider when
 you ask a question; PDF parsing and embeddings remain local.
+For HTTPS terminating at a reverse proxy, set `BROCHURE_COOKIE_SECURE=true` so
+the private-document cookie retains its Secure flag on the internal HTTP hop.
 
 The API accepts raw PDF bytes at `POST /api/brochures` with
 `Content-Type: application/pdf` and a URL-encoded `X-File-Name` header. It returns
@@ -120,6 +126,8 @@ remains 180 seconds, and daily token reservations remain bounded.
 
 [Private-brochure and beginner-answer verification](docs/audit/PRIVATE-BROCHURES.md)
 records actual results, failed attempts and remaining limits.
+The [22 November skeptical review](docs/audit/THIRD-PASS.md) records subsequent
+fixes, fresh adversarial/browser checks and the remaining live-model refusal.
 
 ### Tutoring and evidence
 
